@@ -1,0 +1,75 @@
+<fragment>
+    <!--
+        Fragment: Set Target Authorization
+        Purpose: Configures authentication headers and URL rewriting based on backend pool type
+        
+        Expected Input Variables:
+        - targetPoolType: The type of the target backend pool (e.g., "azure-openai", "ai-foundry")
+        - targetBackendPool: The selected backend pool name
+        - requestedModel: The model name extracted from the request payload
+        
+        Expected Named Values:
+        - uami-client-id: User-assigned managed identity client ID for authentication
+        
+        Side Effects:
+        - Sets Authorization header with managed identity token
+        - Rewrites request URL for Azure OpenAI to include deployment path
+        - Sets backend service to the target backend pool
+    -->
+    
+    <!-- Configure authentication and URL rewriting based on backend pool type -->
+    <choose>
+        <when condition="@(((string)context.Variables["targetPoolType"]) == "non-llm-request")">
+            <!-- Non-LLM request (e.g., GET operations like listing models) -->
+            <!-- Skip authentication and URL rewriting - request will be handled by operation-specific policy -->
+        </when>
+        <when condition="@(((string)context.Variables["targetPoolType"]) == "azure-openai")">
+            <!-- Azure OpenAI: Use managed identity authentication with Cognitive Services resource -->
+            <authentication-managed-identity resource="https://cognitiveservices.azure.com" output-token-variable-name="msi-access-token" client-id="{{uami-client-id}}" ignore-error="false" />
+            <set-header name="Authorization" exists-action="override">
+                <value>@("Bearer " + (string)context.Variables["msi-access-token"])</value>
+            </set-header>
+            
+            <!-- Rewrite URL to inject /openai/deployments/{deployment}/ prefix while preserving the original API path -->
+            <set-variable name="rewriteTemplate" value="@{
+                string requestedModel = (string)context.Variables["requestedModel"];
+                string path = context.Request.Url.Path.TrimStart('/');
+                return string.Format("openai/deployments/{0}/{1}", requestedModel, path);
+            }" />
+            <rewrite-uri template="@((string)context.Variables["rewriteTemplate"])" copy-unmatched-params="true" />
+        </when>
+        <when condition="@(((string)context.Variables["targetPoolType"]) == "ai-foundry")">
+            <!-- AI Foundry: Use managed identity authentication with Cognitive Services resource -->
+            <!-- No URL rewriting needed - AI Foundry uses standard OpenAI-compatible paths -->
+            <authentication-managed-identity resource="https://cognitiveservices.azure.com" output-token-variable-name="msi-access-token" client-id="{{uami-client-id}}" ignore-error="false" />
+            <set-header name="Authorization" exists-action="override">
+                <value>@("Bearer " + (string)context.Variables["msi-access-token"])</value>
+            </set-header>
+
+             <!-- Rewrite URL to /models/{original-api-path} format for AI Foundry -->
+            <set-variable name="rewriteTemplate" value="@{
+                string path = context.Request.Url.Path.TrimStart('/');
+                return string.Format("models/{0}", path);
+            }" />
+            <rewrite-uri template="@((string)context.Variables["rewriteTemplate"])" copy-unmatched-params="true" />
+        </when>
+        <when condition="@(((string)context.Variables["targetPoolType"]) == "external")">
+            <!-- External LLM Provider: Authentication handled by backend credentials configuration -->
+            <!-- No URL rewriting or additional headers needed -->
+        </when>
+        <otherwise>
+            <!-- Default case: Use managed identity authentication -->
+            <authentication-managed-identity resource="https://cognitiveservices.azure.com" output-token-variable-name="msi-access-token" client-id="{{uami-client-id}}" ignore-error="false" />
+            <set-header name="Authorization" exists-action="override">
+                <value>@("Bearer " + (string)context.Variables["msi-access-token"])</value>
+            </set-header>
+        </otherwise>
+    </choose>
+    
+    <!-- Route request to the selected backend pool (skip for non-LLM requests) -->
+    <choose>
+        <when condition="@((string)context.Variables["targetBackendPool"] != "non-llm-request")">
+            <set-backend-service backend-id="@((string)context.Variables["targetBackendPool"])" />
+        </when>
+    </choose>
+</fragment>
