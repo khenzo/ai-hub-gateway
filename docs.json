@@ -84,14 +84,19 @@
   ],
   "anchors": [
     {
-      "name": "API Reference",
-      "icon": "code",
-      "url": "api-reference"
+      "name": "FAQ",
+      "icon": "circle-question",
+      "url": "resources/faq"
     },
     {
-      "name": "Changelog",
-      "icon": "list",
-      "url": "changelog"
+      "name": "Glossary",
+      "icon": "book",
+      "url": "resources/glossary"
+    },
+    {
+      "name": "API Reference",
+      "icon": "code",
+      "url": "resources/api-reference"
     }
   ],
   "search": {
