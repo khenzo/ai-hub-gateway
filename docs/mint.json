@@ -1,0 +1,130 @@
+{
+  "name": "AI Landing Zone Documentation",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#0078D4",
+    "light": "#0078D4",
+    "dark": "#005A9E",
+    "anchors": {
+      "from": "#0078D4",
+      "to": "#00A86B"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Deploy",
+    "url": "https://aka.ms/ai-hub-gateway"
+  },
+  "tabs": [
+    {
+      "name": "Getting Started",
+      "url": "getting-started"
+    },
+    {
+      "name": "Architecture",
+      "url": "architecture"
+    },
+    {
+      "name": "Deployment",
+      "url": "deployment"
+    },
+    {
+      "name": "Governance",
+      "url": "governance"
+    },
+    {
+      "name": "Operations",
+      "url": "operations"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "Azure Documentation",
+      "icon": "microsoft",
+      "url": "https://learn.microsoft.com/azure"
+    },
+    {
+      "name": "AI Landing Zones",
+      "icon": "azure",
+      "url": "https://github.com/Azure/AI-Landing-Zones"
+    },
+    {
+      "name": "Foundry Citadel",
+      "icon": "shield",
+      "url": "https://aka.ms/foundry-citadel"
+    }
+  ],
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "getting-started/introduction",
+          "getting-started/what-is-ai-landing-zone",
+          "getting-started/citadel-platform-overview",
+          "getting-started/business-value",
+          "getting-started/prerequisites"
+        ]
+      },
+      {
+        "group": "Architecture",
+        "pages": [
+          "architecture/overview",
+          "architecture/four-layer-model",
+          "architecture/hub-spoke-topology",
+          "architecture/apim-ai-gateway",
+          "architecture/citadel-governance-hub",
+          "architecture/agent-spokes",
+          "architecture/networking",
+          "architecture/security-fabric"
+        ]
+      },
+      {
+        "group": "Deployment",
+        "pages": [
+          "deployment/overview",
+          "deployment/quick-start",
+          "deployment/full-deployment",
+          "deployment/network-configuration",
+          "deployment/parameter-reference",
+          "deployment/troubleshooting"
+        ]
+      },
+      {
+        "group": "Governance",
+        "pages": [
+          "governance/overview",
+          "governance/access-contracts",
+          "governance/policy-enforcement",
+          "governance/identity-management",
+          "governance/content-safety",
+          "governance/pii-protection"
+        ]
+      },
+      {
+        "group": "Operations",
+        "pages": [
+          "operations/overview",
+          "operations/monitoring",
+          "operations/observability",
+          "operations/cost-management",
+          "operations/validation",
+          "operations/maintenance"
+        ]
+      }
+    ]
+  },
+  "footerSocials": {
+    "github": "https://github.com/Azure-Samples",
+    "linkedin": "https://linkedin.com/company/microsoft"
+  }
+}
