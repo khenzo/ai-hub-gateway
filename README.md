@@ -373,3 +373,15 @@ The documentation site will be available at `http://localhost:3000`.
 - **snippets/** - Reusable content components
 - **images/** - Diagrams and screenshots
 
+### Verification
+
+To verify your Mintlify setup:
+
+```bash
+# Validate docs.json
+node -e "JSON.parse(require('fs').readFileSync('docs.json')); console.log('✓ docs.json is valid')"
+
+# Check mintlify CLI version (after npm install)
+npx mintlify --version
+```
+
