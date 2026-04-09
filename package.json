@@ -1,0 +1,26 @@
+{
+  "name": "ai-landing-zone-docs",
+  "version": "1.0.0",
+  "description": "Enterprise-grade AI infrastructure deployment guide documentation",
+  "private": true,
+  "scripts": {
+    "dev": "mintlify dev",
+    "build": "mintlify build",
+    "start": "mintlify dev"
+  },
+  "devDependencies": {
+    "mintlify": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "ai",
+    "azure",
+    "infrastructure",
+    "landing-zone",
+    "documentation"
+  ],
+  "author": "AI Landing Zone Team",
+  "license": "MIT"
+}

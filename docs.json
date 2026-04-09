@@ -1,0 +1,84 @@
+{
+  "name": "AI Landing Zone Documentation",
+  "description": "Enterprise-grade AI infrastructure deployment guide",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#0078D4",
+    "light": "#0078D4",
+    "dark": "#0078D4",
+    "anchors": {
+      "from": "#0078D4",
+      "to": "#005A9E"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/example/ai-landing-zone"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Get Started",
+    "url": "/getting-started/introduction"
+  },
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "getting-started/introduction",
+        "getting-started/quickstart"
+      ]
+    },
+    {
+      "group": "Architecture",
+      "pages": [
+        "architecture/citadel-overview",
+        "architecture/networking"
+      ]
+    },
+    {
+      "group": "Deployment",
+      "pages": [
+        "deployment/prerequisites",
+        "deployment/step-by-step"
+      ]
+    },
+    {
+      "group": "Operations",
+      "pages": [
+        "operations/runbooks",
+        "operations/troubleshooting"
+      ]
+    }
+  ],
+  "anchors": [
+    {
+      "name": "API Reference",
+      "icon": "code",
+      "url": "api-reference"
+    },
+    {
+      "name": "Changelog",
+      "icon": "list",
+      "url": "changelog"
+    }
+  ],
+  "search": {
+    "prompt": "Search documentation..."
+  },
+  "modeToggle": {
+    "default": "light"
+  },
+  "feedback": {
+    "thumbsRating": true,
+    "suggestEdit": true
+  },
+  "footerSocials": {
+    "github": "https://github.com/example/ai-landing-zone",
+    "linkedin": "https://linkedin.com/company/example"
+  }
+}
