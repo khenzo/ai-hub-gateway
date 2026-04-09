@@ -1,0 +1,65 @@
+---
+title: "Step-by-Step"
+description: "Detailed deployment instructions for the AI Landing Zone"
+icon: "rocket"
+---
+
+# Step-by-Step Deployment
+
+Complete deployment guide for the AI Landing Zone.
+
+## Deployment Methods
+
+### Azure Developer CLI (Recommended)
+
+```bash
+# Authenticate
+azd auth login
+
+# Initialize
+cd ai-landing-zone
+azd init --template Azure-Samples/ai-hub-gateway-solution-accelerator -e my-env --branch citadel-v1
+
+# Deploy
+azd up
+```
+
+### Manual Deployment
+
+1. Clone the repository
+2. Configure parameters
+3. Deploy Bicep templates
+4. Validate deployment
+
+## Configuration
+
+Key parameters to configure:
+
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `environmentName` | Deployment environment | `production` |
+| `location` | Azure region | `eastus` |
+| `networkType` | Hub or spoke deployment | `hub` |
+
+## Post-Deployment
+
+After deployment:
+
+<Steps>
+  <Step title="Validate Resources">
+    Verify all Azure resources are provisioned
+  </Step>
+  <Step title="Configure Access">
+    Set up user access and permissions
+  </Step>
+  <Step title="Test Connectivity">
+    Validate network connectivity
+  </Step>
+  <Step title="Run Validation">
+    Execute validation notebooks
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+See [Troubleshooting](/operations/troubleshooting) for common issues.

@@ -1,0 +1,86 @@
+---
+title: "Troubleshooting"
+description: "Common issues and solutions"
+icon: "wrench"
+---
+
+# Troubleshooting Guide
+
+Solutions to common issues with the AI Landing Zone.
+
+## Deployment Issues
+
+### azd init fails
+
+**Symptom:** `azd init` command fails with authentication error.
+
+**Solution:**
+```bash
+azd auth login
+# Then retry azd init
+```
+
+### Resource deployment fails
+
+**Symptom:** Bicep deployment fails with quota or permission errors.
+
+**Solution:**
+- Verify subscription permissions
+- Check resource quotas
+- Review deployment logs
+
+## Gateway Issues
+
+### 401 Unauthorized
+
+**Cause:** Authentication token invalid or expired.
+
+**Solution:**
+- Verify token validity
+- Check Entra ID configuration
+- Review API subscription
+
+### 429 Too Many Requests
+
+**Cause:** Rate limit exceeded.
+
+**Solution:**
+- Check current usage
+- Request quota increase
+- Implement retry logic
+
+### 500 Internal Server Error
+
+**Cause:** Backend service failure.
+
+**Solution:**
+- Check backend health
+- Review error logs
+- Verify network connectivity
+
+## Network Issues
+
+### Cannot connect to gateway
+
+**Check:**
+- Firewall rules
+- NSG configurations
+- DNS resolution
+- VNet peering status
+
+### Private endpoint issues
+
+**Check:**
+- Private DNS zones
+- Endpoint connectivity
+- Subnet delegation
+
+## Getting Help
+
+<Note>
+  Can't find your issue? Open a GitHub issue or contact support.
+</Note>
+
+<Card title="Runbooks" icon="book-open" href="/operations/runbooks">
+  Check operational procedures for more guidance
+</Card>
