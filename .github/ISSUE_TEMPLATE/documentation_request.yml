@@ -1,0 +1,75 @@
+name: Documentation Request
+description: Request new documentation or improvements to existing docs
+title: "[Docs] "
+labels: ["documentation", "needs-review"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to request documentation! Please fill out the information below.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What documentation is needed?
+      description: Clearly describe the topic or content gap
+      placeholder: "We need documentation for deploying the gateway with Terraform..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: target-audience
+    attributes:
+      label: Who is the target audience?
+      description: Who will benefit from this documentation?
+      placeholder: |
+        - [ ] Architects designing the infrastructure
+        - [ ] Developers implementing solutions
+        - [ ] Operations teams managing deployments
+        - [ ] Business stakeholders making decisions
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How urgent is this documentation?
+      options:
+        - Critical - Blocking users
+        - High - Significantly impacts user experience
+        - Medium - Would improve understanding
+        - Low - Nice to have
+    validations:
+      required: true
+
+  - type: textarea
+    id: related-content
+    attributes:
+      label: Related existing content
+      description: Link to any related existing documentation
+      placeholder: |
+        - Current page: /architecture/overview
+        - Related guide: /deployment/quickstart
+        - Gap identified in: /troubleshooting/common-issues
+
+  - type: textarea
+    id: proposed-content
+    attributes:
+      label: Proposed content outline (optional)
+      description: If you have ideas for the structure, outline them here
+      placeholder: |
+        1. Overview of the topic
+        2. Prerequisites
+        3. Step-by-step guide
+        4. Common issues and solutions
+        5. Related resources
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Any other information that might be helpful
+      placeholder: Links to external resources, internal notes, screenshots, etc.

@@ -1,0 +1,78 @@
+name: Bug Report
+description: Report a bug or error in the documentation
+title: "[Bug] "
+labels: ["bug", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please provide details so we can fix it quickly.
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug description
+      description: What is wrong with the documentation?
+      placeholder: "The code example in the quickstart guide produces an error..."
+    validations:
+      required: true
+
+  - type: input
+    id: page-url
+    attributes:
+      label: Page URL
+      description: Link to the page with the bug
+      placeholder: "https://docs.ailandingzone.com/getting-started/quickstart"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: What should it say/do?
+      description: What is the correct information or behavior?
+      placeholder: "The command should be 'npm install' instead of 'npm i'..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: What does it currently say/do?
+      description: What is currently incorrect?
+      placeholder: "The command shown is 'npm i' which doesn't work in all environments..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce (for code examples)
+      description: If this is about a code example, how can we reproduce the error?
+      placeholder: |
+        1. Copy the code from section X
+        2. Run it in environment Y
+        3. See error Z
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to help explain the problem
+      placeholder: Drag and drop images here
+
+  - type: input
+    id: browser-info
+    attributes:
+      label: Browser/Device (if visual issue)
+      description: What browser and device are you using?
+      placeholder: "Chrome 120, macOS 14"
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Any other information
+      placeholder: Links to correct information, suggested fixes, etc.

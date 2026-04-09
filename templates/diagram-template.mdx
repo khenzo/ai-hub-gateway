@@ -1,0 +1,296 @@
+:---
+title: 'Diagram Guidelines'
+description: 'Best practices for creating diagrams and visual content'
+icon: 'image'
+---
+
+# Diagram Guidelines
+
+This guide explains how to create consistent, accessible diagrams for AI Landing Zone documentation.
+
+## Format Selection
+
+### SVG (Preferred)
+
+**When to use:**
+- Architecture diagrams
+- Topology diagrams
+- Flowcharts
+- Any diagram with text that needs to be accessible
+
+**Advantages:**
+- Scalable without quality loss
+- Small file sizes
+- Text is selectable and accessible
+- Can be styled with CSS
+- Animatable
+
+### PNG
+
+**When to use:**
+- Screenshots
+- Photographs
+- Complex visualizations with gradients
+- When exact pixel rendering is critical
+
+**Guidelines:**
+- Minimum resolution: 144 DPI (2x for retina)
+- Use PNG-8 for simple images, PNG-24 for complex
+- Optimize with tools like TinyPNG
+
+## Embedding Diagrams
+
+### Basic Embed
+
+```mdx
+<img 
+  src="/images/diagrams/architecture-overview.svg" 
+  alt="Hub-spoke network topology with central hub VNet"
+  width="100%"
+/>
+```
+
+### With Caption
+
+```mdx
+<figure>
+  <img 
+    src="/images/diagrams/architecture-overview.svg" 
+    alt="Hub-spoke network topology"
+    width="100%"
+  />
+  <figcaption>
+    Figure 1: Hub-spoke architecture for AI Landing Zone deployment
+  </figcaption>
+</figure>
+```
+
+### Responsive Images
+
+```mdx
+<img 
+  src="/images/diagrams/architecture-overview.svg" 
+  alt="Architecture diagram"
+  style={{ maxWidth: '100%', height: 'auto' }}
+/>
+```
+
+## Alt Text Requirements
+
+### Good Alt Text
+
+**Describe the content, not appearance:**
+
+✅ **Good:** "Hub-spoke topology showing central hub VNet with gateway subnet connected to three spoke VNets containing AI workloads"
+
+❌ **Avoid:** "Architecture diagram" or "Blue boxes connected by lines"
+
+### Alt Text Length
+
+- Aim for 125 characters or less
+- Include key relationships and components
+- Don't repeat caption information
+
+### Complex Diagrams
+
+For complex diagrams, use a combination approach:
+
+```mdx
+<figure>
+  <img 
+    src="/images/diagrams/complex-architecture.svg" 
+    alt="Four-layer AI architecture with Edge, Gateway, Services, and Data layers"
+  />
+  <figcaption>
+    Figure 2: Four-layer AI Landing Zone architecture. 
+    <a href="#detailed-description">See detailed description below</a>.
+  </figcaption>
+</figure>
+
+### Detailed Description
+
+The architecture consists of four layers:
+
+1. **Edge Layer**: CDN and DDoS protection
+2. **Gateway Layer**: API Management and load balancers
+3. **Services Layer**: AI services and applications
+4. **Data Layer**: Databases and storage
+```
+
+## Diagram Standards
+
+### Color Palette
+
+Use the Azure-branded color scheme:
+
+```css
+/* Primary */
+--azure-blue: #0078D4;
+--azure-light: #106EBE;
+--azure-dark: #005A9E;
+
+/* Secondary */
+--accent-teal: #00B294;
+--accent-purple: #5C2D91;
+--accent-orange: #D83B01;
+
+/* Neutrals */
+--gray-100: #F3F2F1;
+--gray-200: #E1DFDD;
+--gray-700: #605E5C;
+--gray-900: #323130;
+
+/* Status */
+--success: #107C10;
+--warning: #FFC107;
+--error: #D83B01;
+--info: #0078D4;
+```
+
+### Typography
+
+- Use system fonts or Segoe UI
+- Minimum 12pt for diagram text
+- Maximum 2 font weights per diagram
+- High contrast (4.5:1 minimum)
+
+### Icons
+
+Use consistent iconography:
+- **Azure resources**: Official Azure icons
+- **Custom components**: Consistent geometric shapes
+- **Status indicators**: Standard symbols (check, X, !, ?)
+
+## File Organization
+
+```
+images/
+├── diagrams/
+│   ├── architecture/      # Architecture diagrams
+│   ├── topology/          # Network topology diagrams
+│   ├── flowcharts/        # Process flows
+│   └── components/        # Component diagrams
+├── screenshots/
+│   ├── azure-portal/      # Azure Portal screenshots
+│   ├── deployment/        # Deployment process shots
+│   └── configuration/     # Configuration UI shots
+└── icons/
+    └── custom/            # Custom SVG icons
+```
+
+### Naming Convention
+
+```
+[section]-[purpose]-[variant]-[version].[ext]
+
+Examples:
+- architecture-hub-spoke-overview-v2.svg
+- topology-vnet-peering-detailed.svg
+- flowchart-request-lifecycle-v1.svg
+- azure-portal-apim-create-step1.png
+```
+
+## SVG Guidelines
+
+### Structure
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<svg 
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 800 600"
+  width="800"
+  height="600"
+  role="img"
+  aria-label="Description of diagram"
+>
+  <defs>
+    <!-- Gradients and filters -->
+  </defs>
+  
+  <!-- Diagram content -->
+  <g id="layer1">
+    <!-- Elements -->
+  </g>
+</svg>
+```
+
+### CSS Classes
+
+Use semantic class names:
+
+```xml
+<style>
+  .component { fill: #0078D4; }
+  .component-label { 
+    font-family: 'Segoe UI', sans-serif; 
+    font-size: 14px;
+    fill: #323130;
+  }
+  .connection { 
+    stroke: #605E5C; 
+    stroke-width: 2;
+  }
+  .connection-label {
+    font-size: 12px;
+    fill: #605E5C;
+  }
+</style>
+```
+
+### Accessibility
+
+```xml
+<svg role="img" aria-label="Architecture diagram">
+  <title>Hub-spoke network topology</title>
+  <desc>
+    Detailed description for screen readers...
+  </desc>
+  <!-- Content -->
+</svg>
+```
+
+## Templates
+
+See the `templates/` directory for starter SVG templates:
+
+- `architecture-diagram.svg` - Hub-spoke topology template
+- `component-diagram.svg` - 4-layer model template
+- `flow-diagram.svg` - Process/workflow template
+
+## Tools
+
+### Recommended Tools
+
+**Diagramming:**
+- **Figma** - Best for complex diagrams
+- **Draw.io** - Free, web-based, exports SVG
+- **Lucidchart** - Collaborative diagramming
+- **Visio** - Enterprise diagrams
+
+**SVG Optimization:**
+- **SVGO** - Command-line optimizer
+- **SVGOMG** - Web-based optimizer
+- **Illustrator** - Professional editing
+
+**Screenshots:**
+- **ShareX** (Windows)
+- **CleanShot X** (Mac)
+- **Flameshot** (Linux)
+
+## Checklist
+
+Before submitting diagrams:
+
+- [ ] SVG format preferred (PNG for screenshots only)
+- [ ] Alt text describes content, not appearance
+- [ ] File size optimized (SVG < 100KB, PNG < 500KB)
+- [ ] Colors match Azure brand palette
+- [ ] Text is legible at 100% zoom
+- [ ] Responsive (works on mobile)
+- [ ] Caption explains context
+- [ ] Source file preserved (if editable format)
+
+---
+
+*For templates, see the SVG files in the templates/ directory.*
