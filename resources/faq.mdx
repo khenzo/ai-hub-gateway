@@ -1,0 +1,175 @@
+---
+title: "FAQ"
+description: "Frequently asked questions about AI Landing Zone"
+icon: "circle-question"
+---
+
+# Frequently Asked Questions
+
+Find answers to common questions about the AI Landing Zone.
+
+## General Questions
+
+<AccordionGroup>
+  <Accordion title="What is AI Landing Zone?">
+    The AI Landing Zone is a comprehensive framework for deploying and governing enterprise AI infrastructure on Azure. It provides a secure, scalable foundation for AI workloads with built-in observability, cost management, and governance controls.
+  </Accordion>
+  
+  <Accordion title="Who should use AI Landing Zone?">
+    AI Landing Zone is designed for:
+    - Organizations deploying AI at scale
+    - Enterprises requiring governance over AI usage
+    - Teams needing cost visibility and control
+    - Organizations with compliance requirements
+    
+    It's particularly valuable for platform teams building internal AI platforms.
+  </Accordion>
+  
+  <Accordion title="What's the difference from Azure Landing Zone?">
+    AI Landing Zone extends Microsoft's Azure Landing Zone with AI-specific capabilities:
+    - API Management integration for AI service governance
+    - Token-based usage tracking and cost allocation
+    - Access contracts for policy enforcement
+    - AI-focused observability and monitoring
+    
+    It follows ALZ principles while adding AI workload-specific features.
+  </Accordion>
+</AccordionGroup>
+
+## Getting Started
+
+<AccordionGroup>
+  <Accordion title="How do I get started?">
+    Follow our structured learning path:
+    1. Read the [Introduction](/getting-started/introduction)
+    2. Review the [Quickstart](/getting-started/quickstart)
+    3. Check [Prerequisites](/getting-started/prerequisites)
+    4. Learn [Core Concepts](/getting-started/concepts)
+    
+    Then proceed to the Architecture section for design details.
+  </Accordion>
+  
+  <Accordion title="What are the prerequisites?">
+    You'll need:
+    - Azure subscription with appropriate permissions
+    - Azure CLI and basic Azure knowledge
+    - Understanding of networking concepts
+    - Familiarity with AI services (helpful but not required)
+    
+    See [Prerequisites](/getting-started/prerequisites) for complete details.
+  </Accordion>
+  
+  <Accordion title="Is there a cost to use AI Landing Zone?">
+    AI Landing Zone itself is a documentation and reference architecture framework—free to use. However, you'll incur Azure costs for the resources deployed, including:
+    - API Management
+    - Azure OpenAI Service
+    - Networking components
+    - Monitoring infrastructure
+    
+    Cost estimates will be provided in the implementation guides.
+  </Accordion>
+</AccordionGroup>
+
+## Technical Questions
+
+<AccordionGroup>
+  <Accordion title="Which Azure regions are supported?">
+    AI Landing Zone can be deployed to any Azure region that supports the required services:
+    - Azure API Management
+    - Azure OpenAI Service
+    - Azure AI Search
+    - Azure Machine Learning
+    
+    Check [Azure Products by Region](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/) for service availability.
+  </Accordion>
+  
+  <Accordion title="Can I use existing Azure resources?">
+    Yes, AI Landing Zone can integrate with existing resources:
+    - Existing Virtual Networks (hub or spoke)
+    - Existing Azure AD tenants
+    - Existing Log Analytics workspaces
+    - Existing Key Vault instances
+    
+    Integration guidance will be provided in deployment guides.
+  </Accordion>
+  
+  <Accordion title="What about multi-cloud or hybrid scenarios?">
+    The current focus is Azure-native deployment. Future phases may address:
+    - AWS/Azure hybrid patterns
+    - Multi-cloud governance
+    - On-premises integration
+    
+    For hybrid connectivity, ExpressRoute and VPN options are supported.
+  </Accordion>
+</AccordionGroup>
+
+## Governance and Security
+
+<AccordionGroup>
+  <Accordion title="How does access control work?">
+    Access control uses multiple layers:
+    - Azure AD for authentication
+    - RBAC for authorization
+    - Access contracts for AI service usage policies
+    - API Management policies for runtime enforcement
+    
+    See [Security Model](/architecture/security) for details.
+  </Accordion>
+  
+  <Accordion title="What compliance standards are supported?">
+    The architecture supports:
+    - SOC 2
+    - ISO 27001
+    - GDPR
+    - HIPAA (with additional configuration)
+    
+    Compliance depends on proper configuration and your organization's implementation.
+  </Accordion>
+  
+  <Accordion title="How is cost tracking handled?">
+    Cost tracking includes:
+    - Per-application token consumption
+    - Azure Cost Management integration
+    - Budget alerts and thresholds
+    - Usage attribution via tagging
+    
+    See [Observability](/architecture/core-components#observability-platform) for monitoring details.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Where can I get help?">
+    - Check [Troubleshooting](/operations/troubleshooting) for common issues
+    - Review the [Glossary](/resources/glossary) for terminology
+    - Open an issue on GitHub
+    - Contact your Microsoft account team
+  </Accordion>
+  
+  <Accordion title="How do I report a bug?">
+    Please open an issue on GitHub with:
+    - Description of the problem
+    - Steps to reproduce
+    - Expected vs actual behavior
+    - Environment details (region, services used)
+  </Accordion>
+  
+  <Accordion title="Can I contribute?">
+    Yes! See [Contributing](/resources/contributing) for guidelines on:
+    - Reporting issues
+    - Suggesting enhancements
+    - Submitting documentation improvements
+    - Code contributions
+  </Accordion>
+</AccordionGroup>
+
+## Still Have Questions?
+
+<Card title="View Troubleshooting" icon="wrench" href="/operations/troubleshooting">
+  Common issues and solutions
+</Card>
+
+<Card title="Check the Glossary" icon="book" href="/resources/glossary">
+  Definitions of key terms
+</Card>
