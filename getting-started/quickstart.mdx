@@ -1,0 +1,103 @@
+---
+title: "Quickstart"
+description: "Get up and running with AI Landing Zone in minutes"
+icon: "bolt"
+---
+
+# Quickstart Guide
+
+Deploy your first AI Landing Zone in under 30 minutes.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+<Check>Azure subscription with appropriate permissions</Check>
+<Check>Azure CLI installed and configured</Check>
+<Check>Git access to deployment templates</Check>
+
+## Deployment Steps
+
+<Steps>
+  <Step title="Clone the Repository">
+    ```bash
+    git clone https://github.com/example/ai-landing-zone.git
+    cd ai-landing-zone
+    ```
+  </Step>
+  
+  <Step title="Configure Environment">
+    Copy the sample configuration and customize for your environment:
+    ```bash
+    cp config/sample.env config/production.env
+    # Edit config/production.env with your settings
+    ```
+  </Step>
+  
+  <Step title="Run Deployment">
+    Execute the deployment script:
+    ```bash
+    ./scripts/deploy.sh --environment production
+    ```
+  </Step>
+  
+  <Step title="Verify Deployment">
+    Check that all resources are provisioned:
+    ```bash
+    ./scripts/verify.sh --environment production
+    ```
+  </Step>
+</Steps>
+
+## What Gets Deployed
+
+<Tabs>
+  <Tab title="Core Infrastructure">
+    - Virtual Network with subnets
+    - Network Security Groups
+    - Azure Key Vault
+    - Log Analytics workspace
+  </Tab>
+  <Tab title="AI Services">
+    - Azure OpenAI Service
+    - Azure AI Search
+    - Azure ML Workspace
+  </Tab>
+  <Tab title="Security">
+    - Managed Identities
+    - Private Endpoints
+    - Azure Policy assignments
+  </Tab>
+</Tabs>
+
+## Post-Deployment
+
+<AccordionGroup>
+  <Accordion title="Access the Portal">
+    Once deployment completes, access the management portal at the URL provided in the output.
+  </Accordion>
+  <Accordion title="Configure Access">
+    Assign users and groups to appropriate roles using the access management scripts.
+  </Accordion>
+  <Accordion title="Set Up Monitoring">
+    Review the monitoring dashboard and configure alert thresholds.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Architecture Deep Dive" icon="microscope" href="/architecture/citadel-overview">
+    Understand the design principles behind the landing zone
+  </Card>
+  <Card title="Deployment Options" icon="sliders" href="/deployment/step-by-step">
+    Explore advanced deployment configurations
+  </Card>
+  <Card title="Operations Guide" icon="wrench" href="/operations/runbooks">
+    Learn how to manage your landing zone
+  </Card>
+</CardGroup>
+
+<Tip>
+  For production deployments, review the full [Prerequisites](/deployment/prerequisites) and [Step-by-Step](/deployment/step-by-step) guides.
+</Tip>

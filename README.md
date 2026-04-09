@@ -340,6 +340,36 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 *Providing protection, structure, and strength as you scale new heights with enterprise AI*
 
-[🚀 Deploy Now](./guides/quick-deployment-guide.md) | [📚 Documentation](./guides/) | [🤝 Contribute](#-contributing)
+[🚀 Deploy Now](./guides/quick-deployment-guide.md) | [📚 Documentation](./guides/) | [🤝 Contribute](#-contributing) | [📖 Mintlify Docs](#-documentation-site)
 
 </div>
+
+---
+
+## 📖 Documentation Site
+
+This repository includes a Mintlify-powered documentation site for the AI Landing Zone.
+
+### Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+# or
+mintlify dev
+```
+
+The documentation site will be available at `http://localhost:3000`.
+
+### Documentation Structure
+
+- **getting-started/** - Getting started guides (Introduction, Quickstart)
+- **architecture/** - Architecture documentation (Citadel Overview, Networking)
+- **deployment/** - Deployment guides (Prerequisites, Step-by-step)
+- **operations/** - Operations and runbooks (Runbooks, Troubleshooting)
+- **snippets/** - Reusable content components
+- **images/** - Diagrams and screenshots
+
