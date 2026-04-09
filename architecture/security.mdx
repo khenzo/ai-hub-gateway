@@ -1,0 +1,245 @@
+---
+title: "Security Model"
+description: "Security controls, compliance framework, and Zero Trust implementation"
+icon: "lock"
+---
+
+# Security Model
+
+The AI Landing Zone implements a defense-in-depth security strategy aligned with Zero Trust principles and enterprise compliance requirements.
+
+## Security Principles
+
+<CardGroup>
+  <Card title="Zero Trust" icon="shield-check">
+    Never trust, always verify. Explicit authentication and authorization for every request.
+  </Card>
+  <Card title="Defense in Depth" icon="layer-group">
+    Multiple security layers protect AI services from network to application level.
+  </Card>
+  <Card title="Least Privilege" icon="user-shield">
+    Minimum necessary permissions for all identities and services.
+  </Card>
+  <Card title="Assume Breach" icon="triangle-exclamation">
+    Design for containment and rapid detection of security incidents.
+  </Card>
+</CardGroup>
+
+## Security Layers
+
+### Layer 1: Identity and Access
+
+**Azure Active Directory** serves as the identity foundation:
+
+<Steps>
+  <Step title="Authentication">
+    - Multi-factor authentication (MFA) required
+    - Conditional Access policies
+    - Managed identities for service-to-service auth
+    - No long-lived credentials
+  </Step>
+  
+  <Step title="Authorization">
+    - Role-Based Access Control (RBAC) at all levels
+    - Just-in-time (JIT) access for privileged operations
+    - Privileged Identity Management (PIM) integration
+    - Custom role definitions for AI workloads
+  </Step>
+  
+  <Step title="Identity Protection">
+    - Risk-based policies
+    - Anomaly detection
+    - Automated remediation workflows
+  </Step>
+</Steps>
+
+### Layer 2: Network Security
+
+<AccordionGroup>
+  <Accordion title="Network Segmentation">
+    - Hub-spoke topology isolates workloads
+    - Subnet-level segmentation for service types
+    - NSGs enforce traffic rules
+    - Application security groups for flexible grouping
+  </Accordion>
+  
+  <Accordion title="Private Connectivity">
+    - Private endpoints for all AI services
+    - No public internet exposure for backend services
+    - VNet injection for managed services
+    - Private DNS for service discovery
+  </Accordion>
+  
+  <Accordion title="Traffic Inspection">
+    - Azure Firewall for egress filtering
+    - Network Virtual Appliances (optional)
+    - Distributed Denial of Service (DDoS) Protection Standard
+    - TLS inspection (where supported)
+  </Accordion>
+</AccordionGroup>
+
+### Layer 3: Data Protection
+
+| Control | Implementation |
+|---------|---------------|
+| Encryption at Rest | Azure-managed keys (default) or customer-managed keys |
+| Encryption in Transit | TLS 1.2+ required for all connections |
+| Key Management | Azure Key Vault with HSM-backed keys |
+| Secret Management | Key Vault with rotation policies |
+| Data Classification | Azure Purview integration (optional) |
+
+### Layer 4: Application Security
+
+<Steps>
+  <Step title="API Security">
+    - API Management gateway with policies
+    - OAuth 2.0 and OpenID Connect
+    - Rate limiting and throttling
+    - Request/response validation
+  </Step>
+  
+  <Step title="Content Safety">
+    - Azure Content Moderator integration
+    - Input/output filtering policies
+    - Prompt injection detection
+    - Output safety checks
+  </Step>
+  
+  <Step title="Secure Development">
+    - Secret scanning in CI/CD
+    - Infrastructure as Code security scanning
+    - Container image scanning
+  </Step>
+</Steps>
+
+## Compliance Framework
+
+### Regulatory Alignment
+
+The AI Landing Zone architecture supports compliance with:
+
+<CardGroup>
+  <Card title="SOC 2" icon="file-certificate">
+    Security, availability, and confidentiality controls
+  </Card>
+  <Card title="ISO 27001" icon="certificate">
+    Information security management standards
+  </Card>
+  <Card title="GDPR" icon="scale-balanced">
+    Data protection and privacy requirements
+  </Card>
+  <Card title="HIPAA" icon="user-doctor">
+    Healthcare data protection (optional configuration)
+  </Card>
+</CardGroup>
+
+### Azure Policy Integration
+
+Built-in and custom policies enforce compliance:
+
+```json
+{
+  "policyDefinition": "require-private-endpoint",
+  "effect": "Deny",
+  "description": "AI services must use private endpoints"
+}
+```
+
+| Policy Category | Example Policies |
+|-----------------|-----------------|
+| Network | Require NSG on subnets, deny public endpoints |
+| Encryption | Enforce TLS 1.2, require encryption at rest |
+| Identity | Require managed identities, enforce MFA |
+| Tagging | Require cost center, environment tags |
+
+## Threat Protection
+
+### Microsoft Defender for Cloud
+
+Defender for Cloud provides unified security management:
+
+- **Secure Score**: Continuous assessment of security posture
+- **Threat Protection**: Advanced threat detection for AI services
+- **Vulnerability Assessment**: Automated scanning and recommendations
+- **Just-in-Time Access**: Reduce exposure of management ports
+
+### AI-Specific Threats
+
+<AccordionGroup>
+  <Accordion title="Prompt Injection">
+    **Risk**: Malicious input designed to manipulate AI behavior
+    
+    **Mitigation**:
+    - Input validation and sanitization
+    - Content filtering policies
+    - Application-level constraints
+    - Monitoring for anomalous patterns
+  </Accordion>
+  
+  <Accordion title="Data Exfiltration">
+    **Risk**: Unauthorized extraction of training data or sensitive outputs
+    
+    **Mitigation**:
+    - Private endpoints prevent internet egress
+    - NSGs limit outbound traffic
+    - Azure Firewall with FQDN filtering
+    - Data Loss Prevention (DLP) policies
+  </Accordion>
+  
+  <Accordion title="Model Abuse">
+    **Risk**: Unauthorized or excessive use of AI services
+    
+    **Mitigation**:
+    - Access contracts with usage limits
+    - Rate limiting at gateway
+    - Cost anomaly detection
+    - Audit logging of all requests
+  </Accordion>
+</AccordionGroup>
+
+## Security Operations
+
+### Security Monitoring
+
+<CardGroup>
+  <Card title="Azure Sentinel" icon="radar">
+    **SIEM Integration**
+    - Centralized log collection
+    - Threat detection rules
+    - Incident response workflows
+    - AI-powered analytics
+  </Card>
+  
+  <Card title="Log Analytics" icon="chart-bar">
+    **Centralized Logging**
+    - All service logs aggregated
+    - Retention policies (default 90 days)
+    - Query and analysis capabilities
+    - Integration with Azure Monitor
+  </Card>
+</CardGroup>
+
+### Audit and Compliance
+
+- **Activity Logs**: All Azure control plane operations
+- **Diagnostic Logs**: Data plane operations for AI services
+- **Access Logs**: Authentication and authorization events
+- **Change Tracking**: Infrastructure and policy modifications
+
+## Next Steps
+
+<CardGroup>
+  <Card title="AI Patterns" icon="wand-magic-sparkles" href="/ai-patterns/overview">
+    Security patterns for AI workloads
+  </Card>
+  <Card title="Implementation" icon="rocket" href="/implementation/deployment">
+    Security configuration and deployment
+  </Card>
+  <Card title="Operations" icon="gauge" href="/operations/monitoring">
+    Security monitoring and incident response
+  </Card>
+</CardGroup>
+
+<Card title="Explore AI Patterns →" icon="arrow-right" href="/ai-patterns/overview">
+    Learn about AI-specific security patterns and best practices
+</Card>

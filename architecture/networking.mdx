@@ -1,47 +1,217 @@
 ---
 title: "Networking"
-description: "Network architecture and security for the AI Landing Zone"
+description: "Network topology, connectivity patterns, and security for AI Landing Zone"
 icon: "network-wired"
 ---
 
 # Networking Architecture
 
-Secure network design for enterprise AI workloads.
+The AI Landing Zone implements a secure, scalable network architecture using Azure's hub-and-spoke topology with AI-specific connectivity patterns.
+
+## Hub and Spoke Overview
+
+The Citadel architecture separates the central governance hub from workload-specific landing zones:
+
+<CardGroup>
+  <Card title="Citadel Hub Network" icon="shield-halved">
+    **Central Services**
+    - API Management gateway
+    - Log Analytics workspace
+    - Shared monitoring agents
+    - Cross-spoke connectivity
+  </Card>
+  
+  <Card title="Landing Zone Spokes" icon="network-wired">
+    **AI Workload Networks**
+    - Azure OpenAI private endpoints
+    - Application subnets
+    - AI Search instances
+    - ML workspaces
+  </Card>
+</CardGroup>
 
 ## Network Topology
 
-The AI Landing Zone supports two deployment patterns:
+### Hub Network Components
 
-### Hub Network
+The Citadel hub contains shared services accessed by all spokes:
 
-Deploy within your existing hub VNet for direct connectivity.
+<Steps>
+  <Step title="DMZ Subnet">
+    - Azure Firewall or NVAs
+    - Application Gateway (if needed)
+    - DDoS Protection Standard
+  </Step>
+  
+  <Step title="Shared Services Subnet">
+    - Azure API Management (internal VNet mode)
+    - Log Analytics agents
+    - Jump boxes (optional)
+  </Step>
+  
+  <Step title="Gateway Subnet">
+    - VPN Gateway (hybrid connectivity)
+    - ExpressRoute gateway (if applicable)
+  </Step>
+</Steps>
 
-<Accordion title="Benefits">
-- Simplified routing
-- Direct spoke communication
-- Shared security policies
-</Accordion>
+### Spoke Network Components
 
-### Spoke Network
+Each landing zone spoke has dedicated subnets for AI workloads:
 
-Deploy in a dedicated spoke with hub peering for enhanced isolation.
+<AccordionGroup>
+  <Accordion title="AI Services Subnet">
+    - Azure OpenAI private endpoints
+    - Azure AI Search endpoints
+    - Azure ML workspace endpoints
+    - Private DNS zone links
+  </Accordion>
+  
+  <Accordion title="Application Subnet">
+    - Application servers/containers
+    - Internal load balancers
+    - Service endpoints
+  </Accordion>
+  
+  <Accordion title="Integration Subnet">
+    - Data integration services
+    - ETL/ELT processing
+    - Batch processing nodes
+  </Accordion>
+</AccordionGroup>
 
-<Accordion title="Benefits">
-- Network isolation
-- Granular security controls
-- Clear boundaries
-</Accordion>
+## Connectivity Patterns
+
+### Spoke-to-Hub Communication
+
+Landing zones communicate with the Citadel hub for:
+
+- **API Gateway**: All AI requests route through the hub's APIM
+- **Logging**: Diagnostic data flows to central Log Analytics
+- **Policy**: Configuration and compliance status reporting
+
+### Spoke-to-Spoke Communication
+
+Direct spoke-to-spoke communication is typically **not required** for AI workloads. Each spoke operates independently, accessing shared services through the hub.
+
+<Note>
+  If cross-spoke communication is needed, route traffic through the hub firewall for inspection and logging.
+</Note>
+
+### On-Premises Connectivity
+
+<CardGroup>
+  <Card title="VPN Gateway" icon="lock">
+    **Site-to-Site VPN**
+    - Encrypted tunnel over internet
+    - Suitable for dev/test and smaller workloads
+    - Cost-effective for moderate bandwidth
+  </Card>
+  
+  <Card title="ExpressRoute" icon="network-wired">
+    **Private Connectivity**
+    - Dedicated private circuit
+    - Higher bandwidth and lower latency
+    - Required for production workloads
+  </Card>
+</CardGroup>
 
 ## Security Features
 
-- Private endpoints for all services
-- Network security groups
-- Azure Firewall integration
-- DDoS protection
+### Network Isolation
 
-## Connectivity
+- **Private Endpoints**: All AI services use private endpoints (no public internet exposure)
+- **Network Segmentation**: Subnets isolate different workload types
+- **Micro-segmentation**: NSGs provide subnet-level traffic control
 
-- VNet peering
-- ExpressRoute support
-- VPN Gateway ready
-- Hybrid connectivity
+### Traffic Inspection
+
+<AccordionGroup>
+  <Accordion title="Azure Firewall">
+    - Centralized egress filtering
+    - FQDN filtering for outbound traffic
+    - Threat intelligence integration
+    - Application rules for HTTP/S traffic
+  </Accordion>
+  
+  <Accordion title="Network Security Groups">
+    - Subnet-level access control
+    - Service tag support for Azure services
+    - Application security groups for workload grouping
+  </Accordion>
+</AccordionGroup>
+
+### DNS Configuration
+
+Private DNS zones enable name resolution for private endpoints:
+
+```
+privatelink.openai.azure.com
+privatelink.cognitiveservices.azure.com
+privatelink.search.windows.net
+privatelink.api.azureml.ms
+```
+
+These zones are linked to all VNets to enable cross-network resolution.
+
+## Deployment Patterns
+
+### Pattern 1: Existing Hub
+
+Deploy Citadel components into your existing Azure hub network:
+
+**Benefits:**
+- Leverages existing connectivity (VPN/ExpressRoute)
+- Consistent with current network architecture
+- Simpler DNS and routing configuration
+
+**Considerations:**
+- Must meet Citadel's network requirements
+- May require NSG rule updates
+- IP address space planning
+
+### Pattern 2: New Hub
+
+Deploy a dedicated Citadel hub network:
+
+**Benefits:**
+- Clean separation of AI infrastructure
+- Custom network sizing and segmentation
+- Independent lifecycle management
+
+**Considerations:**
+- Additional VNet peering configuration
+- Separate connectivity requirements
+- Higher operational overhead
+
+### Pattern 3: Virtual WAN
+
+Integrate Citadel with Azure Virtual WAN:
+
+**Benefits:**
+- Simplified large-scale connectivity
+- Centralized routing and security
+- Native SD-WAN integration
+
+**Considerations:**
+- Requires Virtual WAN expertise
+- Custom routing policies needed
+- May impact existing WAN architecture
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Security Model" icon="lock" href="/architecture/security">
+    Deep dive into security controls and compliance
+  </Card>
+  <Card title="Implementation" icon="rocket" href="/implementation/deployment">
+    Network deployment and configuration guides
+  </Card>
+  <Card title="Operations" icon="gauge" href="/operations/monitoring">
+    Network monitoring and troubleshooting
+  </Card>
+</CardGroup>
+
+<Card title="Learn Security Model →" icon="arrow-right" href="/architecture/security">
+  Understand security controls and Zero Trust principles
+</Card>

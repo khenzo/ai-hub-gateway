@@ -1,0 +1,279 @@
+---
+title: "Core Components"
+description: "Detailed view of Citadel Gateway, Registry, Observability, and Policy Engine"
+icon: "puzzle-piece"
+---
+
+# Core Components
+
+Citadel is composed of four integrated components that work together to provide governance, security, and observability for AI infrastructure.
+
+## Component Overview
+
+<CardGroup>
+  <Card title="Citadel Gateway" icon="gateway" href="#citadel-gateway">
+    API Management entry point for all AI requests
+  </Card>
+  <Card title="AI Service Registry" icon="book" href="#ai-service-registry">
+    Catalog of AI models and access contracts
+  </Card>
+  <Card title="Observability Platform" icon="chart-line" href="#observability-platform">
+    Monitoring, logging, and analytics
+  </Card>
+  <Card title="Policy Engine" icon="gavel" href="#policy-engine">
+    Governance and compliance enforcement
+  </Card>
+</CardGroup>
+
+---
+
+## Citadel Gateway
+
+The **Citadel Gateway** is built on Azure API Management and serves as the unified entry point for all AI service requests. It provides a consistent interface for applications while enforcing security and governance policies.
+
+### Key Capabilities
+
+<AccordionGroup>
+  <Accordion title="Authentication & Authorization">
+    - Azure AD integration for token validation
+    - OAuth 2.0 and managed identity support
+    - API key management for legacy applications
+    - Role-based access control (RBAC)
+  </Accordion>
+  
+  <Accordion title="Rate Limiting & Throttling">
+    - Per-application request quotas
+    - Token consumption limits
+    - Burst handling and queue management
+    - Graceful degradation under load
+  </Accordion>
+  
+  <Accordion title="Request Transformation">
+    - Header injection for tracing
+    - Payload transformation
+    - Backend routing and load balancing
+    - Protocol translation
+  </Accordion>
+  
+  <Accordion title="Caching">
+    - Response caching for repeated queries
+    - Token usage optimization
+    - Backend load reduction
+  </Accordion>
+</AccordionGroup>
+
+### Architecture Pattern
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   Application   │────▶│  Citadel Gateway │────▶│  AI Service     │
+│                 │     │  (APIM + Policy) │     │  (OpenAI, etc.) │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+                                │
+                                ▼
+                       ┌──────────────────┐
+                       │  Policy Engine   │
+                       │  (Validation)    │
+                       └──────────────────┘
+```
+
+---
+
+## AI Service Registry
+
+The **AI Service Registry** maintains a catalog of all AI services available through Citadel, along with their access contracts and configurations.
+
+### Registry Contents
+
+<Steps>
+  <Step title="Service Definitions">
+    - Available models (GPT-4, GPT-3.5, etc.)
+    - Service endpoints and versions
+    - Capability descriptions
+    - Usage guidelines
+  </Step>
+  
+  <Step title="Access Contracts">
+    - Rate limits per application
+    - Cost budgets and allocations
+    - Content filter configurations
+    - Data residency requirements
+  </Step>
+  
+  <Step title="Application Mappings">
+    - Which apps can access which services
+    - Contract assignments
+    - Approval workflows
+  </Step>
+</Steps>
+
+### Access Contract Example
+
+```json
+{
+  "contractId": "app-prod-001",
+  "application": "Customer Support Bot",
+  "services": ["gpt-4", "text-embedding-ada-002"],
+  "limits": {
+    "requestsPerMinute": 100,
+    "tokensPerDay": 1000000,
+    "monthlyBudget": 500
+  },
+  "filters": {
+    "contentSafety": "strict",
+    "allowedTopics": ["support", "general"]
+  }
+}
+```
+
+---
+
+## Observability Platform
+
+The **Observability Platform** provides comprehensive visibility into AI service usage, performance, and costs across all landing zones.
+
+### Three Pillars of Observability
+
+<CardGroup>
+  <Card title="Metrics" icon="gauge">
+    **Performance Indicators**
+    - Request latency and throughput
+    - Token consumption rates
+    - Error rates and status codes
+    - Cache hit/miss ratios
+  </Card>
+  
+  <Card title="Logs" icon="file-lines">
+    **Audit and Debug Data**
+    - Request/response logging
+    - Policy enforcement events
+    - Authentication attempts
+    - Cost allocation records
+  </Card>
+  
+  <Card title="Traces" icon="route">
+    **Distributed Tracking**
+    - End-to-end request flows
+    - Cross-service dependencies
+    - Latency breakdowns
+    - Bottleneck identification
+  </Card>
+</CardGroup>
+
+### Key Dashboards
+
+<AccordionGroup>
+  <Accordion title="Executive Dashboard">
+    High-level metrics for leadership:
+    - Total AI spend by department
+    - Usage trends and forecasts
+    - ROI indicators
+    - Compliance status
+  </Accordion>
+  
+  <Accordion title="Operations Dashboard">
+    Technical metrics for platform teams:
+    - Service health and availability
+    - Rate limiting events
+    - Error rates by service
+    - Capacity utilization
+  </Accordion>
+  
+  <Accordion title="Application Dashboard">
+    Per-application visibility:
+    - Token consumption
+    - Request volumes
+    - Cost breakdown
+    - Performance metrics
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Policy Engine
+
+The **Policy Engine** enforces governance policies and access contracts across all AI service consumption.
+
+### Policy Types
+
+<Steps>
+  <Step title="Security Policies">
+    - Authentication requirements
+    - Encryption in transit
+    - Private endpoint enforcement
+    - Data classification rules
+  </Step>
+  
+  <Step title="Operational Policies">
+    - Rate limiting and quotas
+    - Circuit breaker patterns
+    - Retry and timeout settings
+    - Resource tagging requirements
+  </Step>
+  
+  <Step title="Compliance Policies">
+    - Content safety filters
+    - Data residency restrictions
+    - Audit logging requirements
+    - Retention policies
+  </Step>
+  
+  <Step title="Cost Policies">
+    - Budget thresholds and alerts
+    - Cost allocation rules
+    - Spending limits per application
+    - Reserved capacity management
+  </Step>
+</Steps>
+
+### Policy Enforcement Points
+
+Policies are enforced at multiple points in the request flow:
+
+1. **Gateway Entry**: Authentication, rate limiting
+2. **Registry Lookup**: Access validation
+3. **Request Processing**: Content filtering
+4. **Response Handling**: Audit logging
+
+---
+
+## Component Integration
+
+The four components work together to provide a seamless governance experience:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Citadel Hub                            │
+├─────────────┬─────────────┬─────────────┬───────────────────┤
+│   Gateway   │  Registry   │Observability│   Policy Engine   │
+│  (APIM)     │   (Config)  │  (Monitor)  │    (Rules)        │
+└──────┬──────┴──────┬──────┴──────┬──────┴─────────┬─────────┘
+       │             │             │                │
+       └─────────────┴─────────────┴────────────────┘
+                         │
+                         ▼
+              ┌────────────────────┐
+              │   Landing Zone     │
+              │   (Spoke)          │
+              │  - AI Services     │
+              │  - Applications    │
+              └────────────────────┘
+```
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Networking" icon="network-wired" href="/architecture/networking">
+    Learn how components connect across networks
+  </Card>
+  <Card title="Security" icon="lock" href="/architecture/security">
+    Understand security controls and compliance
+  </Card>
+  <Card title="AI Patterns" icon="wand-magic-sparkles" href="/ai-patterns/overview">
+    See how components implement AI patterns
+  </Card>
+</CardGroup>
+
+<Card title="Explore Networking →" icon="arrow-right" href="/architecture/networking">
+  Learn about hub-spoke topology and connectivity
+</Card>
