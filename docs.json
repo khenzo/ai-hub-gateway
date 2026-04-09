@@ -30,28 +30,55 @@
       "group": "Getting Started",
       "pages": [
         "getting-started/introduction",
-        "getting-started/quickstart"
+        "getting-started/quickstart",
+        "getting-started/prerequisites",
+        "getting-started/concepts"
       ]
     },
     {
       "group": "Architecture",
       "pages": [
-        "architecture/citadel-overview",
-        "architecture/networking"
+        "architecture/overview",
+        "architecture/core-components",
+        "architecture/networking",
+        "architecture/security"
       ]
     },
     {
-      "group": "Deployment",
+      "group": "AI Landing Zone Patterns",
       "pages": [
-        "deployment/prerequisites",
-        "deployment/step-by-step"
+        "ai-patterns/overview",
+        "ai-patterns/apim-reference",
+        "ai-patterns/foundry-integration",
+        "ai-patterns/access-contracts",
+        "ai-patterns/governance-policies"
+      ]
+    },
+    {
+      "group": "Implementation",
+      "pages": [
+        "implementation/deployment",
+        "implementation/configuration",
+        "implementation/best-practices",
+        "implementation/examples"
       ]
     },
     {
       "group": "Operations",
       "pages": [
         "operations/runbooks",
-        "operations/troubleshooting"
+        "operations/monitoring",
+        "operations/troubleshooting",
+        "operations/maintenance"
+      ]
+    },
+    {
+      "group": "Resources",
+      "pages": [
+        "resources/faq",
+        "resources/glossary",
+        "resources/contributing",
+        "resources/api-reference"
       ]
     }
   ],
