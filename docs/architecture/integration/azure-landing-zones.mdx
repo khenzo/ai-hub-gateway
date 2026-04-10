@@ -1,0 +1,841 @@
+---
+title: Azure Landing Zone Integration
+description: Comprehensive guide for integrating Citadel with Azure Landing Zones
+---
+
+# Azure Landing Zone Integration
+
+This guide provides comprehensive instructions for integrating Citadel AI Landing Zone with your existing Azure Landing Zone (ALZ) environment. Following this guidance ensures seamless integration with shared services while maintaining enterprise governance and security standards.
+
+## Overview
+
+Citadel is designed as a **supplemental AI landing zone** that extends your existing Azure Landing Zone. This approach:
+
+- **Reuses shared infrastructure** - Leverages existing identity, network, and monitoring
+- **Follows ALZ patterns** - Consistent with Cloud Adoption Framework guidance
+- **Accelerates deployment** - 50-60% faster than standalone deployment
+- **Maintains governance** - Inherits enterprise policies and security controls
+
+### Integration Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Enterprise Azure Environment                    │
+│                                                              │
+│   ┌─────────────────────────────────────────────────────┐   │
+│   │         Platform Landing Zone (Shared)               │   │
+│   │                                                      │   │
+│   │  ┌─────────────┐  ┌─────────────┐  ┌──────────┐    │   │
+│   │  │  Entra ID   │  │   Hub VNet  │  │  Monitor │    │   │
+│   │  │  (Identity) │  │  (Network)  │  │   Stack  │    │   │
+│   │  └─────────────┘  └─────────────┘  └──────────┘    │   │
+│   └────────────────────────┬────────────────────────────┘   │
+│                            │                                 │
+│         Integration Points │                                 │
+│         ─────────────────┼────────────────                  │
+│                            │                                 │
+│   ┌────────────────────────▼────────────────────────────┐   │
+│   │      AI Application Landing Zone (Citadel)          │   │
+│   │                                                      │   │
+│   │  ┌─────────────────────────────────────────────┐    │   │
+│   │  │    Citadel Governance Hub (CGH)              │    │   │
+│   │  │  - AI Gateway (APIM)                         │    │   │
+│   │  │  - AI Registry (API Center)                  │    │   │
+│   │  │  - AI Safety & Compliance                    │    │   │
+│   │  └─────────────────────────────────────────────┘    │   │
+│   │                                                      │   │
+│   │  ┌─────────────────┐  ┌─────────────────┐          │   │
+│   │  │  CAS Spoke 1    │  │  CAS Spoke 2    │          │   │
+│   │  │ (AI Workloads)  │  │ (AI Workloads)  │          │   │
+│   │  └─────────────────┘  └─────────────────┘          │   │
+│   └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Integration Points
+
+### 1. Networking Integration
+
+#### Hub VNet Peering
+
+Citadel integrates with your existing hub VNet via VNet peering, enabling secure connectivity to shared network infrastructure.
+
+**Prerequisites:**
+- Existing hub VNet deployed
+- Non-overlapping IP address space identified for CGH
+- Network security requirements documented
+
+**Configuration:**
+
+```bicep
+// Hub to CGH peering
+resource hubToCghPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-09-01' = {
+  name: '${hubVnetName}/peering-to-${cghVnetName}'
+  properties: {
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: true    // Hub shares gateway with CGH
+    useRemoteGateways: false
+    remoteVirtualNetwork: {
+      id: cghVnet.id
+    }
+  }
+}
+
+// CGH to Hub peering
+resource cghToHubPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-09-01' = {
+  name: '${cghVnetName}/peering-to-${hubVnetName}'
+  properties: {
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: false
+    allowGatewayTransit: false
+    useRemoteGateways: true      // CGH uses hub gateway for hybrid
+    remoteVirtualNetwork: {
+      id: hubVnet.id
+    }
+  }
+}
+```
+
+**Traffic Flow:**
+
+| Source | Destination | Path | Purpose |
+|--------|-------------|------|---------|
+| CAS Spoke | CGH Services | Via Hub | AI gateway access |
+| CGH | On-premises | Via Hub Gateway | Hybrid connectivity |
+| CGH | Internet | Via Hub Firewall | Secure egress |
+| CAS Spoke | CAS Spoke | Via Hub Firewall | Cross-team communication |
+
+#### Private Endpoints
+
+All Citadel services use private endpoints for secure connectivity:
+
+| Service | Private Endpoint | DNS Zone |
+|---------|------------------|----------|
+| API Management | APIM Gateway | privatelink.azure-api.net |
+| Cosmos DB | SQL API | privatelink.documents.azure.com |
+| Storage Account | Blob/Table/Queue | privatelink.blob.core.windows.net |
+| Key Vault | Vault | privatelink.vaultcore.azure.net |
+
+**DNS Configuration:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Hub Private DNS Zones (ALZ)                     │
+│                                                              │
+│  privatelink.azure-api.net                                   │
+│  ├── apim-cgh                                              │
+│  │   └── A record: 10.0.1.4                                │
+│  │                                                        │
+│  privatelink.documents.azure.com                           │
+│  ├── cosmos-cgh                                            │
+│  │   └── A record: 10.0.1.5                                │
+│  │                                                        │
+│  [Linked to CGH VNet]                                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 2. Identity Integration
+
+#### Entra ID Integration
+
+Citadel leverages your existing Entra ID tenant for authentication and authorization.
+
+**Integration Points:**
+
+| Component | Entra ID Feature | Usage |
+|-----------|------------------|-------|
+| API Management | OAuth 2.0 / OIDC | JWT validation for AI requests |
+| Managed Identities | System/User-assigned | Service-to-service auth |
+| Access Packages | Identity Governance | Agent access lifecycle |
+| Conditional Access | Security policies | Multi-factor auth, device compliance |
+
+**APIM OAuth Configuration:**
+
+```xml
+<!-- APIM Policy: JWT Validation -->
+<validate-jwt
+    header-name="Authorization"
+    failed-validation-httpcode="401"
+    require-expiration-time="true"
+    require-scheme="Bearer">
+    <openid-config url="https://login.microsoftonline.com/{tenant-id}/v2.0/.well-known/openid-configuration" />
+    <audiences>
+        <audience>api://cgh-ai-gateway</audience>
+    </audiences>
+    <required-claims>
+        <claim name="roles" match="any">
+            <value>AIUser</value>
+            <value>AIAdmin</value>
+        </claim>
+    </required-claims>
+</validate-jwt>
+```
+
+**RBAC Configuration:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Entra ID RBAC for Citadel                       │
+│                                                              │
+│  Management Group / Subscription                             │
+│  ├── Citadel Admin                                           │
+│  │   └── Full control over CGH resources                     │
+│  ├── Citadel Operator                                        │
+│  │   └── Read + limited write (policies, gateways)           │
+│  ├── Citadel Reader                                          │
+│  │   └── Read-only access for monitoring                     │
+│  └── Workload Owner (per CAS spoke)                          │
+│      └── Manage agent workloads within guardrails            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 3. Monitoring Integration
+
+#### Log Analytics Workspace
+
+Citadel sends all logs and metrics to the shared Log Analytics workspace.
+
+**Log Types:**
+
+| Source | Log Type | Destination | Purpose |
+|--------|----------|-------------|---------|
+| APIM | Gateway Logs | Log Analytics | Request/response logging |
+| APIM | Metrics | Log Analytics | Token usage, latency |
+| Content Safety | Audit Logs | Log Analytics | Safety events |
+| Logic Apps | Workflow Logs | Log Analytics | Processing logs |
+| Cosmos DB | Diagnostic Logs | Log Analytics | Database operations |
+
+**Kusto Queries:**
+
+```kusto
+// AI Gateway Usage by Team
+APIMGatewayLogs
+| where TimeGenerated > ago(24h)
+| extend TeamId = tostring(extract("teamId":"([^"]+)", 1, RequestBody))
+| summarize TotalTokens = sum(TotalTokens), Requests = count() by TeamId
+| order by TotalTokens desc
+
+// Safety Events
+ContentSafetyLogs
+| where TimeGenerated > ago(7d)
+| where Severity == "High"
+| summarize Count = count() by Category, Day = bin(TimeGenerated, 1d)
+| render timechart
+```
+
+#### Application Insights
+
+Distributed tracing provides end-to-end visibility:
+
+```
+Request Flow with App Insights:
+===============================
+
+Agent Request
+    │
+    ▼
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   APIM      │───▶│  Content    │───▶│  Backend    │
+│  Gateway    │    │   Safety    │    │    LLM      │
+│  (Telemetry)│    │ (Telemetry) │    │ (Telemetry) │
+└─────────────┘    └─────────────┘    └─────────────┘
+    │                    │                    │
+    └────────────────────┼────────────────────┘
+                         ▼
+              ┌──────────────────┐
+              │  Application     │
+              │   Insights       │
+              │ (End-to-end      │
+              │   distributed    │
+              │   tracing)       │
+              └──────────────────┘
+```
+
+### 4. Governance Integration
+
+#### Azure Policy
+
+Citadel inherits policies from the platform landing zone and adds AI-specific policies.
+
+**Policy Hierarchy:**
+
+```
+Management Group: Contoso-ALZ
+├── Initiative: ALZ-Platform-Baseline
+│   ├── Require NSG on subnet
+│   ├── Require private endpoint
+│   ├── Require diagnostic settings
+│   └── [Other platform policies]
+│
+└── Management Group: Contoso-AI
+    └── Initiative: Citadel-AI-Governance
+        ├── Require content safety on APIM
+        ├── Require PII detection
+        ├── Enforce token quotas
+        └── Require AI audit logging
+```
+
+**Custom Policy Definitions:**
+
+```json
+{
+  "policyRule": {
+    "if": {
+      "allOf": [
+        {
+          "field": "type",
+          "equals": "Microsoft.ApiManagement/service"
+        },
+        {
+          "field": "Microsoft.ApiManagement/service/policies",
+          "exists": "false"
+        }
+      ]
+    },
+    "then": {
+      "effect": "deny"
+    }
+  }
+}
+```
+
+#### Tagging Strategy
+
+Consistent tagging enables cost attribution and governance:
+
+| Tag | Value | Purpose |
+|-----|-------|---------|
+| `Environment` | `Production`, `Staging`, `Development` | Environment separation |
+| `BusinessUnit` | `Finance`, `HR`, `Engineering` | Cost attribution |
+| `CostCenter` | `CC12345` | Chargeback |
+| `Application` | `Citadel-CGH` | Application identification |
+| `DataClassification` | `Confidential`, `Internal`, `Public` | Data governance |
+| `Criticality` | `Critical`, `High`, `Medium`, `Low` | Operational priority |
+
+### 5. DNS Integration
+
+#### Private DNS Zones
+
+Citadel uses the hub's private DNS zones for name resolution.
+
+**Required DNS Zones:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Hub Private DNS Zones                           │
+│                                                              │
+│  privatelink.azure-api.net                                  │
+│  ├── apim-cgh.eastus.azure-api.net → 10.0.1.4             │
+│  └── apim-cgh.westus.azure-api.net → 10.1.1.4             │
+│                                                              │
+│  privatelink.documents.azure.com                            │
+│  └── cosmos-cgh.documents.azure.com → 10.0.1.5            │
+│                                                              │
+│  privatelink.blob.core.windows.net                          │
+│  └── storagecgh.blob.core.windows.net → 10.0.1.6          │
+│                                                              │
+│  [Linked to CGH VNet via VNet Link]                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**VNet Link Configuration:**
+
+```bicep
+resource vnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+  name: '${dnsZoneName}/${cghVnetName}-link'
+  location: 'global'
+  properties: {
+    registrationEnabled: false
+    virtualNetwork: {
+      id: cghVnet.id
+    }
+  }
+}
+```
+
+### 6. Security Integration
+
+#### Azure Firewall
+
+Traffic between CGH and other networks flows through the hub firewall for inspection.
+
+**Firewall Rules:**
+
+| Rule | Source | Destination | Action | Purpose |
+|------|--------|-------------|--------|---------|
+| Allow-CGH-to-LLM | CGH Subnet | OpenAI Endpoints | Allow | AI model access |
+| Allow-CGH-to-Monitor | CGH Subnet | Azure Monitor | Allow | Logging and metrics |
+| Deny-CGH-to-Internet | CGH Subnet | * | Deny | Block direct internet |
+| Allow-CAS-to-CGH | CAS Subnets | CGH Subnet | Allow | Agent to gateway |
+
+#### Microsoft Defender for Cloud
+
+Citadel resources are protected by Defender for Cloud:
+
+| Defender Plan | Coverage |
+|---------------|----------|
+| Defender for APIs | APIM security posture |
+| Defender for Databases | Cosmos DB protection |
+| Defender for Storage | Storage account security |
+| Defender for Key Vault | Secret protection |
+
+## Shared Services
+
+### What Services Are Shared vs Dedicated
+
+| Service | Location | Shared? | Notes |
+|---------|----------|---------|-------|
+| **Entra ID** | Platform LZ | ✅ Yes | Enterprise identity |
+| **Hub VNet** | Platform LZ | ✅ Yes | Network connectivity |
+| **Log Analytics** | Platform LZ | ✅ Yes | Centralized logging |
+| **Azure Firewall** | Platform LZ | ✅ Yes | Traffic inspection |
+| **Private DNS** | Platform LZ | ✅ Yes | Name resolution |
+| **APIM Gateway** | Citadel | ❌ Dedicated | AI-specific gateway |
+| **API Center** | Citadel | ❌ Dedicated | AI registry |
+| **Cosmos DB** | Citadel | ❌ Dedicated | Usage data |
+| **Content Safety** | Citadel | ❌ Dedicated | AI safety |
+| **Logic Apps** | Citadel | ❌ Dedicated | Processing |
+
+### Shared Hub VNet Usage
+
+**Services Consumed from Hub:**
+
+- VPN Gateway / ExpressRoute Gateway - Hybrid connectivity
+- Azure Firewall - Traffic inspection and filtering
+- Private DNS Resolver - Cross-VNet DNS resolution
+- Network Watcher - Network diagnostics
+
+**Services Provided to Hub:**
+
+- AI Gateway - AI services for hub workloads
+- AI Registry - Central AI capability catalog
+
+### Centralized Logging and Monitoring
+
+**Data Flow:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Shared Monitoring Architecture                  │
+│                                                              │
+│  Sources:                                                    │
+│  ├── CGH Resources ──────────┐                              │
+│  ├── CAS Spoke Resources ────┼──▶ Log Analytics Workspace   │
+│  └── Hub Resources ──────────┘    (Platform LZ)             │
+│                                         │                   │
+│                                         ▼                   │
+│                              ┌──────────────────┐          │
+│                              │  Azure Monitor   │          │
+│                              │  - Workbooks     │          │
+│                              │  - Alerts        │          │
+│                              │  - Dashboards    │          │
+│                              └──────────────────┘          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Deployment Patterns
+
+### Pattern A: Greenfield Deployment
+
+**When to Use:**
+- No existing Azure Landing Zone
+- Starting cloud journey
+- Want integrated AI governance from start
+
+**Deployment Steps:**
+
+1. **Deploy ALZ Foundation** (Week 1)
+   ```bash
+   # Deploy ALZ using Azure Landing Zone accelerator
+   az deployment mg create \
+     --name alz-deployment \
+     --management-group-id "contoso-landing-zones" \
+     --template-file alz-template.json \
+     --parameters environment=Production
+   ```
+
+2. **Validate Platform Services** (Week 1-2)
+   - Verify Hub VNet connectivity
+   - Test Log Analytics workspace
+   - Confirm Entra ID integration
+
+3. **Deploy Citadel CGH** (Week 2-3)
+   ```bash
+   # Deploy Citadel integrated with new ALZ
+   az deployment sub create \
+     --name citadel-deployment \
+     --location eastus \
+     --template-file citadel-main.bicep \
+     --parameters hubVnetResourceId=/subscriptions/.../hub-vnet
+   ```
+
+4. **Configure Integration** (Week 3-4)
+   - VNet peering
+   - Private DNS linking
+   - Policy assignment
+   - Monitoring configuration
+
+5. **Deploy First CAS Spoke** (Week 4-5)
+   - Validate end-to-end flow
+   - Test governance policies
+   - Document patterns
+
+### Pattern B: Brownfield Deployment
+
+**When to Use:**
+- Existing Azure Landing Zone in production
+- Active workloads running
+- Need to add AI governance
+
+**Deployment Steps:**
+
+1. **Assess Existing ALZ** (Week 1)
+   - Document current hub VNet configuration
+   - Identify IP address space availability
+   - Review existing policies and RBAC
+   - Assess monitoring infrastructure
+
+2. **Plan Integration** (Week 1-2)
+   ```markdown
+   ## Integration Planning Checklist
+   
+   ### Network
+   - [ ] Identify available IP range for CGH
+   - [ ] Document firewall rules needed
+   - [ ] Plan private DNS integration
+   - [ ] Assess ExpressRoute/VPN capacity
+   
+   ### Identity
+   - [ ] Review Entra ID structure
+   - [ ] Plan RBAC assignments
+   - [ ] Identify Conditional Access impact
+   
+   ### Governance
+   - [ ] Review existing policies
+   - [ ] Plan AI-specific policy additions
+   - [ ] Document tagging strategy alignment
+   
+   ### Monitoring
+   - [ ] Confirm Log Analytics workspace access
+   - [ ] Plan dashboard integration
+   - [ ] Review alerting infrastructure
+   ```
+
+3. **Deploy CGH in Parallel** (Week 2-3)
+   - Deploy to separate subscription
+   - Configure VNet peering to hub
+   - Do not route production traffic yet
+
+4. **Validate Integration** (Week 3-4)
+   - Test connectivity
+   - Verify logging
+   - Validate policies
+   - Performance testing
+
+5. **Pilot Migration** (Week 4-6)
+   - Migrate non-critical workload
+   - Monitor for issues
+   - Refine configuration
+
+6. **Full Rollout** (Week 6-8)
+   - Migrate remaining workloads
+   - Decommission direct model access
+   - Update documentation
+
+### Pattern C: Hybrid Deployment
+
+**When to Use:**
+- Partial ALZ implementation
+- Different maturity levels across subscriptions
+- Need to bridge gaps
+
+**Approach:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Hybrid Deployment Model                         │
+│                                                              │
+│   Subscription A (Mature ALZ)                                │
+│   ├── Full platform services                                │
+│   └── CGH integrates directly                               │
+│                                                              │
+│   Subscription B (Partial ALZ)                              │
+│   ├── Some shared services                                  │
+│   └── CGH deploys missing components                        │
+│                                                              │
+│   Subscription C (No ALZ)                                   │
+│   ├── CGH deploys mini-ALZ                                  │
+│   └── Future migration to full ALZ                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Design Considerations
+
+### IP Address Space Planning
+
+**Recommendation:** Plan for 3-5 years of growth
+
+| Network | Size | Hosts | Purpose |
+|---------|------|-------|---------|
+| Hub VNet | /22 | ~1,000 | Shared services |
+| CGH VNet | /23 | ~500 | Governance hub |
+| CAS VNet (each) | /22 | ~1,000 | AI workloads per BU |
+| Reserved | /16 | ~65,000 | Future expansion |
+
+**Address Space Example:**
+
+```
+10.0.0.0/16 - Corporate Network
+├── 10.0.0.0/22 - Hub VNet (ALZ)
+├── 10.0.4.0/23 - CGH VNet
+├── 10.0.6.0/22 - CAS-BU1 VNet
+├── 10.0.10.0/22 - CAS-BU2 VNet
+├── 10.0.14.0/22 - CAS-BU3 VNet
+└── 10.0.18.0/18 - Reserved
+```
+
+### Policy Inheritance and Exemptions
+
+**Inheritance Model:**
+
+```
+Management Group: Contoso-Root
+└── Management Group: Contoso-Platform
+    └── Policy: Require NSG on Subnet [Enforce]
+    └── Subscription: Platform-Prod
+        └── CGH inherits policy
+    └── Subscription: Platform-Dev
+        └── CGH inherits policy
+        └── Exemption: Dev environment
+            └── Policy: Require NSG [Audit only]
+```
+
+**When to Use Exemptions:**
+
+| Scenario | Exemption Type | Duration |
+|----------|---------------|----------|
+| Development environment | Audit instead of Deny | Permanent |
+| Emergency change | Waiver | 7 days |
+| Legacy system migration | Audit | 90 days |
+| Third-party requirements | Waiver | Permanent |
+
+### RBAC Delegation Models
+
+**Model A: Centralized**
+
+- Platform team manages all Citadel resources
+- Application teams submit requests
+- Best for: Small teams, high governance requirements
+
+**Model B: Delegated**
+
+- Platform team manages CGH
+- Application teams manage CAS spokes
+- Best for: Large enterprises, autonomous teams
+
+**Model C: Federated**
+
+- Platform team manages shared services
+- Business unit admins manage CGH instances
+- Application teams manage spokes
+- Best for: Multi-tenant, global organizations
+
+### Cost Attribution Strategies
+
+**Approach 1: Subscription-Based**
+
+- Each CAS spoke in separate subscription
+- Natural cost boundary
+- Simple but many subscriptions
+
+**Approach 2: Tag-Based**
+
+- Use `BusinessUnit` and `CostCenter` tags
+- Query costs via Cost Management APIs
+- More flexible, requires discipline
+
+**Approach 3: Hybrid**
+
+- Production: Subscription-based
+- Non-production: Tag-based
+- Balances simplicity and flexibility
+
+## Validation Checklist
+
+### Pre-Deployment Validation
+
+- [ ] IP address space confirmed non-overlapping
+- [ ] Hub VNet capacity assessed
+- [ ] Log Analytics workspace access verified
+- [ ] Entra ID permissions confirmed
+- [ ] Policy impact reviewed
+- [ ] Firewall rules documented
+- [ ] DNS zones confirmed available
+- [ ] Cost estimation completed
+- [ ] Stakeholder sign-off obtained
+
+### Post-Deployment Verification
+
+- [ ] VNet peering connectivity verified
+  ```bash
+  az network vnet peering list \
+    --resource-group cgHub-rg \
+    --vnet-name cgHub-vnet \
+    --query "[].{Name:name, State:peeringState}"
+  ```
+
+- [ ] Private endpoint connections tested
+  ```bash
+  az network private-endpoint show \
+    --name cgHub-apim-pe \
+    --resource-group cgHub-rg \
+    --query "customDnsConfigs[0].ipAddresses"
+  ```
+
+- [ ] DNS resolution working
+  ```bash
+  nslookup cgHub-apim.azure-api.net
+  ```
+
+- [ ] Log Analytics receiving data
+  ```kusto
+  // Run in Log Analytics
+  AzureActivity
+  | where ResourceGroup == "cgHub-rg"
+  | take 10
+  ```
+
+- [ ] Policies applied correctly
+  ```bash
+  az policy state list \
+    --resource-group cgHub-rg \
+    --query "[].{Policy:policyDefinitionName, State:complianceState}"
+  ```
+
+- [ ] RBAC assignments verified
+  ```bash
+  az role assignment list \
+    --resource-group cgHub-rg \
+    --query "[].{Role:roleDefinitionName, Principal:principalName}"
+  ```
+
+- [ ] End-to-end AI request flow tested
+- [ ] Monitoring dashboards accessible
+- [ ] Alerts configured and tested
+- [ ] Documentation updated
+
+### Integration Testing Procedures
+
+**Test 1: Network Connectivity**
+
+```bash
+# From CAS spoke VM, test CGH connectivity
+ping <cgHub-apim-private-ip>
+curl -I https://<cgHub-apim>.azure-api.net/health
+```
+
+**Test 2: Identity Integration**
+
+```bash
+# Test JWT validation
+TOKEN=$(az account get-access-token --resource api://cgh-ai-gateway --query accessToken -o tsv)
+curl -H "Authorization: Bearer $TOKEN" https://<cgHub-apim>.azure-api.net/test
+```
+
+**Test 3: Logging Integration**
+
+```bash
+# Generate traffic and verify logs
+curl -X POST https://<cgHub-apim>.azure-api.net/llm \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "test"}'
+
+# Check Log Analytics after 5 minutes
+```
+
+**Test 4: Policy Enforcement**
+
+```bash
+# Attempt to deploy non-compliant resource
+az apim create --name test-apim --location eastus --publisher-email test@test.com --publisher-name Test
+# Should fail due to policy
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue 1: VNet Peering Not Connecting**
+
+```bash
+# Check peering state
+az network vnet peering show \
+  --name cgHub-to-hub \
+  --resource-group cgHub-rg \
+  --vnet-name cgHub-vnet \
+  --query peeringState
+
+# Expected: "Connected"
+# If "Initiated": Check hub-side peering
+```
+
+**Issue 2: Private DNS Not Resolving**
+
+```bash
+# Verify VNet link exists
+az network private-dns link vnet list \
+  --resource-group hub-rg \
+  --zone-name privatelink.azure-api.net
+
+# Verify record exists
+az network private-dns record-set a show \
+  --resource-group hub-rg \
+  --zone-name privatelink.azure-api.net \
+  --name cgHub-apim
+```
+
+**Issue 3: Logs Not Appearing in Log Analytics**
+
+```bash
+# Check diagnostic settings
+az monitor diagnostic-settings list \
+  --resource $(az apim show --name cgHub-apim --query id -o tsv)
+
+# Verify workspace access
+az monitor log-analytics workspace get-shared-keys \
+  --resource-group hub-rg \
+  --name hub-workspace
+```
+
+**Issue 4: Policy Conflicts**
+
+```bash
+# Check policy compliance
+az policy state summarize \
+  --resource-group cgHub-rg \
+  --query "results.nonCompliantResources"
+
+# View assignment details
+az policy assignment list \
+  --resource-group cgHub-rg \
+  --query "[].{Name:name, Policy:policyDefinitionId}"
+```
+
+## Next Steps
+
+After completing integration:
+
+1. **Onboard Teams** - Use [Access Contracts Guide](/bicep/infra/citadel-access-contracts/)
+2. **Configure Policies** - Customize AI governance policies
+3. **Set Up Monitoring** - Create dashboards and alerts
+4. **Document Runbooks** - Operational procedures
+5. **Plan Scale** - Design additional spokes
+
+## Related Documentation
+
+- [Architecture Diagrams](/architecture/diagrams) - Visual architecture reference
+- [ADR-001: APIM Gateway Pattern](/architecture/decisions/adr-001-apim-gateway-pattern) - Gateway design decision
+- [ADR-002: Hub-Spoke Networking](/architecture/decisions/adr-002-hub-spoke-networking) - Network topology decision
+- [ADR-003: Landing Zone Integration](/architecture/decisions/adr-003-landing-zone-integration) - Integration approach decision
+- [Integration Patterns](/architecture/integration/patterns) - Common integration scenarios
