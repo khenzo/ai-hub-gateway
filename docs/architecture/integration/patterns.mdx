@@ -1,0 +1,957 @@
+---
+title: Integration Patterns
+description: Common integration patterns for Citadel AI Landing Zone
+topics:
+  - identity
+  - network
+  - data
+  - governance
+  - security
+---
+
+# Integration Patterns
+
+This document describes common integration patterns for Citadel AI Landing Zone. These patterns provide proven solutions for typical integration scenarios, helping teams implement Citadel effectively while following best practices.
+
+## Pattern Overview
+
+| Pattern | Category | Use Case | Complexity |
+|---------|----------|----------|------------|
+| **Managed Identity** | Identity | Service-to-service authentication | Low |
+| **Service Principal** | Identity | Cross-tenant or legacy integration | Medium |
+| **User-Assigned Identity** | Identity | Shared credentials across services | Low |
+| **Private Endpoint** | Network | Secure PaaS access | Low |
+| **Service Endpoint** | Network | Simplified PaaS access | Low |
+| **Forced Tunneling** | Network | All traffic through firewall | Medium |
+| **Cross-Region** | Network | Multi-region AI workloads | High |
+| **Hub-Spoke Data Flow** | Data | Data between hub and spokes | Medium |
+| **Log Aggregation** | Data | Centralized logging | Low |
+| **Policy Inheritance** | Governance | Hierarchical policy management | Medium |
+| **Tagging Strategy** | Governance | Resource organization | Low |
+| **Zero Trust** | Security | Defense in depth | Medium |
+| **Key Rotation** | Security | Automated secret rotation | Medium |
+
+---
+
+## Identity Patterns
+
+### Pattern 1: Managed Identity
+
+**Use Case:** Authenticate services without managing credentials.
+
+**Description:** Use Azure Managed Identities to authenticate Citadel services to other Azure resources. This eliminates the need for service principals or connection strings in code.
+
+**When to Use:**
+- Service-to-service authentication within Azure
+- Accessing Azure services from APIM, Logic Apps, or Functions
+- Any scenario where you control both client and resource
+
+**Architecture:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Managed Identity Flow                     │
+│                                                              │
+│  ┌───────────────┐         ┌───────────────┐                │
+│  │  Logic App    │────────▶│  Entra ID     │                │
+│  │  (Client)     │  Token  │  (Token Issuer)│               │
+│  │  Managed ID   │         └───────────────┘                │
+│  └───────┬───────┘                │                         │
+│          │                         │ Token                   │
+│          │                         ▼                         │
+│          │                  ┌───────────────┐                │
+│          │                  │  Cosmos DB    │                │
+│          │ Request + Token  │  (Resource)   │                │
+│          └─────────────────▶│  Validate     │                │
+│                             │  Access       │                │
+│                             └───────────────┘                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Implementation:**
+
+```bicep
+// Create managed identity
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: 'cgh-logicapp-identity'
+  location: location
+}
+
+// Assign role to identity
+resource cosmosRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2023-04-15' = {
+  name: guid(cosmosDbAccount.id, managedIdentity.id, 'sql-contributor')
+  parent: cosmosDbAccount
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions', cosmosDbAccount.name, '00000000-0000-0000-0000-000000000002')
+    principalId: managedIdentity.properties.principalId
+    scope: cosmosDbAccount.id
+  }
+}
+
+// Use identity in Logic App
+resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
+  name: 'cgh-usage-processor'
+  location: location
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${managedIdentity.id}': {}
+    }
+  }
+  // ...
+}
+```
+
+**Benefits:**
+- No credentials in code
+- Automatic credential rotation
+- No client secrets to manage
+- Integrated with Azure RBAC
+
+**Considerations:**
+- Only works within Azure ecosystem
+- Requires role assignments
+- Cannot be used for external services
+
+---
+
+### Pattern 2: Service Principal
+
+**Use Case:** Cross-tenant access or integration with external systems.
+
+**Description:** Use Azure AD service principals with client secrets or certificates for scenarios where managed identities cannot be used.
+
+**When to Use:**
+- Cross-tenant access
+- Integration with external services
+- Legacy applications that don't support managed identities
+- CI/CD pipeline authentication
+
+**Implementation:**
+
+```bash
+# Create service principal
+az ad sp create-for-rbac \
+  --name "cgh-external-integration" \
+  --role "Reader" \
+  --scopes /subscriptions/{subscription-id}/resourceGroups/cgHub-rg
+
+# Store secret in Key Vault
+az keyvault secret set \
+  --vault-name cgHub-kv \
+  --name cgh-external-sp-secret \
+  --value {client-secret}
+```
+
+```bicep
+// Reference secret from Key Vault in APIM
+resource apimNamedValue 'Microsoft.ApiManagement/service/namedValues@2022-08-01' = {
+  name: 'external-service-principal-secret'
+  parent: apiManagement
+  properties: {
+    displayName: 'ExternalServicePrincipalSecret'
+    secret: true
+    keyVault: {
+      secretIdentifier: '${keyVault.properties.vaultUri}secrets/cgh-external-sp-secret'
+      identityClientId: managedIdentity.properties.clientId
+    }
+  }
+}
+```
+
+**Security Best Practices:**
+- Use certificates instead of secrets where possible
+- Store secrets in Key Vault
+- Rotate credentials regularly (90 days recommended)
+- Use minimal required permissions
+
+---
+
+### Pattern 3: User-Assigned vs System-Assigned
+
+**Decision Matrix:**
+
+| Scenario | Recommendation | Rationale |
+|----------|---------------|-----------|
+| Single service | System-assigned | Simple, lifecycle-linked |
+| Multiple services share identity | User-assigned | Shared permissions |
+| Pre-provisioned permissions | User-assigned | Create identity before resources |
+| Independent lifecycle | User-assigned | Identity persists if resource deleted |
+| Simple deployment | System-assigned | Less management overhead |
+
+**Implementation Comparison:**
+
+```bicep
+// System-Assigned Identity
+resource apimWithSystemIdentity 'Microsoft.ApiManagement/service@2022-08-01' = {
+  name: 'cgh-apim'
+  location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
+}
+
+// User-Assigned Identity
+resource sharedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: 'cgh-shared-identity'
+  location: location
+}
+
+resource logicAppWithUserIdentity 'Microsoft.Logic/workflows@2019-05-01' = {
+  name: 'cgh-processor'
+  location: location
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${sharedIdentity.id}': {}
+    }
+  }
+}
+```
+
+---
+
+### Pattern 4: Cross-Tenant Scenarios
+
+**Use Case:** Multi-tenant organizations or partner integration.
+
+**Architecture:**
+
+```
+Tenant A (Primary)          Tenant B (Partner)
+┌────────────────────┐      ┌────────────────────┐
+│  Citadel CGH       │      │  Partner Services  │
+│                    │      │                    │
+│  ┌──────────────┐  │      │  ┌──────────────┐  │
+│  │ Multi-tenant │◀─┼──────┼──┤ Service      │  │
+│  │ App Reg      │  │Token │  │ Principal    │  │
+│  └──────────────┘  │      │  └──────────────┘  │
+└────────────────────┘      └────────────────────┘
+```
+
+**Implementation:**
+
+```powershell
+# Create multi-tenant app registration
+$app = New-AzureADApplication `
+  -DisplayName "Citadel Cross-Tenant" `
+  -AvailableToOtherTenants $true
+
+# Configure pre-authorized applications
+Set-AzureADApplication `
+  -ObjectId $app.ObjectId `
+  -ApiPreAuthorizedApplications @{
+    AppId = "partner-app-id"
+    DelegatedPermissionIds = @("api-permission-id")
+  }
+```
+
+---
+
+## Network Patterns
+
+### Pattern 5: Private Endpoint
+
+**Use Case:** Secure access to PaaS services over private network.
+
+**Description:** Use Azure Private Link to access Azure PaaS services (Cosmos DB, Storage, etc.) over private IP addresses within your VNet.
+
+**Architecture:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    CGH VNet                                  │
+│                                                              │
+│  ┌─────────────┐              ┌──────────────────────┐     │
+│  │  Logic App  │─────────────▶│  Private Endpoint    │     │
+│  │             │  Private IP  │  10.0.1.4            │     │
+│  └─────────────┘              └──────────┬───────────┘     │
+│                                          │ Private Link    │
+│                                          ▼                 │
+│                              ┌──────────────────────┐     │
+│                              │  Cosmos DB           │     │
+│                              │  (Private Access)    │     │
+│                              └──────────────────────┘     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Implementation:**
+
+```bicep
+// Private Endpoint for Cosmos DB
+resource cosmosPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-09-01' = {
+  name: 'cosmos-cgh-pe'
+  location: location
+  properties: {
+    subnet: {
+      id: resourceId('Microsoft.Network/virtualNetworks/subnets', vnetName, 'PrivateEndpointSubnet')
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'cosmos-connection'
+        properties: {
+          privateLinkServiceId: cosmosDbAccount.id
+          groupIds: ['Sql']
+        }
+      }
+    ]
+  }
+}
+
+// DNS Zone Group
+resource cosmosPrivateDnsZoneGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2023-09-01' = {
+  name: 'cosmos-dns-group'
+  parent: cosmosPrivateEndpoint
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'cosmos-config'
+        properties: {
+          privateDnsZoneId: privateDnsZoneCosmos.id
+        }
+      }
+    ]
+  }
+}
+```
+
+**Benefits:**
+- Private IP connectivity
+- No public exposure
+- Data exfiltration protection
+- Works across peered VNets
+
+---
+
+### Pattern 6: Service Endpoint
+
+**Use Case:** Simplified PaaS access without private endpoints.
+
+**Description:** Use service endpoints to extend VNet identity to Azure services, allowing traffic to stay on Azure backbone without requiring private endpoints.
+
+**Comparison:**
+
+| Feature | Service Endpoint | Private Endpoint |
+|---------|------------------|------------------|
+| **Network path** | Azure backbone | Azure backbone |
+| **IP addressing** | Public endpoint | Private IP |
+| **Data exfiltration protection** | Service-level | Network-level |
+| **On-premises access** | Via public endpoint | Via VPN/ExpressRoute |
+| **Cost** | Free | Charges apply |
+| **Complexity** | Low | Medium |
+
+**When to Use Service Endpoints:**
+- Simplified configuration acceptable
+- Cost optimization
+- No strict data exfiltration requirements
+- Quick setup needed
+
+**Implementation:**
+
+```bicep
+// Enable service endpoint on subnet
+resource subnetWithEndpoint 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
+  name: '${vnetName}/ComputeSubnet'
+  properties: {
+    addressPrefix: '10.0.1.0/24'
+    serviceEndpoints: [
+      {
+        service: 'Microsoft.Storage'
+      }
+      {
+        service: 'Microsoft.AzureCosmosDB'
+      }
+    ]
+  }
+}
+
+// Configure storage account to allow VNet access
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+  name: 'cghstorage'
+  // ...
+  properties: {
+    networkAcls: {
+      defaultAction: 'Deny'
+      virtualNetworkRules: [
+        {
+          id: subnetWithEndpoint.id
+          action: 'Allow'
+        }
+      ]
+    }
+  }
+}
+```
+
+---
+
+### Pattern 7: Forced Tunneling
+
+**Use Case:** Route all traffic through hub firewall for inspection.
+
+**Description:** Configure user-defined routes (UDRs) to force all internet-bound traffic from spokes through the hub firewall.
+
+**Architecture:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Forced Tunneling                          │
+│                                                              │
+│   Spoke VNet                     Hub VNet                   │
+│   ┌──────────────────┐           ┌──────────────────┐       │
+│   │  CAS Workload    │           │  Azure Firewall  │       │
+│   │                  │           │                  │       │
+│   │  Route Table:    │           │  Inspect & Log   │       │
+│   │  0.0.0.0/0 ──▶   ├──────────▶│  Then Forward    │       │
+│   │  Firewall IP     │           │                  │       │
+│   └──────────────────┘           └────────┬─────────┘       │
+│                                           │                 │
+│                                           ▼                 │
+│                                    ┌──────────────┐         │
+│                                    │   Internet   │         │
+│                                    └──────────────┘         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Implementation:**
+
+```bicep
+// Route table for forced tunneling
+resource routeTable 'Microsoft.Network/routeTables@2023-09-01' = {
+  name: 'cgh-forced-tunneling'
+  location: location
+  properties: {
+    routes: [
+      {
+        name: 'InternetViaFirewall'
+        properties: {
+          addressPrefix: '0.0.0.0/0'
+          nextHopType: 'VirtualAppliance'
+          nextHopIpAddress: '10.0.0.4' // Firewall private IP
+        }
+      }
+    ]
+    disableBgpRoutePropagation: false
+  }
+}
+
+// Associate with subnet
+resource subnet 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
+  name: '${vnetName}/ComputeSubnet'
+  properties: {
+    addressPrefix: '10.0.1.0/24'
+    routeTable: {
+      id: routeTable.id
+    }
+  }
+}
+```
+
+**Firewall Rules:**
+
+| Priority | Rule | Source | Destination | Action |
+|----------|------|--------|-------------|--------|
+| 100 | Allow-APIM-OpenAI | CGH Subnet | AzureOpenAI | Allow |
+| 110 | Allow-Monitoring | CGH Subnet | AzureMonitor | Allow |
+| 200 | Deny-All-Internet | Any | Internet | Deny |
+
+---
+
+### Pattern 8: Cross-Region Connectivity
+
+**Use Case:** AI workloads deployed in multiple regions.
+
+**Description:** Connect Citadel deployments across regions using VNet peering or Azure Virtual WAN.
+
+**Architecture:**
+
+```
+┌─────────────────┐                    ┌─────────────────┐
+│  East US        │◀───VNet Peering───▶│  West Europe    │
+│                 │                    │                 │
+│  ┌───────────┐  │                    │  ┌───────────┐  │
+│  │ CGH Hub   │  │                    │  │ CGH Hub   │  │
+│  │ (Primary) │  │                    │  │ (DR)      │  │
+│  └─────┬─────┘  │                    │  └─────┬─────┘  │
+│        │        │                    │        │        │
+│   ┌────┴────┐   │                    │   ┌────┴────┐   │
+│   │ CAS     │   │                    │   │ CAS     │   │
+│   │ Spokes  │   │                    │   │ Spokes  │   │
+│   └─────────┘   │                    │   └─────────┘   │
+└─────────────────┘                    └─────────────────┘
+```
+
+**Implementation:**
+
+```bicep
+// Cross-region VNet peering
+resource peeringEastToWest 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-09-01' = {
+  name: '${eastVnetName}/peering-to-west'
+  properties: {
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: false
+    allowGatewayTransit: true
+    useRemoteGateways: false
+    remoteVirtualNetwork: {
+      id: westVnet.id
+    }
+  }
+}
+
+// Global load balancing with Front Door
+resource frontDoor 'Microsoft.Cdn/profiles@2024-02-01' = {
+  name: 'cgh-global-lb'
+  location: 'Global'
+  sku: {
+    name: 'Standard_AzureFrontDoor'
+  }
+  // ... origin groups for east and west
+}
+```
+
+---
+
+## Data Patterns
+
+### Pattern 9: Hub-Spoke Data Flow
+
+**Use Case:** Manage data flow between hub governance services and spoke workloads.
+
+**Description:** Establish secure, auditable data flows between CGH hub services and CAS spoke workloads.
+
+**Data Flow Patterns:**
+
+| Direction | Pattern | Use Case |
+|-----------|---------|----------|
+| Spoke → Hub | Event streaming | Usage telemetry, audit logs |
+| Hub → Spoke | Configuration | Policy updates, gateway config |
+| Spoke → Hub | API calls | AI requests via gateway |
+| Hub → Spoke | Push notifications | Alerts, quota warnings |
+
+**Implementation:**
+
+```bicep
+// Event Hub for spoke-to-hub streaming
+resource eventHub 'Microsoft.EventHub/namespaces@2023-01-01-preview' = {
+  name: 'cgh-telemetry'
+  location: location
+  properties: {
+    isAutoInflateEnabled: true
+    maximumThroughputUnits: 20
+  }
+}
+
+// Private endpoint for secure access
+resource eventHubPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-09-01' = {
+  name: 'eventhub-cgh-pe'
+  // ... configuration
+}
+```
+
+**Data Architecture:**
+
+```
+Spoke (CAS)                    Hub (CGH)
+┌─────────────────┐            ┌─────────────────┐
+│ Agent App       │            │ Event Hub       │
+│                 │ Events     │                 │
+│ Emit telemetry ─┼───────────▶│ Ingest & buffer │
+│                 │            │                 │
+└─────────────────┘            └────────┬────────┘
+                                        │
+                                        ▼
+                               ┌─────────────────┐
+                               │ Logic App       │
+                               │ Transform       │
+                               └────────┬────────┘
+                                        │
+                                        ▼
+                               ┌─────────────────┐
+                               │ Cosmos DB       │
+                               │ Store & analyze │
+                               └─────────────────┘
+```
+
+---
+
+### Pattern 10: Log Aggregation
+
+**Use Case:** Centralized logging from all Citadel components.
+
+**Description:** Aggregate logs from all CGH and CAS components into centralized Log Analytics workspace.
+
+**Log Sources:**
+
+| Source | Log Type | Destination |
+|--------|----------|-------------|
+| APIM Gateway | GatewayLogs, Metrics | Log Analytics |
+| Content Safety | AuditLogs | Log Analytics |
+| Logic Apps | WorkflowLogs | Log Analytics |
+| Cosmos DB | DiagnosticLogs | Log Analytics |
+| Container Apps | ContainerLogs | Log Analytics |
+
+**Implementation:**
+
+```bicep
+// Diagnostic settings for APIM
+resource apimDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'apim-logs'
+  scope: apiManagement
+  properties: {
+    workspaceId: logAnalyticsWorkspace.id
+    logs: [
+      {
+        category: 'GatewayLogs'
+        enabled: true
+        retentionPolicy: {
+          days: 90
+          enabled: true
+        }
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}
+```
+
+**Kusto Queries:**
+
+```kusto
+// Centralized error tracking
+union 
+  APIMGatewayLogs,
+  ContainerAppConsoleLogs,
+  LogicAppWorkflowRuntime
+| where Level == "Error" or StatusCode >= 500
+| summarize Count = count() by Source = _ResourceId, ErrorType = Category
+| order by Count desc
+```
+
+---
+
+## Governance Patterns
+
+### Pattern 11: Policy Inheritance
+
+**Use Case:** Implement hierarchical policy management.
+
+**Description:** Use Azure Policy inheritance from management groups to subscriptions to resource groups, with Citadel-specific policies at appropriate levels.
+
+**Policy Hierarchy:**
+
+```
+Management Group: Contoso-Root
+└── Policy: Require tagging (Audit)
+    │
+    └── Management Group: Contoso-Platform
+        └── Policy: Require private endpoints (Deny)
+            │
+            └── Management Group: Contoso-AI
+                └── Initiative: Citadel-AI-Governance
+                    ├── Policy: Require content safety
+                    ├── Policy: Require audit logging
+                    └── Policy: Enforce token limits
+                    │
+                    ├── Subscription: CGH-Prod
+                    │   └── Inherits all above
+                    │
+                    └── Subscription: CGH-Dev
+                        └── Exemption: Token limits (Audit)
+```
+
+**Implementation:**
+
+```bicep
+// Policy initiative for Citadel
+resource citadelInitiative 'Microsoft.Authorization/policySetDefinitions@2023-04-01' = {
+  name: 'citadel-ai-governance'
+  properties: {
+    displayName: 'Citadel AI Governance'
+    description: 'Governance policies for Citadel AI Landing Zone'
+    policyDefinitions: [
+      {
+        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policyDefinitions', 'require-content-safety')
+        parameters: {}
+      }
+      {
+        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policyDefinitions', 'require-audit-logging')
+        parameters: {}
+      }
+    ]
+  }
+}
+
+// Assign to management group
+resource initiativeAssignment 'Microsoft.Authorization/policyAssignments@2023-04-01' = {
+  name: 'citadel-governance-assignment'
+  properties: {
+    policyDefinitionId: citadelInitiative.id
+    scope: managementGroupResourceId('Contoso-AI')
+  }
+}
+```
+
+---
+
+### Pattern 12: Tagging Strategy
+
+**Use Case:** Organize resources for cost management and governance.
+
+**Description:** Implement consistent tagging across all Citadel resources to enable cost attribution, governance, and automation.
+
+**Required Tags:**
+
+| Tag | Value Example | Purpose |
+|-----|---------------|---------|
+| `Environment` | `Production`, `Staging` | Environment separation |
+| `BusinessUnit` | `Finance`, `Engineering` | Cost attribution |
+| `CostCenter` | `CC12345` | Chargeback |
+| `Application` | `Citadel-CGH`, `AI-Agent-X` | Application identification |
+| `DataClassification` | `Confidential` | Data governance |
+| `Criticality` | `Critical`, `High` | Operational priority |
+| `Owner` | `team@company.com` | Contact information |
+| `Project` | `AI-Transformation` | Project grouping |
+
+**Enforcement:**
+
+```bicep
+// Policy to require tags
+resource requireTagsPolicy 'Microsoft.Authorization/policyDefinitions@2023-04-01' = {
+  name: 'require-citadel-tags'
+  properties: {
+    displayName: 'Require Citadel Tags'
+    policyType: 'Custom'
+    mode: 'Indexed'
+    policyRule: {
+      if: {
+        anyOf: [
+          {
+            field: 'tags[\'Environment\']'
+            exists: 'false'
+          }
+          {
+            field: 'tags[\'BusinessUnit\']'
+            exists: 'false'
+          }
+          // ... additional required tags
+        ]
+      }
+      then: {
+        effect: 'deny'
+      }
+    }
+  }
+}
+```
+
+**Cost Reporting:**
+
+```kusto
+// Cost by business unit
+azureCost
+| where ResourceGroup startswith "cgh-" or ResourceGroup startswith "cas-"
+| extend BusinessUnit = tostring(Tags['BusinessUnit'])
+| summarize TotalCost = sum(Cost) by BusinessUnit, Month = startofmonth(Date)
+| order by Month desc, TotalCost desc
+```
+
+---
+
+## Security Patterns
+
+### Pattern 13: Zero Trust Implementation
+
+**Use Case:** Implement defense in depth for AI workloads.
+
+**Description:** Apply Zero Trust principles: never trust, always verify, assume breach.
+
+**Zero Trust Pillars:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Zero Trust Architecture                   │
+│                                                              │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  Identity                                           │    │
+│  │  ├── Verify explicitly (JWT, MFA)                   │    │
+│  │  ├── Least privilege access                         │    │
+│  │  └── Assume breach (PIM, monitoring)                │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                           │                                  │
+│  ┌────────────────────────┼─────────────────────────────┐    │
+│  │  Network               │                             │    │
+│  │  ├── Micro-segmentation│ (VNet peering, NSGs)       │    │
+│  │  ├── Private endpoints │ (No public exposure)       │    │
+│  │  └── Encryption        │ (TLS 1.2+, private links)  │    │
+│  └────────────────────────┼─────────────────────────────┘    │
+│                           │                                  │
+│  ┌────────────────────────┼─────────────────────────────┐    │
+│  │  Data                 │                             │    │
+│  │  ├── Classification   │ (Sensitive, Internal)       │    │
+│  │  ├── Encryption       │ (At rest, in transit)       │    │
+│  │  └── Access control   │ (RBAC, ABAC)                │    │
+│  └────────────────────────┼─────────────────────────────┘    │
+│                           │                                  │
+│  ┌────────────────────────┼─────────────────────────────┐    │
+│  │  AI-Specific          │                             │    │
+│  │  ├── Content safety   │ (Prompt/response filtering) │    │
+│  │  ├── PII detection    │ (Data protection)           │    │
+│  │  └── Audit logging    │ (Full traceability)         │    │
+│  └────────────────────────┴─────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Implementation Checklist:**
+
+- [ ] All authentication via Entra ID (no API keys in code)
+- [ ] MFA enforced for admin access
+- [ ] Private endpoints for all PaaS services
+- [ ] NSGs on all subnets
+- [ ] Encryption at rest with CMK
+- [ ] TLS 1.2+ for all connections
+- [ ] Content safety enabled
+- [ ] Comprehensive audit logging
+- [ ] Regular access reviews
+
+---
+
+### Pattern 14: Key Rotation
+
+**Use Case:** Automated rotation of secrets and keys.
+
+**Description:** Implement automated rotation of API keys, connection strings, and certificates.
+
+**Rotation Strategy:**
+
+| Secret Type | Rotation Frequency | Method |
+|-------------|-------------------|--------|
+| APIM subscription keys | 90 days | Automated script |
+| Storage account keys | 90 days | Azure Key Vault rotation |
+| Cosmos DB keys | 180 days | Manual with automation |
+| TLS certificates | Annually | Key Vault auto-renewal |
+| Service principal secrets | 90 days | Key Vault + automation |
+
+**Implementation:**
+
+```bicep
+// Key Vault with rotation policy
+resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
+  name: 'cgh-keyvault'
+  properties: {
+    // ...
+    enableRbacAuthorization: true
+  }
+}
+
+// Secret with expiration
+resource apiKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  name: 'cgh-apim-master-key'
+  parent: keyVault
+  properties: {
+    value: 'secret-value'
+    attributes: {
+      enabled: true
+      exp: 1719792000 // Unix timestamp for expiration
+    }
+  }
+}
+
+// Alert for upcoming expiration
+resource keyExpirationAlert 'Microsoft.Insights/scheduledQueryRules@2023-03-15-preview' = {
+  name: 'key-expiration-alert'
+  properties: {
+    displayName: 'Key Expiration Warning'
+    description: 'Alert when keys are expiring within 30 days'
+    // ... query and action configuration
+  }
+}
+```
+
+**Rotation Script:**
+
+```powershell
+# Automated key rotation script
+param(
+    [string]$KeyVaultName,
+    [string]$SecretName,
+    [int]$ExpiryDays = 90
+)
+
+# Generate new key
+$newKey = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 32 | % {[char]$_})
+
+# Add new version to Key Vault
+$expiryDate = (Get-Date).AddDays($ExpiryDays)
+Set-AzKeyVaultSecret `
+  -VaultName $KeyVaultName `
+  -Name $SecretName `
+  -SecretValue (ConvertTo-SecureString $newKey -AsPlainText -Force) `
+  -Expires $expiryDate
+
+# Update APIM with new key
+$context = New-AzApiManagementContext `
+  -ResourceGroupName "cgHub-rg" `
+  -ServiceName "cgHub-apim"
+
+Set-AzApiManagementNamedValue `
+  -Context $context `
+  -NamedValueId $SecretName `
+  -Value $newKey
+
+Write-Output "Key rotated successfully. New expiry: $expiryDate"
+```
+
+---
+
+## Pattern Selection Guide
+
+Use this guide to select appropriate patterns for your scenario:
+
+### Identity Pattern Selection
+
+```
+Need to authenticate to Azure service?
+├── Yes → Both services in same tenant?
+│   ├── Yes → Use Managed Identity (Pattern 1)
+│   └── No → Use Cross-tenant (Pattern 4)
+└── No → External service?
+    ├── Yes → Use Service Principal (Pattern 2)
+    └── No → Use API keys with Key Vault
+```
+
+### Network Pattern Selection
+
+```
+Need to access PaaS service privately?
+├── Yes → Strict data exfiltration requirements?
+│   ├── Yes → Use Private Endpoint (Pattern 5)
+│   └── No → Use Service Endpoint (Pattern 6)
+└── No → Public endpoint with IP restrictions
+```
+
+### Security Pattern Selection
+
+```
+Implementing defense in depth?
+├── Yes → Start with Zero Trust (Pattern 13)
+│         ├── Add Key Rotation (Pattern 14)
+│         └── Add comprehensive logging
+└── No → At minimum implement:
+          ├── Managed identities
+          ├── Private endpoints
+          └── Audit logging
+```
+
+---
+
+## Related Documentation
+
+- [Azure Landing Zone Integration](/architecture/integration/azure-landing-zones) - Integration with ALZ
+- [Architecture Diagrams](/architecture/diagrams) - Visual architecture reference
+- [Identity Documentation](/concepts/identity) - Identity concepts and guides
+- [Security Documentation](/concepts/security) - Security best practices
