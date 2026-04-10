@@ -423,6 +423,7 @@ infra/usecase-onboarding/samples/financial-assistant-usecase-local.sh
 dist/
 build/
 
-.wolf
-.planning
+# Planning and Wolf context directories
+.wolf/
+.planning/
 
