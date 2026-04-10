@@ -34,6 +34,10 @@
       "url": "architecture"
     },
     {
+      "name": "Business Value",
+      "url": "business-value"
+    },
+    {
       "name": "Implementation",
       "url": "implementation"
     },
@@ -88,6 +92,15 @@
           "architecture/agent-spokes",
           "architecture/networking",
           "architecture/security-fabric"
+        ]
+      },
+      {
+        "group": "Business Value",
+        "pages": [
+          "business-value/index",
+          "business-value/executive-summary",
+          "business-value/roi-framework",
+          "business-value/compliance-value"
         ]
       },
       {
