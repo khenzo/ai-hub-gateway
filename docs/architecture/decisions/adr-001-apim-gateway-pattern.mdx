@@ -1,0 +1,300 @@
+---
+title: "ADR-001: APIM Gateway Pattern"
+description: Architecture Decision Record for using Azure API Management as the unified AI gateway
+status: accepted
+date: 2026-04-10
+author: Citadel Architecture Team
+---
+
+# ADR-001: APIM Gateway Pattern
+
+## Status
+
+**Accepted**
+
+## Context
+
+Organizations deploying AI at scale face a critical challenge: how to govern AI consumption across multiple teams, business units, and use cases without creating friction that slows innovation. The fundamental problem is that without centralized governance, AI adoption leads to:
+
+- **Unpredictable costs** - No visibility into token consumption or spending per team
+- **Security vulnerabilities** - API keys scattered across codebases, shadow AI usage
+- **Compliance gaps** - No audit trail of AI interactions, inability to enforce policies
+- **Reliability issues** - No rate limiting, circuit breaking, or failover mechanisms
+- **Developer friction** - Each team reinvents governance patterns
+
+### Requirements
+
+We need a unified AI gateway that provides:
+
+1. **LLM Governance** - Token rate limiting, quota management, cost attribution
+2. **AI Resiliency** - Load balancing, circuit breaking, semantic caching
+3. **Policy Enforcement** - Content safety, PII detection, access control
+4. **Observability** - Centralized logging, usage analytics, audit trails
+5. **Developer Experience** - Simple onboarding, consistent APIs, self-service
+6. **Enterprise Integration** - Works with existing Azure Landing Zones
+
+### Alternative Approaches Considered
+
+We evaluated five approaches for implementing a unified AI gateway:
+
+#### Alternative 1: Direct Model Access
+
+**Description:** Teams connect directly to Azure OpenAI, Foundry, or other model endpoints using native SDKs and API keys.
+
+**Pros:**
+- Simplest initial setup
+- No additional infrastructure
+- Direct access to model features
+
+**Cons:**
+- No centralized governance
+- API keys proliferate across teams
+- No usage visibility or cost attribution
+- Cannot enforce policies consistently
+- No resiliency patterns
+
+**Verdict:** ❌ **Rejected** - Fails all governance requirements
+
+#### Alternative 2: Custom Gateway Solution
+
+**Description:** Build a custom AI gateway using application frameworks (e.g., ASP.NET, Node.js, Python) with custom policy enforcement.
+
+**Pros:**
+- Maximum customization
+- Can implement exact features needed
+- Full control over codebase
+
+**Cons:**
+- Significant development effort (6-12 months)
+- Ongoing maintenance burden
+- Security vulnerabilities in custom code
+- No enterprise features out-of-the-box
+- Requires dedicated team for operations
+
+**Verdict:** ❌ **Rejected** - High cost, slow time-to-value, maintenance burden
+
+#### Alternative 3: Application Gateway + WAF
+
+**Description:** Use Azure Application Gateway with Web Application Firewall for AI traffic management.
+
+**Pros:**
+- Native Azure service
+- Layer 7 load balancing
+- WAF protection
+- SSL termination
+
+**Cons:**
+- No AI-specific features (token limiting, semantic caching)
+- No LLM routing capabilities
+- Limited policy framework
+- No AI registry integration
+- No built-in AI observability
+
+**Verdict:** ❌ **Rejected** - Not designed for AI workloads
+
+#### Alternative 4: Azure Front Door
+
+**Description:** Use Azure Front Door as a global load balancer and CDN for AI endpoints.
+
+**Pros:**
+- Global edge network
+- Advanced traffic management
+- DDoS protection
+- SSL offloading
+
+**Cons:**
+- CDN-focused, not API gateway
+- No AI-specific governance features
+- No token-based rate limiting
+- No semantic caching
+- Limited policy enforcement
+
+**Verdict:** ❌ **Rejected** - Wrong use case (CDN vs API gateway)
+
+#### Alternative 5: Azure API Management (Selected)
+
+**Description:** Use Azure API Management with its native AI Gateway capabilities as the unified AI gateway.
+
+**Pros:**
+- Built-in AI gateway features (token limiting, semantic caching)
+- LLM routing and load balancing
+- Rich policy framework for governance
+- Native Azure integration
+- Enterprise-grade security and observability
+- API Center for AI registry
+- Multi-cloud/hybrid support
+
+**Cons:**
+- Learning curve for teams new to APIM
+- Additional service cost
+- Some advanced AI features in preview
+
+**Verdict:** ✅ **Accepted** - Best fit for requirements
+
+## Decision
+
+We will use **Azure API Management (APIM)** as the unified AI gateway for the Citadel Governance Hub.
+
+### Rationale
+
+#### 1. Built-in AI Gateway Capabilities
+
+APIM provides AI-specific features that address our core requirements:
+
+| Feature | APIM Capability | Benefit |
+|---------|-----------------|---------|
+| Token Rate Limiting | Native `rate-limit-by-key` with token counting | Prevent cost overruns, fair usage |
+| Semantic Caching | Built-in semantic caching policy | Reduce costs, improve latency |
+| LLM Routing | Dynamic backend routing | Multi-model support, failover |
+| Load Balancing | Weighted backend pools | High availability, performance |
+
+#### 2. Policy-as-Code Governance
+
+APIM's policy framework enables comprehensive governance:
+
+```xml
+<!-- Example: Token-based rate limiting with cost attribution -->
+<rate-limit-by-key calls="1000"
+                   renewal-period="60"
+                   counter-key="@((string)context.Variables["teamId"])"
+                   increment-count="@((int)context.Variables["tokenCount"])" />
+
+<!-- Example: Content safety integration -->
+<send-request mode="new" response-variable-name="safetyCheck">
+    <set-url>https://contentsafety.cognitive.microsoft.com/</set-url>
+    <set-method>POST</set-method>
+    <set-body>@{
+        return new JObject(
+            new JProperty("text", context.Request.Body.As<string>())
+        ).ToString();
+    }</set-body>
+</send-request>
+```
+
+#### 3. Native Azure Integration
+
+APIM integrates seamlessly with our Azure ecosystem:
+
+- **Entra ID** - Native OAuth 2.0 and JWT validation
+- **Application Insights** - Built-in telemetry and distributed tracing
+- **Log Analytics** - Centralized logging for audit trails
+- **Key Vault** - Secure secret management
+- **Private Link** - Private connectivity for sensitive workloads
+- **API Center** - Universal AI Registry for discovery
+
+#### 4. Enterprise-Grade Security
+
+APIM provides comprehensive security features:
+
+- **Authentication** - OAuth 2.0, OpenID Connect, JWT validation
+- **Authorization** - RBAC, subscription keys, certificates
+- **Threat Protection** - IP filtering, rate limiting, WAF integration
+- **Secret Management** - Native Key Vault integration
+- **Private Endpoints** - No public exposure required
+
+#### 5. Multi-Cloud and Hybrid Support
+
+APIM's flexible backend configuration supports:
+
+- Azure OpenAI
+- Azure AI Foundry
+- Third-party LLMs (OpenAI, Anthropic, etc.)
+- Self-hosted models (via private endpoints)
+- Multi-cloud scenarios (AWS Bedrock, etc.)
+
+This ensures we're not locked into a single provider.
+
+#### 6. Proven at Scale
+
+APIM is a mature Azure service used by thousands of enterprises:
+
+- 99.99% SLA for Premium tier
+- Auto-scaling capabilities
+- Global deployment options
+- Microsoft-supported, enterprise-ready
+
+### Implementation Approach
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Citadel Governance Hub                    │
+│                                                              │
+│   ┌─────────────────────────────────────────────────────┐   │
+│   │           Azure API Management (APIM)                │
+│   │                                                      │
+│   │  ┌─────────────┐    ┌─────────────┐    ┌─────────┐  │   │
+│   │  │   Gateway   │───▶│   Policies  │───▶│Backends │  │   │
+│   │  │             │    │             │    │         │  │   │
+│   │  │ - APIs      │    │ - Rate Limit│    │ - AOAI  │  │   │
+│   │  │ - Products  │    │ - Auth      │    │ - Found │  │   │
+│   │  │ - Subscript │    │ - Transform │    │ - Custom│  │   │
+│   │  └─────────────┘    └─────────────┘    └─────────┘  │   │
+│   │                                                      │   │
+│   └─────────────────────────────────────────────────────┘   │
+│                           │                                  │
+│                           ▼                                  │
+│   ┌─────────────────────────────────────────────────────┐   │
+│   │                    Supporting Services               │   │
+│   │  ┌──────────┐  ┌──────────┐  ┌──────────────────┐  │   │
+│   │  │ API Ctr  │  │ App Ins  │  │ Log Analytics    │  │   │
+│   │  │(Registry)│  │(Telemetry│  │ (Audit Logs)     │  │   │
+│   │  └──────────┘  └──────────┘  └──────────────────┘  │   │
+│   └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Consequences
+
+### Positive Consequences
+
+1. **Unified Control Plane** - Single point of governance for all AI traffic
+2. **Proven Patterns** - Leverage Microsoft-vetted AI gateway patterns
+3. **Reduced Custom Code** - No need to build and maintain custom gateway
+4. **Built-in AI Resiliency** - Semantic caching, circuit breaking, load balancing
+5. **Enterprise Integration** - Native Azure ecosystem integration
+6. **Time-to-Value** - Deploy in days vs months for custom solutions
+
+### Trade-offs
+
+1. **APIM Learning Curve** - Teams need to learn APIM concepts and policies
+   - **Mitigation:** Provide templates, documentation, and training
+
+2. **Service Cost** - APIM Premium tier required for production
+   - **Mitigation:** Cost offset by reduced custom development and operational efficiency
+
+3. **Feature Limitations** - Some cutting-edge AI features may not be available
+   - **Mitigation:** Use custom policies for advanced scenarios; Microsoft actively developing AI features
+
+### Migration Path
+
+For organizations with existing AI deployments:
+
+| Phase | Action | Timeline |
+|-------|--------|----------|
+| 1 | Deploy CGH with APIM in parallel | Week 1-2 |
+| 2 | Migrate non-production workloads | Week 3-4 |
+| 3 | Implement governance policies | Week 5-6 |
+| 4 | Migrate production workloads | Week 7-8 |
+| 5 | Decommission direct model access | Week 9-10 |
+
+## Related Decisions
+
+- [ADR-002: Hub-Spoke Networking](./adr-002-hub-spoke-networking) - Network topology for CGH deployment
+- [ADR-003: Landing Zone Integration](./adr-003-landing-zone-integration) - Integration with Azure Landing Zones
+
+## References
+
+- [Azure API Management Documentation](https://learn.microsoft.com/azure/api-management/)
+- [APIM AI Gateway Capabilities](https://learn.microsoft.com/azure/api-management/genai-gateway-capabilities)
+- [AI Hub Gateway Solution Accelerator](https://aka.ms/ai-hub-gateway)
+- [Azure Well-Architected Framework - API Management](https://learn.microsoft.com/azure/well-architected/service-guides/api-management/review-cost-optimization)
+
+## Notes
+
+This decision was made after evaluating multiple approaches over a 2-week period, including:
+- Proof-of-concept implementations of custom gateway (Node.js)
+- Review of APIM preview AI features
+- Cost analysis comparing alternatives
+- Stakeholder interviews with platform and development teams
+
+The decision aligns with Microsoft's recommendation for enterprise AI governance and has been validated through customer deployments.
