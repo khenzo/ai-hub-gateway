@@ -7,7 +7,7 @@ This roadmap guides the creation of a comprehensive documentation hub for implem
 ## Phases
 
 - [x] **Phase 1: Documentation Foundation** - Set up Mintlify structure and user journey framework (3/3 complete)
-- [~] **Phase 2: Core Architecture** - Document Citadel Governance Hub and networking patterns (1/3 complete)  
+- [x] **Phase 2: Core Architecture** - Document Citadel Governance Hub and networking patterns (3/3 complete)  
 - [ ] **Phase 3: AI Landing Zone Patterns** - Document APIM reference architecture and governance
 - [ ] **Phase 4: Implementation Guides** - Create getting started and deployment guides
 - [ ] **Phase 5: Integration & Validation** - Document Foundry integration, business value, and testing
@@ -35,7 +35,7 @@ Plans:
 **Goal**: Document the foundational Citadel Governance Hub 4-layer architecture and hub-spoke networking patterns
 **Depends on**: Phase 1
 **Requirements**: REQ-02, REQ-06
-**Status**: In Progress (1/3 plans complete)
+**Status**: Complete (3/3 plans complete)
 **Success Criteria** (what must be TRUE):
   1. Citadel 4-layer model is documented with clear explanations of each layer
   2. Hub-spoke networking topology diagrams and patterns are documented
@@ -45,8 +45,8 @@ Plans:
 
 Plans:
 - [x] 02-01: Document Citadel Governance Hub 4-layer architecture
-- [ ] 02-02: Document hub-spoke networking patterns and topology
-- [ ] 02-03: Create architecture diagrams and decision documentation
+- [x] 02-02: Document hub-spoke networking patterns and topology
+- [x] 02-03: Create architecture diagrams and decision documentation
 
 ### Phase 3: AI Landing Zone Patterns
 **Goal**: Document the AI Landing Zone for APIM reference architecture and governance policies including AI Access Contracts
@@ -104,7 +104,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Documentation Foundation | 3/3 | Complete | 2026-04-09 |
-| 2. Core Architecture | 0/3 | Not started | - |
+| 2. Core Architecture | 3/3 | Complete | 2026-04-10 |
 | 3. AI Landing Zone Patterns | 0/3 | Not started | - |
 | 4. Implementation Guides | 0/3 | Not started | - |
 | 5. Integration & Validation | 0/3 | Not started | - |
