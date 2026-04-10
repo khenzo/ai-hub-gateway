@@ -1,0 +1,869 @@
+---
+title: Validation Troubleshooting
+description: Diagnostic procedures and resolution steps for validation failures and deployment issues in AI Landing Zones
+icon: wrench
+---
+
+# Validation Troubleshooting Guide
+
+This guide provides diagnostic procedures for resolving issues discovered during pre-deployment and post-deployment validation of AI Landing Zones.
+
+<Note>
+For general troubleshooting of deployed AI Landing Zones, see the [main Troubleshooting Guide](/guides/troubleshooting). This guide focuses specifically on validation failures and deployment-time issues.
+</Note>
+
+---
+
+## Issue Categories
+
+Use the tabs below to navigate to the specific issue category you're experiencing:
+
+### Deployment Issues
+
+#### Issue: Resource Provider Not Registered
+
+**Symptoms:**
+- Deployment fails with `MissingSubscriptionRegistration`
+- Error: "The subscription is not registered for the resource provider"
+
+**Diagnosis:**
+
+```bash
+# Check registration state
+az provider show --namespace Microsoft.ApiManagement --query "registrationState"
+
+# Expected: "Registered"
+# If returns "NotRegistered" or "Registering", that's the issue
+```
+
+**Resolution:**
+
+```bash
+# Register the missing provider
+az provider register --namespace Microsoft.ApiManagement --wait
+
+# Verify registration
+az provider show --namespace Microsoft.ApiManagement --query "registrationState"
+```
+
+**Prevention:**
+- Run `register-providers.sh` script before deployment
+- Include provider registration check in CI/CD pipeline
+
+---
+
+#### Issue: Insufficient Permissions
+
+**Symptoms:**
+- Deployment fails with `AuthorizationFailed`
+- Error: "The client does not have authorization to perform action"
+
+**Diagnosis:**
+
+```bash
+# Check current user roles
+DEPLOYER_ID=$(az ad signed-in-user show --query "id" -o tsv)
+RG_ID=$(az group show --name <resource-group> --query "id" -o tsv)
+
+az role assignment list \
+  --assignee "$DEPLOYER_ID" \
+  --scope "$RG_ID" \
+  --query "[].{role:roleDefinitionName, scope:scope}"
+```
+
+**Resolution:**
+
+```bash
+# Grant Contributor role
+az role assignment create \
+  --assignee "$DEPLOYER_ID" \
+  --role "Contributor" \
+  --scope "$RG_ID"
+
+# Grant User Access Administrator (needed for RBAC assignments)
+az role assignment create \
+  --assignee "$DEPLOYER_ID" \
+  --role "User Access Administrator" \
+  --scope "$RG_ID"
+```
+
+**Verification:**
+
+```bash
+# Verify permissions are granted
+az role assignment list \
+  --assignee "$DEPLOYER_ID" \
+  --scope "$RG_ID" \
+  --query "[].roleDefinitionName" \
+  --output tsv | grep -E "(Contributor|User Access Administrator)"
+```
+
+---
+
+#### Issue: Resource Quota Exceeded
+
+**Symptoms:**
+- Deployment fails with `QuotaExceeded`
+- Error: "Operation could not be completed as it results in exceeding approved standardADSPFamily Cores quota"
+
+**Diagnosis:**
+
+```bash
+# Check current quota usage
+az vm list-usage --location <region> \
+  --query "[?name.value=='standardADSPFamily'].{Current:currentValue, Limit:limit}"
+```
+
+**Resolution:**
+
+1. **Option 1: Request quota increase**
+   - Azure Portal: Subscriptions > <your subscription> > Usage + quotas
+   - Request increase for "Standard ADS Family vCPUs"
+   - Typical approval time: 1-2 business days
+
+2. **Option 2: Deploy in different region**
+   ```bash
+   # Check quota in other regions
+   for region in eastus westus2 centralus; do
+     echo "Region: $region"
+     az vm list-usage --location $region \
+       --query "[?name.value=='standardADSPFamily'].{Limit:limit}"
+   done
+   ```
+
+3. **Option 3: Use smaller APIM SKU for testing**
+   - Change from `Premium` to `Developer` (note: Developer has no SLA)
+
+**Verification:**
+
+```bash
+# Verify quota after increase
+az vm list-usage --location <region> \
+  --query "[?name.value=='standardADSPFamily'].{Current:currentValue, Limit:limit}"
+```
+
+---
+
+#### Issue: Naming Conflict
+
+**Symptoms:**
+- Deployment fails with `ResourceAlreadyExists` or `Conflict`
+- Error: "A vault with the same name already exists"
+
+**Diagnosis:**
+
+```bash
+# Check if resource exists globally (Key Vault names are globally unique)
+az keyvault show --name <proposed-name> 2>&1
+
+# Check resources in your subscription
+az resource list --query "[?name=='<proposed-name>']"
+```
+
+**Resolution:**
+
+```bash
+# Generate a unique name with timestamp or random suffix
+UNIQUE_SUFFIX=$(date +%s | tail -c 4)
+KV_NAME="kv-citadel-prod-$UNIQUE_SUFFIX"
+echo "Suggested name: $KV_NAME"
+
+# Or use uuid for global uniqueness
+UNIQUE_SUFFIX=$(uuidgen | cut -d'-' -f1)
+KV_NAME="kv-citadel-$UNIQUE_SUFFIX"
+```
+
+**Prevention:**
+- Use naming convention with environment and unique suffix
+- Check name availability before deployment
+- Document all resource names in deployment plan
+
+---
+
+#### Issue: Bicep Template Validation Failure
+
+**Symptoms:**
+- `az bicep build` fails with syntax errors
+- Deployment validation fails with parameter errors
+
+**Diagnosis:**
+
+```bash
+# Validate Bicep syntax
+az bicep build --file main.bicep 2>&1
+
+# Validate deployment parameters
+az deployment group validate \
+  --resource-group <resource-group> \
+  --template-file main.bicep \
+  --parameters @parameters.json 2>&1
+```
+
+**Common Errors and Fixes:**
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `Expected the "{" character` | Missing opening brace in object | Check JSON/Bicep syntax |
+| `Unable to find parameter` | Parameter not defined in template | Add parameter to Bicep file |
+| `Invalid value for parameter` | Value doesn't match allowed values | Check parameter constraints |
+| `Resource not found` | Incorrect resource reference | Verify resource IDs and names |
+
+**Resolution:**
+
+```bash
+# Get detailed error message
+az deployment group validate \
+  --resource-group <resource-group> \
+  --template-file main.bicep \
+  --parameters @parameters.json \
+  --query "error" \
+  --output json
+
+# Check specific resource
+az deployment group show \
+  --resource-group <resource-group> \
+  --name <deployment-name> \
+  --query "properties.error"
+```
+
+---
+
+### Connectivity Issues
+
+#### Issue: VNet Peering Not Connected
+
+**Symptoms:**
+- Resources in spoke cannot reach hub resources
+- `peeringState` shows `Initiated` instead of `Connected`
+
+**Diagnosis:**
+
+```bash
+# Check peering state from hub side
+az network vnet peering list \
+  --resource-group <hub-rg> \
+  --vnet-name <hub-vnet> \
+  --query "[].{name:name, state:peeringState, remote:remoteVirtualNetwork.id}"
+
+# Check peering state from spoke side
+az network vnet peering list \
+  --resource-group <spoke-rg> \
+  --vnet-name <spoke-vnet> \
+  --query "[].{name:name, state:peeringState}"
+```
+
+**Resolution:**
+
+If spoke shows `Initiated` but no corresponding peering:
+
+```bash
+# Re-create spoke-to-hub peering
+az network vnet peering create \
+  --resource-group <spoke-rg> \
+  --vnet-name <spoke-vnet> \
+  --name peer-to-hub \
+  --remote-vnet "/subscriptions/<sub-id>/resourceGroups/<hub-rg>/providers/Microsoft.Network/virtualNetworks/<hub-vnet>" \
+  --allow-vnet-access \
+  --allow-forwarded-traffic
+```
+
+If peering shows `Disconnected`:
+
+```bash
+# Delete and recreate both sides
+az network vnet peering delete \
+  --resource-group <hub-rg> \
+  --vnet-name <hub-vnet> \
+  --name <peering-name>
+
+az network vnet peering delete \
+  --resource-group <spoke-rg> \
+  --vnet-name <spoke-vnet> \
+  --name <peering-name>
+
+# Recreate with proper configuration
+# (See deployment guide for commands)
+```
+
+**Verification:**
+
+```bash
+# Verify both sides show "Connected"
+az network vnet peering list \
+  --resource-group <hub-rg> \
+  --vnet-name <hub-vnet> \
+  --query "[].{name:name, state:peeringState}"
+```
+
+---
+
+#### Issue: DNS Resolution Fails
+
+**Symptoms:**
+- `nslookup` returns public IP instead of private IP
+- Cannot connect to private endpoints by hostname
+
+**Diagnosis:**
+
+```bash
+# Test DNS resolution from inside VNet
+nslookup <openai-name>.openai.azure.com
+
+# Check private DNS zone exists
+az network private-dns zone list \
+  --query "[].{name:name, resourceGroup:resourceGroup}"
+
+# Check VNet links
+az network private-dns link vnet list \
+  --resource-group <rg> \
+  --zone-name "privatelink.openai.azure.com" \
+  --query "[].{vnet:virtualNetwork.id, state:provisioningState}"
+```
+
+**Resolution:**
+
+If DNS zone missing:
+
+```bash
+# Create private DNS zone
+az network private-dns zone create \
+  --resource-group <rg> \
+  --name "privatelink.openai.azure.com"
+```
+
+If VNet link missing:
+
+```bash
+# Link VNet to DNS zone
+az network private-dns link vnet create \
+  --resource-group <rg> \
+  --zone-name "privatelink.openai.azure.com" \
+  --name "link-hub-vnet" \
+  --virtual-network "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Network/virtualNetworks/<vnet>" \
+  --registration-enabled false
+```
+
+**Verification:**
+
+```bash
+# From VM in VNet, verify private IP returned
+nslookup <openai-name>.openai.azure.com
+# Should return: 10.x.x.x (private IP)
+```
+
+---
+
+#### Issue: Private Endpoint Pending Approval
+
+**Symptoms:**
+- Private endpoint shows `Pending` state
+- Cannot connect to service via private endpoint
+
+**Diagnosis:**
+
+```bash
+# Check private endpoint connection state
+az network private-endpoint show \
+  --name <pe-name> \
+  --resource-group <rg> \
+  --query "privateLinkServiceConnections[0].privateLinkServiceConnectionState"
+```
+
+**Resolution:**
+
+For Azure OpenAI:
+
+```bash
+# Get connection name
+CONNECTION_NAME=$(az network private-endpoint show \
+  --name <pe-name> \
+  --resource-group <rg> \
+  --query "privateLinkServiceConnections[0].name" -o tsv)
+
+# Approve connection from OpenAI side
+az cognitiveservices account private-endpoint-connection approve \
+  --account-name <openai-name> \
+  --resource-group <rg> \
+  --name "$CONNECTION_NAME"
+```
+
+For AI Foundry:
+
+```bash
+az ml workspace private-endpoint approve \
+  --workspace-name <foundry-workspace> \
+  --resource-group <rg> \
+  --endpoint-name <pe-name>
+```
+
+**Verification:**
+
+```bash
+# Verify state is "Approved"
+az network private-endpoint show \
+  --name <pe-name> \
+  --resource-group <rg> \
+  --query "privateLinkServiceConnections[0].privateLinkServiceConnectionState.status"
+```
+
+---
+
+#### Issue: NSG Blocking Traffic
+
+**Symptoms:**
+- Connection timeouts between components
+- Deployment fails waiting for APIM to become ready
+
+**Diagnosis:**
+
+```bash
+# Check NSG rules
+az network nsg rule list \
+  --nsg-name <nsg-name> \
+  --resource-group <rg> \
+  --query "[].{name:name, priority:priority, direction:direction, access:access, src:sourceAddressPrefix, dstPort:destinationPortRange}"
+
+# Check effective NSG on a NIC
+az network nic list-effective-nsg \
+  --name <nic-name> \
+  --resource-group <rg> \
+  --query "effectiveSecurityRules[?access=='Deny']"
+```
+
+**Common NSG Issues:**
+
+| Issue | Symptom | Required Rule |
+|-------|---------|---------------|
+| APIM management blocked | APIM stuck in `Activating` | Allow inbound 3443 from `ApiManagement` |
+| APIM gateway blocked | Cannot reach API endpoint | Allow inbound 443 from client IPs |
+| Outbound blocked | Backend connectivity fails | Allow outbound 443 to `*` |
+
+**Resolution:**
+
+```bash
+# Add APIM management rule
+az network nsg rule create \
+  --nsg-name <nsg-name> \
+  --resource-group <rg> \
+  --name AllowAPIMManagement \
+  --priority 100 \
+  --direction Inbound \
+  --access Allow \
+  --protocol Tcp \
+  --source-address-prefix ApiManagement \
+  --source-port-range '*' \
+  --destination-address-prefix '*' \
+  --destination-port-range 3443
+
+# Add APIM gateway rule
+az network nsg rule create \
+  --nsg-name <nsg-name> \
+  --resource-group <rg> \
+  --name AllowAPIMGateway \
+  --priority 110 \
+  --direction Inbound \
+  --access Allow \
+  --protocol Tcp \
+  --source-address-prefix VirtualNetwork \
+  --source-port-range '*' \
+  --destination-address-prefix '*' \
+  --destination-port-range 443
+```
+
+---
+
+### Performance Issues
+
+#### Issue: High Latency
+
+**Symptoms:**
+- API response times exceed SLA
+- Post-deployment validation shows P95 > 5s
+
+**Diagnosis:**
+
+```bash
+# Check APIM capacity
+az monitor metrics list \
+  --resource <apim-id> \
+  --metric "Capacity" \
+  --interval PT1M \
+  --query "value[0].timeseries[0].data[-1]"
+
+# Check backend latency
+az monitor log-analytics query \
+  --workspace <workspace-id> \
+  --analytics-query "ApiManagementGatewayLogs | where TimeGenerated > ago(1h) | summarize avg(backendTime) by bin(TimeGenerated, 5m)"
+```
+
+**Common Causes:**
+
+| Cause | Check | Resolution |
+|-------|-------|------------|
+| APIM capacity > 80% | Capacity metric | Scale to more units |
+| Cross-region traffic | APIM and OpenAI regions | Deploy in same region |
+| Cold start | First request after idle | Warm-up script or keep-alive |
+| Backend throttling | OpenAI rate limits | Add more backends |
+
+**Resolution:**
+
+```bash
+# Scale APIM to more units
+az apim update \
+  --name <apim-name> \
+  --resource-group <rg> \
+  --sku-name Premium \
+  --sku-capacity 2
+```
+
+---
+
+#### Issue: Timeout Errors
+
+**Symptoms:**
+- Requests return 504 Gateway Timeout
+- Backend response time > 30 seconds
+
+**Diagnosis:**
+
+```kusto
+// Check for timeout patterns in logs
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(1h)
+| where responseCode == 504 or backendTime > 30000
+| project TimeGenerated, requestId, apiId, backendUrl, backendTime
+| order by TimeGenerated desc
+```
+
+**Common Causes:**
+
+- Long-running AI model responses (GPT-4 can take 30s+)
+- Backend service unavailable
+- Network connectivity issues
+
+**Resolution:**
+
+1. **Increase timeout in APIM policy:**
+
+```xml
+<policies>
+  <inbound>
+    <set-variable name="request-timeout" value="120" />
+  </inbound>
+  <backend>
+    <forward-request timeout="120" />
+  </backend>
+</policies>
+```
+
+2. **Implement async pattern for long operations**
+
+3. **Add circuit breaker for failing backends**
+
+---
+
+### Integration Issues
+
+#### Issue: No Data in Log Analytics
+
+**Symptoms:**
+- Queries return no results
+- Monitoring dashboards empty
+
+**Diagnosis:**
+
+```bash
+# Check diagnostic settings exist
+az monitor diagnostic-settings list \
+  --resource <apim-id> \
+  --query "[].{name:name, workspace:workspaceId}"
+
+# Check workspace exists
+az monitor log-analytics workspace show \
+  --name <workspace> \
+  --resource-group <rg> \
+  --query "provisioningState"
+```
+
+**Common Causes:**
+
+| Cause | Check | Resolution |
+|-------|-------|------------|
+| Diagnostic settings missing | `diagnostic-settings list` returns empty | Create diagnostic settings |
+| Wrong workspace ID | Verify workspace ID matches | Update diagnostic settings |
+| Log categories disabled | Check `logs[].enabled` | Enable required categories |
+| Ingestion delay | Wait 5-15 minutes | Normal for first logs |
+
+**Resolution:**
+
+```bash
+# Create diagnostic settings for APIM
+az monitor diagnostic-settings create \
+  --name "apim-to-loganalytics" \
+  --resource <apim-id> \
+  --workspace <workspace-id> \
+  --logs '[{"category":"GatewayLogs","enabled":true},{"category":"RequestResponse","enabled":true}]' \
+  --metrics '[{"category":"AllMetrics","enabled":true}]'
+```
+
+---
+
+#### Issue: Foundry Control Plane Not Receiving Data
+
+**Symptoms:**
+- Foundry dashboards show no gateway data
+- Control Plane integration appears broken
+
+**Diagnosis:**
+
+```bash
+# Check Foundry connection
+az ml workspace connection show \
+  --workspace-name <foundry-workspace> \
+  --resource-group <rg> \
+  --name "citadel-gateway-connection"
+
+# Check Log Analytics reader role
+az role assignment list \
+  --scope <workspace-id> \
+  --query "[?principalName=='<foundry-sp>']"
+```
+
+**Common Causes:**
+
+- Missing Log Analytics Reader role assignment
+- Connection misconfiguration
+- Network/firewall blocking
+
+**Resolution:**
+
+```bash
+# Grant Foundry SP Log Analytics Reader role
+FOUNDARY_SP_ID=$(az ad sp list --display-name "<foundry-sp-name>" --query "[0].id" -o tsv)
+
+az role assignment create \
+  --assignee "$FOUNDARY_SP_ID" \
+  --role "Log Analytics Reader" \
+  --scope <workspace-id>
+```
+
+---
+
+### Security/Access Issues
+
+#### Issue: Authentication Failures
+
+**Symptoms:**
+- API calls return 401 Unauthorized
+- Token validation fails
+
+**Diagnosis:**
+
+```bash
+# Check APIM subscription keys
+az apim product subscription list \
+  --resource-group <rg> \
+  --service-name <apim> \
+  --product-id <product-id> \
+  --query "[].{name:name, state:state, key:primaryKey}"
+
+# Verify JWT token (if using Entra ID)
+echo "$TOKEN" | cut -d. -f2 | base64 -d 2>/dev/null | jq '{
+  aud: .aud,
+  iss: .iss,
+  exp: .exp,
+  scp: .scp
+}'
+```
+
+**Common Causes:**
+
+| Cause | Symptom | Resolution |
+|-------|---------|------------|
+| Invalid subscription key | `401` with "Access denied" | Use correct key from APIM |
+| Expired JWT token | `401` with "Token expired" | Refresh token |
+| Wrong audience | `401` with "Invalid audience" | Update app registration |
+| Missing scope | `403` with "Insufficient permissions" | Grant API permissions |
+
+---
+
+#### Issue: Key Vault Access Denied
+
+**Symptoms:**
+- APIM cannot read secrets
+- Error: "KeyVaultError: Access denied"
+
+**Diagnosis:**
+
+```bash
+# Check APIM managed identity
+APIM_IDENTITY=$(az apim show -n <apim> -g <rg> --query "identity.principalId" -o tsv)
+echo "APIM Identity: $APIM_IDENTITY"
+
+# Check role assignments on Key Vault
+az role assignment list \
+  --scope <kv-id> \
+  --query "[?principalId=='$APIM_IDENTITY']"
+```
+
+**Resolution:**
+
+```bash
+# Grant Key Vault Secrets User role to APIM
+az role assignment create \
+  --assignee "$APIM_IDENTITY" \
+  --role "Key Vault Secrets User" \
+  --scope <kv-id>
+```
+
+---
+
+## Diagnostic Commands Reference
+
+### Essential Commands by Component
+
+**APIM:**
+
+```bash
+# Service health
+az apim show -n <apim> -g <rg> --query "{state:provisioningState, sku:sku.name, vnet:virtualNetworkType}"
+
+# APIs
+az apim api list -g <rg> --service-name <apim>
+
+# Backends
+az apim backend list -g <rg> --service-name <apim>
+
+# Diagnostics
+az apim diagnostic list -g <rg> --service-name <apim>
+```
+
+**Network:**
+
+```bash
+# VNet status
+az network vnet show -n <vnet> -g <rg>
+
+# Peering status
+az network vnet peering list -g <rg> --vnet-name <vnet>
+
+# Private endpoints
+az network private-endpoint list -g <rg>
+
+# NSG rules
+az network nsg rule list -g <rg> --nsg-name <nsg>
+```
+
+**Security:**
+
+```bash
+# Role assignments
+az role assignment list -g <rg>
+
+# Key Vault access
+az keyvault show -n <kv> --query "properties.enableRbacAuthorization"
+
+# Diagnostic settings
+az monitor diagnostic-settings list --resource <resource-id>
+```
+
+---
+
+## Prevention
+
+### Pre-Deployment Checks
+
+Run these before every deployment:
+
+```bash
+#!/bin/bash
+# pre-deployment-checks.sh
+
+errors=0
+
+# Check providers
+for provider in Microsoft.ApiManagement Microsoft.CognitiveServices; do
+  state=$(az provider show --namespace "$provider" --query "registrationState" -o tsv)
+  if [ "$state" != "Registered" ]; then
+    echo "❌ $provider not registered"
+    ((errors++))
+  fi
+done
+
+# Check permissions
+roles=$(az role assignment list --query "[].roleDefinitionName" -o tsv)
+if ! echo "$roles" | grep -q "Contributor"; then
+  echo "❌ Missing Contributor role"
+  ((errors++))
+fi
+
+if [ $errors -eq 0 ]; then
+  echo "✅ All pre-deployment checks passed"
+else
+  echo "❌ $errors checks failed"
+  exit 1
+fi
+```
+
+### Monitoring to Catch Early
+
+Configure alerts for:
+
+- APIM capacity > 70%
+- Error rate > 5%
+- P95 latency > 3s
+- Failed deployment operations
+- Private endpoint disconnections
+
+---
+
+## Getting Help
+
+### Microsoft Support Resources
+
+- **Azure Support:** [Azure Portal > Help + support](https://portal.azure.com/#blade/Microsoft_Azure_Support/HelpAndSupportBlade)
+- **APIM Documentation:** [aka.ms/apimdocs](https://aka.ms/apimdocs)
+- **Azure OpenAI Documentation:** [aka.ms/openaidocs](https://aka.ms/openaidocs)
+
+### Community Resources
+
+- **AI Hub Gateway Issues:** [GitHub Issues](https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/issues)
+- **Microsoft Q&A:** [Azure API Management](https://learn.microsoft.com/answers/tags/azure-api-management)
+
+### Required Information for Support Tickets
+
+When opening a support ticket, include:
+
+1. **Subscription ID**
+2. **Resource group and resource names**
+3. **Error messages** (exact text)
+4. **Deployment correlation ID:**
+   ```bash
+   az deployment group show -g <rg> -n <deployment> --query "properties.correlationId"
+   ```
+5. **Recent Activity Log entries:**
+   ```bash
+   az monitor activity-log list --resource-group <rg> --offset 1h
+   ```
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Post-Deployment Validation"
+    icon="check-circle"
+    href="/implementation/validation/post-deployment-validation"
+  >
+    Return to validation procedures
+  </Card>
+  
+  <Card
+    title="Full Troubleshooting Guide"
+    icon="wrench"
+    href="/guides/troubleshooting"
+  >
+    Operational troubleshooting for deployed environments
+  </Card>
+</CardGroup>
