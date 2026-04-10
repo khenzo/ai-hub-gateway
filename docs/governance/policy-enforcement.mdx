@@ -1,0 +1,712 @@
+---
+title: "Policy Enforcement"
+description: "Azure API Management policy implementation, enforcement architecture, and policy-as-code governance for AI workloads"
+---
+
+# 🛡️ Policy Enforcement
+
+## Introduction
+
+Policy enforcement transforms governance rules from documents into active protections. The Foundry Citadel Platform uses **Azure API Management (APIM)** as the primary policy enforcement point, leveraging its powerful policy framework to govern AI traffic in real-time.
+
+## Policy Enforcement Architecture
+
+### APIM as Policy Enforcement Point
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          POLICY ENFORCEMENT ARCHITECTURE                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│                              CLIENT REQUEST                                 │
+│                                    │                                        │
+│                                    ▼                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                     AZURE API MANAGEMENT                             │   │
+│  │                                                                      │   │
+│  │   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │   │
+│  │   │   INBOUND    │  │   BACKEND    │  │   OUTBOUND   │              │   │
+│  │   │              │  │              │  │              │              │   │
+│  │   │ • Auth       │  │ • Routing    │  │ • Transform  │              │   │
+│  │   │ • Rate Limit │  │ • Retry      │  │ • Mask PII   │              │   │
+│  │   │ • Validate   │  │ • Circuit    │  │ • Log        │              │   │
+│  │   │ • Enrich     │  │   Breaker    │  │ • Cache      │              │   │
+│  │   └──────┬───────┘  └──────┬───────┘  └──────┬───────┘              │   │
+│  │          │                 │                 │                       │   │
+│  │          └─────────────────┼─────────────────┘                       │   │
+│  │                            │                                         │   │
+│  │                            ▼                                         │   │
+│  │                   ┌─────────────────┐                                │   │
+│  │                   │    ON-ERROR     │                                │   │
+│  │                   │                 │                                │   │
+│  │                   │ • Log error     │                                │   │
+│  │                   │ • Return 500    │                                │   │
+│  │                   │ • Alert team    │                                │   │
+│  │                   └─────────────────┘                                │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                        │
+│                                    ▼                                        │
+│                           AI SERVICE (OpenAI, etc.)                         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Policy Execution Pipeline
+
+Each request flows through four policy sections:
+
+1. **Inbound**: Request enters the gateway
+2. **Backend**: Before sending to backend service
+3. **Outbound**: Response returns from backend
+4. **On-Error**: When errors occur
+
+### Policy Composition and Inheritance
+
+Policies can be composed at multiple levels:
+
+| Level | Scope | Use Case |
+|-------|-------|----------|
+| **Global** | All APIs | Base authentication, logging |
+| **Product** | Group of APIs | [Access Contract](./access-contracts) policies |
+| **API** | Specific API | API-specific transformations |
+| **Operation** | Single endpoint | Endpoint-specific validation |
+
+```
+Policy Inheritance Hierarchy:
+
+┌─────────────────────────────────────────────┐
+│              GLOBAL POLICIES                │
+│         (Applies to all traffic)            │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│             PRODUCT POLICIES                │
+│    (Contract-specific: rate limits, etc.)   │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│               API POLICIES                  │
+│       (Per-API: routing, transforms)        │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│            OPERATION POLICIES               │
+│      (Endpoint-specific validation)         │
+└─────────────────────────────────────────────┘
+```
+
+## Core Policy Types
+
+### Authentication and Authorization Policies
+
+#### JWT Validation
+
+```xml
+<policies>
+  <inbound>
+    <!-- Extract and validate JWT token -->
+    <validate-jwt 
+      header-name="Authorization"
+      failed-validation-httpcode="401"
+      failed-validation-error-message="Invalid or missing token">
+      <openid-config url="https://login.microsoftonline.com/{tenant-id}/v2.0/.well-known/openid-configuration" />
+      <audiences>
+        <audience>api://ai-gateway</audience>
+      </audiences>
+      <issuers>
+        <issuer>https://login.microsoftonline.com/{tenant-id}/v2.0</issuer>
+      </issuers>
+      <required-claims>
+        <claim name="roles" match="any">
+          <value>AI-User</value>
+          <value>AI-Admin</value>
+        </claim>
+      </required-claims>
+    </validate-jwt>
+    
+    <!-- Extract claims for downstream use -->
+    <set-header name="x-user-id" exists-action="override">
+      <value>@("@(context.Request.Headers.GetValueOrDefault("Authorization", "").Split(' ')[1])"</value>
+    </set-header>
+  </inbound>
+</policies>
+```
+
+#### API Key Validation
+
+```xml
+<policies>
+  <inbound>
+    <!-- Validate subscription key -->
+    <set-header name="x-contract-id" exists-action="override">
+      <value>{{contract-id}}</value>
+    </set-header>
+    
+    <!-- Custom key validation against contract database -->
+    <send-request mode="new" response-variable-name="contract-validation" timeout="5">
+      <set-url>{{contract-service-url}}/validate</set-url>
+      <set-method>POST</set-method>
+      <set-header name="Content-Type">
+        <value>application/json</value>
+      </set-header>
+      <set-body>@{
+        return new JObject(
+          new JProperty("apiKey", context.Request.Headers.GetValueOrDefault("Ocp-Apim-Subscription-Key", "")),
+          new JProperty("contractId", context.Variables.GetValueOrDefault("contract-id", ""))
+        ).ToString();
+      }</set-body>
+    </send-request>
+    
+    <choose>
+      <when condition="@(((IResponse)context.Variables["contract-validation"]).StatusCode != 200)">
+        <return-response>
+          <set-status code="401" reason="Invalid Contract" />
+          <set-header name="Content-Type">
+            <value>application/json</value>
+          </set-header>
+          <set-body>{"error": "Contract validation failed"}</set-body>
+        </return-response>
+      </when>
+    </choose>
+  </inbound>
+</policies>
+```
+
+### Rate Limiting and Quota Policies
+
+#### Request Rate Limiting
+
+```xml
+<policies>
+  <inbound>
+    <!-- Fixed window rate limiting -->
+    <rate-limit calls="100" renewal-period="60" remaining-calls-header-name="x-rate-limit-remaining" />
+    
+    <!-- Key-based rate limiting (per contract) -->
+    <rate-limit-by-key 
+      calls="{{contract.requestsPerHour}}"
+      renewal-period="3600"
+      counter-key="{{contract.id}}"
+      increment-condition="@(context.Response.StatusCode >= 200 && context.Response.StatusCode < 300)"
+      remaining-calls-header-name="x-contract-quota-remaining"
+      retry-after-header-name="x-contract-quota-retry-after" />
+  </inbound>
+</policies>
+```
+
+#### Token Quota Management
+
+```xml
+<policies>
+  <inbound>
+    <!-- Pre-check token availability -->
+    <cache-lookup-value key="tokens-used-{{contract.id}}" variable-name="tokens-used" />
+    
+    <choose>
+      <when condition="@(context.Variables.GetValueOrDefault<int>("tokens-used", 0) > {{contract.tokensPerDay}})">
+        <return-response>
+          <set-status code="429" reason="Token Quota Exceeded" />
+          <set-header name="Content-Type">
+            <value>application/json</value>
+          </set-header>
+          <set-body>
+            {
+              "error": "Daily token quota exceeded",
+              "quota": {{contract.tokensPerDay}},
+              "used": "@(context.Variables.GetValueOrDefault<int>("tokens-used", 0))",
+              "retry-after": "@((DateTime.UtcNow.Date.AddDays(1) - DateTime.UtcNow).TotalSeconds)"
+            }
+          </set-body>
+        </return-response>
+      </when>
+    </choose>
+  </inbound>
+  
+  <outbound>
+    <!-- Track token usage from response -->
+    <set-variable name="response-tokens" value="@{
+      var header = context.Response.Headers.GetValueOrDefault("x-tokens-used", "0");
+      int tokens;
+      return int.TryParse(header, out tokens) ? tokens : 0;
+    }" />
+    
+    <cache-store-value key="tokens-used-{{contract.id}}" 
+      value="@(context.Variables.GetValueOrDefault<int>("tokens-used", 0) + context.Variables.GetValueOrDefault<int>("response-tokens", 0))"
+      duration="86400" />
+  </outbound>
+</policies>
+```
+
+### Content Validation Policies
+
+#### Request Validation
+
+```xml
+<policies>
+  <inbound>
+    <!-- Validate JSON schema -->
+    <validate-content 
+      unspecified-content-type-action="prevent"
+      max-size="102400"
+      size-exceeded-action="prevent"
+      errors-variable-name="validation-errors">
+      <content type="application/json" validate-as="json" action="prevent">
+        <schema schema-id="openai-request-schema" />
+      </content>
+    </validate-content>
+    
+    <!-- Check for required headers -->
+    <check-header name="Content-Type" failed-check-httpcode="400" failed-check-error-message="Missing Content-Type header">
+      <value>application/json</value>
+    </check-header>
+  </inbound>
+</policies>
+```
+
+#### Content Safety Integration
+
+```xml
+<policies>
+  <inbound>
+    <!-- Extract prompt from OpenAI request -->
+    <set-variable name="prompt" value="@{
+      JObject body = context.Request.Body.As<JObject>(preserveContent: true);
+      return body?["messages"]?.Last?["content"]?.ToString() ?? "";
+    }" />
+    
+    <!-- Send to Content Safety API -->
+    <send-request mode="new" response-variable-name="safety-check" timeout="5">
+      <set-url>https://{{content-safety-name}}.cognitiveservices.azure.com/contentsafety/text:analyze?api-version=2023-10-01</set-url>
+      <set-method>POST</set-method>
+      <set-header name="Ocp-Apim-Subscription-Key">
+        <value>{{content-safety-key}}</value>
+      </set-header>
+      <set-header name="Content-Type">
+        <value>application/json</value>
+      </set-header>
+      <set-body>@{
+        return new JObject(
+          new JProperty("text", context.Variables.GetValueOrDefault("prompt", "")),
+          new JProperty("categories", new JArray("Hate", "Sexual", "Violence", "SelfHarm")),
+          new JProperty("blocklistNames", new JArray()),
+          new JProperty("haltOnBlocklistHit", true)
+        ).ToString();
+      }</set-body>
+    </send-request>
+    
+    <!-- Check safety results -->
+    <set-variable name="safety-result" value="@(((IResponse)context.Variables["safety-check"]).Body.As<JObject>())" />
+    
+    <choose>
+      <when condition="@{
+        var result = context.Variables.GetValueOrDefault<JObject>("safety-result", null);
+        if (result == null) return false;
+        var categories = result["categoriesAnalysis"] as JArray;
+        if (categories == null) return false;
+        foreach (var cat in categories) {
+          var severity = cat["severity"]?.Value<int>() ?? 0;
+          if (severity >= 2) return true; // Medium or High
+        }
+        return false;
+      }">
+        <return-response>
+          <set-status code="400" reason="Content Safety Violation" />
+          <set-header name="Content-Type">
+            <value>application/json</value>
+          </set-header>
+          <set-body>{
+            "error": "Content violates safety policy",
+            "violation": "@(context.Variables.GetValueOrDefault<JObject>("safety-result", null)?["categoriesAnalysis"]?.ToString())"
+          }</set-body>
+        </return-response>
+      </when>
+    </choose>
+  </inbound>
+</policies>
+```
+
+### Transformation Policies
+
+#### Request Transformation
+
+```xml
+<policies>
+  <inbound>
+    <!-- Add contract headers for downstream tracking -->
+    <set-header name="x-contract-id" exists-action="override">
+      <value>{{contract.id}}</value>
+    </set-header>
+    <set-header name="x-cost-center" exists-action="override">
+      <value>{{contract.costCenter}}</value>
+    </set-header>
+    <set-header name="x-request-id" exists-action="override">
+      <value>@("@(Guid.NewGuid().ToString())"</value>
+    </set-header>
+    
+    <!-- Transform request body if needed -->
+    <set-body>@{
+      JObject body = context.Request.Body.As<JObject>(preserveContent: true);
+      // Add metadata
+      body["user"] = context.Variables.GetValueOrDefault("user-id", "anonymous");
+      return body.ToString();
+    }</set-body>
+  </inbound>
+</policies>
+```
+
+#### Response Transformation
+
+```xml
+<policies>
+  <outbound>
+    <!-- Mask PII in response -->
+    <set-body>@{
+      JObject response = context.Response.Body.As<JObject>(preserveContent: true);
+      string content = response.ToString();
+      
+      // Simple PII masking patterns
+      content = Regex.Replace(content, @"\b\d{3}-\d{2}-\d{4}\b", "***-**-****"); // SSN
+      content = Regex.Replace(content, @"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", "[EMAIL]");
+      content = Regex.Replace(content, @"\b\d{3}-\d{3}-\d{4}\b", "***-***-****"); // Phone
+      
+      return content;
+    }</set-body>
+    
+    <!-- Add cost tracking headers -->
+    <set-header name="x-tokens-used" exists-action="override">
+      <value>@("@(context.Response.Body.As<JObject>(preserveContent: true)["usage"]?["total_tokens"]?.ToString() ?? "0")"</value>
+    </set-header>
+  </outbound>
+</policies>
+```
+
+### Logging and Audit Policies
+
+```xml
+<policies>
+  <inbound>
+    <!-- Log request details -->
+    <log-to-eventhub logger-id="ai-gateway-logger">
+      @{
+        return new JObject(
+          new JProperty("timestamp", DateTime.UtcNow.ToString("o")),
+          new JProperty("type", "request"),
+          new JProperty("method", context.Request.Method),
+          new JProperty("path", context.Request.Url.Path),
+          new JProperty("contractId", context.Variables.GetValueOrDefault("contract-id", "")),
+          new JProperty("userId", context.Variables.GetValueOrDefault("user-id", "")),
+          new JProperty("clientIp", context.Request.IpAddress),
+          new JProperty("userAgent", context.Request.Headers.GetValueOrDefault("User-Agent", ""))
+        ).ToString();
+      }
+    </log-to-eventhub>
+  </inbound>
+  
+  <outbound>
+    <!-- Log response details -->
+    <log-to-eventhub logger-id="ai-gateway-logger">
+      @{
+        var response = context.Response.Body.As<JObject>(preserveContent: true);
+        return new JObject(
+          new JProperty("timestamp", DateTime.UtcNow.ToString("o")),
+          new JProperty("type", "response"),
+          new JProperty("statusCode", context.Response.StatusCode),
+          new JProperty("contractId", context.Variables.GetValueOrDefault("contract-id", "")),
+          new JProperty("tokensUsed", response["usage"]?["total_tokens"]?.ToString() ?? "0"),
+          new JProperty("model", response["model"]?.ToString() ?? ""),
+          new JProperty("duration", context.Elapsed.TotalMilliseconds)
+        ).ToString();
+      }
+    </log-to-eventhub>
+  </outbound>
+  
+  <on-error>
+    <!-- Log errors -->
+    <log-to-eventhub logger-id="ai-gateway-logger">
+      @{
+        return new JObject(
+          new JProperty("timestamp", DateTime.UtcNow.ToString("o")),
+          new JProperty("type", "error"),
+          new JProperty("statusCode", context.Response.StatusCode),
+          new JProperty("contractId", context.Variables.GetValueOrDefault("contract-id", "")),
+          new JProperty("error", context.LastError?.Message ?? "Unknown error")
+        ).ToString();
+      }
+    </log-to-eventhub>
+  </on-error>
+</policies>
+```
+
+## Policy XML Structure and Syntax
+
+### Policy Sections
+
+```xml
+<policies>
+  <!-- Processed when request arrives -->
+  <inbound>
+    <base /> <!-- Include parent policies -->
+    <!-- Policy statements -->
+  </inbound>
+  
+  <!-- Processed before sending to backend -->
+  <backend>
+    <base />
+    <!-- Policy statements -->
+  </backend>
+  
+  <!-- Processed when response returns -->
+  <outbound>
+    <base />
+    <!-- Policy statements -->
+  </outbound>
+  
+  <!-- Processed when errors occur -->
+  <on-error>
+    <base />
+    <!-- Policy statements -->
+  </on-error>
+</policies>
+```
+
+### Policy Expressions
+
+APIM policies support C# expressions wrapped in `@()`:
+
+```xml
+<!-- Context variable access -->
+<set-header name="x-user" exists-action="override">
+  <value>@("@(context.User.Identity.Name ?? "anonymous")")</value>
+</set-header>
+
+<!-- Conditional logic -->
+<choose>
+  <when condition="@(context.Request.Headers.ContainsKey("X-Debug"))">
+    <set-header name="x-debug-info" exists-action="override">
+      <value>@("@(context.Elapsed.TotalMilliseconds)ms")</value>
+    </set-header>
+  </when>
+</choose>
+
+<!-- JSON manipulation -->
+<set-body>@{
+  JObject body = context.Request.Body.As<JObject>();
+  body["timestamp"] = DateTime.UtcNow.ToString("o");
+  return body.ToString();
+}</set-body>
+```
+
+### Context Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `context.Request` | Request details | `context.Request.Method` |
+| `context.Response` | Response details | `context.Response.StatusCode` |
+| `context.User` | Authenticated user | `context.User.Identity.Name` |
+| `context.Elapsed` | Request duration | `context.Elapsed.TotalMilliseconds` |
+| `context.Variables` | Named variables | `context.Variables["my-var"]` |
+| `context.LastError` | Error details | `context.LastError.Message` |
+
+## Policy Fragments and Reusability
+
+### Creating Policy Fragments
+
+Policy fragments enable reuse across APIs:
+
+```xml
+<!-- Fragment: common-authentication -->
+<fragment>
+  <validate-jwt 
+    header-name="Authorization"
+    failed-validation-httpcode="401"
+    failed-validation-error-message="Unauthorized">
+    <openid-config url="https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration" />
+  </validate-jwt>
+  
+  <set-header name="x-authenticated-user" exists-action="override">
+    <value>@("@(context.User.Identity.Name)")</value>
+  </set-header>
+</fragment>
+```
+
+### Using Fragments
+
+```xml
+<policies>
+  <inbound>
+    <!-- Include authentication fragment -->
+    <include-fragment fragment-id="common-authentication" />
+    
+    <!-- API-specific policies -->
+    <rate-limit calls="100" renewal-period="60" />
+  </inbound>
+</policies>
+```
+
+## Policy Testing and Validation
+
+### Testing Policies in APIM
+
+1. **Azure Portal**: Test tab in API Management
+2. **REST API**: Programmatic testing
+3. **VS Code Extension**: Local policy development
+
+### Debugging Policy Execution
+
+```xml
+<!-- Add trace headers for debugging -->
+<policies>
+  <inbound>
+    <trace source="DebugPolicy" severity="verbose">
+      <message>@("Request received: " + context.Request.Url.Path)</message>
+      <metadata name="user" value="@(context.User.Identity.Name)" />
+    </trace>
+  </inbound>
+</policies>
+```
+
+### Performance Considerations
+
+| Consideration | Recommendation | Impact |
+|---------------|----------------|--------|
+| **Cache lookup** | Cache frequently accessed data | Reduces backend calls |
+| **Timeout values** | Set reasonable timeouts (5-30s) | Prevents hanging requests |
+| **Expression complexity** | Keep C# expressions simple | Reduces latency |
+| **External calls** | Use send-request sparingly | Adds latency per call |
+| **Policy size** | Keep policies under 100KB | Improves parsing time |
+
+## Policy Versioning and Deployment
+
+### CI/CD Integration
+
+```yaml
+# Azure DevOps pipeline example
+steps:
+  - task: AzurePowerShell@5
+    inputs:
+      azureSubscription: 'ServiceConnection'
+      ScriptType: 'InlineScript'
+      Inline: |
+        # Extract API from repository
+        $api = Get-Content -Path "$(System.DefaultWorkingDirectory)/apis/openai-api.json" | ConvertFrom-Json
+        
+        # Import or update API
+        Import-AzApiManagementApi `
+          -Context $apimContext `
+          -ApiId "openai-api" `
+          -SpecificationFormat OpenApiJson `
+          -SpecificationPath "$(System.DefaultWorkingDirectory)/apis/openai-api.json"
+        
+        # Set API policy
+        Set-AzApiManagementPolicy `
+          -Context $apimContext `
+          -ApiId "openai-api" `
+          -PolicyFilePath "$(System.DefaultWorkingDirectory)/policies/openai-policy.xml"
+```
+
+### Staging and Production Environments
+
+| Environment | Policy Source | Approval Required |
+|-------------|---------------|-------------------|
+| **Development** | Branch policies | No |
+| **Staging** | Main branch policies | Team lead |
+| **Production** | Tagged release | Change Advisory Board |
+
+### Rollback Strategies
+
+```xml
+<!-- Version-tagged policies enable rollback -->
+<policies version="2.3.1">
+  <inbound>
+    <!-- Current policy implementation -->
+  </inbound>
+</policies>
+```
+
+## Advanced Patterns
+
+### Dynamic Policy Selection
+
+```xml
+<policies>
+  <inbound>
+    <!-- Load policy based on contract tier -->
+    <set-variable name="contract-tier" value="@{
+      // Query contract database for tier
+      return "premium"; // or "standard", "basic"
+    }" />
+    
+    <choose>
+      <when condition="@(context.Variables.GetValueOrDefault("contract-tier", "") == "premium")">
+        <rate-limit calls="10000" renewal-period="60" />
+      </when>
+      <when condition="@(context.Variables.GetValueOrDefault("contract-tier", "") == "standard")">
+        <rate-limit calls="1000" renewal-period="60" />
+      </when>
+      <otherwise>
+        <rate-limit calls="100" renewal-period="60" />
+      </otherwise>
+    </choose>
+  </inbound>
+</policies>
+```
+
+### Policy-Based Routing
+
+```xml
+<policies>
+  <inbound>
+    <!-- Route based on model requested -->
+    <set-variable name="requested-model" value="@{
+      JObject body = context.Request.Body.As<JObject>(preserveContent: true);
+      return body?["model"]?.ToString() ?? "gpt-35-turbo";
+    }" />
+    
+    <choose>
+      <when condition="@(context.Variables.GetValueOrDefault("requested-model", "").Contains("gpt-4"))">
+        <set-backend-service base-url="https://premium-openai-endpoint.openai.azure.com" />
+      </when>
+      <otherwise>
+        <set-backend-service base-url="https://standard-openai-endpoint.openai.azure.com" />
+      </otherwise>
+    </choose>
+  </inbound>
+</policies>
+```
+
+### Custom Policy Expressions
+
+```xml
+<policies>
+  <inbound>
+    <!-- Custom cost calculation -->
+    <set-variable name="estimated-cost" value="@{
+      JObject body = context.Request.Body.As<JObject>();
+      int maxTokens = body?["max_tokens"]?.Value<int>() ?? 1000;
+      string model = body?["model"]?.ToString() ?? "gpt-35-turbo";
+      
+      // Cost per 1K tokens by model
+      var pricing = new Dictionary<string, decimal> {
+        ["gpt-4"] = 0.03m,
+        ["gpt-4-turbo"] = 0.01m,
+        ["gpt-35-turbo"] = 0.0015m
+      };
+      
+      decimal rate = pricing.ContainsKey(model) ? pricing[model] : 0.0015m;
+      return (maxTokens / 1000m * rate).ToString("F4");
+    }" />
+    
+    <set-header name="x-estimated-cost" exists-action="override">
+      <value>@("@($"$"{context.Variables.GetValueOrDefault("estimated-cost", "0")}")")</value>
+    </set-header>
+  </inbound>
+</policies>
+```
+
+## Next Steps
+
+- Learn about [AI Access Contracts](./access-contracts) for policy binding
+- Explore [identity management patterns](./identity-management)
+- Review the [Governance Hub architecture](../architecture/layer-1-governance-hub)
+- See [APIM documentation](https://learn.microsoft.com/en-us/azure/api-management/api-management-policies) for advanced scenarios
