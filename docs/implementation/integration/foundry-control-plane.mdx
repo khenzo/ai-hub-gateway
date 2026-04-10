@@ -1,0 +1,706 @@
+---
+title: Foundry Control Plane Integration
+description: Comprehensive guide for integrating Citadel Governance Hub with Microsoft Foundry Control Plane for AI observability and compliance
+icon: shield-check
+---
+
+# Foundry Control Plane Integration
+
+## Overview
+
+The **Foundry Control Plane** integration connects Citadel Governance Hub (Layer 1) with Microsoft's AI Control Plane (Layer 2) to provide unified observability, compliance monitoring, and governance enforcement across your AI workloads.
+
+### What is Foundry Control Plane?
+
+Foundry Control Plane is the observability and compliance brain that sits above the AI Gateway. It continuously evaluates agent behavior, captures end-to-end traces, runs automated evaluations, and powers fleet operations dashboards — turning raw telemetry into actionable governance insights.
+
+### Integration Value Proposition
+
+| Capability | Benefit |
+|------------|---------|
+| **Unified Observability** | Single dashboard for all AI workloads across gateway and model consumption |
+| **Compliance Monitoring** | Automated policy evaluation and audit trail generation |
+| **Cost Optimization** | Token consumption tracking and workload-level cost allocation |
+| **Security Enforcement** | Real-time threat detection and anomalous behavior alerting |
+| **Operational Excellence** | Proactive issue detection with automated remediation |
+
+### Prerequisites
+
+Before configuring the integration, ensure you have:
+
+| Requirement | Details |
+|-------------|---------|
+| **Foundry Project** | Active Microsoft Foundry project with Control Plane enabled |
+| **Citadel Deployment** | Deployed AI Hub Gateway with diagnostic settings configured |
+| **Permissions** | Owner or Contributor access to both Citadel and Foundry resources |
+| **Log Analytics** | Azure Log Analytics workspace for telemetry aggregation |
+| **Network Connectivity** | Outbound HTTPS (443) from Citadel to Foundry endpoints |
+
+## Architecture Integration
+
+### Data Flow
+
+The integration establishes a bidirectional data flow between Citadel and Foundry Control Plane:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Data Flow Architecture                           │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│   ┌─────────────────┐         ┌──────────────────┐                 │
+│   │  Agent Spokes   │────────▶│  Citadel Gateway │                 │
+│   │  (Applications) │         │    (APIM)        │                 │
+│   └─────────────────┘         └────────┬─────────┘                 │
+│                                        │                           │
+│                                        ▼                           │
+│                          ┌─────────────────────┐                  │
+│                          │  Diagnostic Logs    │                  │
+│                          │  (Request/Response) │                  │
+│                          └──────────┬──────────┘                  │
+│                                     │                              │
+│                    ┌────────────────┼────────────────┐            │
+│                    ▼                ▼                ▼            │
+│            ┌──────────────┐ ┌──────────────┐ ┌──────────────┐    │
+│            │ Log Analytics│ │ Event Hub    │ │ Storage      │    │
+│            │ (Monitoring) │ │ (Streaming)  │ │ (Archival)   │    │
+│            └──────┬───────┘ └──────┬───────┘ └──────┬───────┘    │
+│                   │                │                │             │
+│                   └────────────────┼────────────────┘             │
+│                                    ▼                              │
+│                        ┌───────────────────────┐                 │
+│                        │ Foundry Control Plane │                 │
+│                        │  (Layer 2)            │                 │
+│                        └───────────────────────┘                 │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Component Mapping
+
+| Citadel Component | Foundry Integration Point | Data Type |
+|-------------------|---------------------------|-----------|
+| **APIM Gateway Logs** | Control Plane Ingestion | Request/response metadata, latency |
+| **Usage Metrics** | Analytics Pipeline | Token consumption, request volume |
+| **Compliance Events** | Policy Engine | Policy violations, access denials |
+| **Security Signals** | Threat Intelligence | Anomalous patterns, risk scores |
+
+### Security Boundaries
+
+The integration respects enterprise security boundaries:
+
+- **Data Residency**: Telemetry remains within configured Azure regions
+- **Encryption**: All data in transit uses TLS 1.3; at-rest uses platform encryption
+- **Access Control**: Role-based access via Azure RBAC and Foundry permissions
+- **Audit Logging**: All integration activities logged for compliance review
+
+### Data Residency Considerations
+
+| Data Type | Storage Location | Retention |
+|-----------|------------------|-----------|
+| Request logs | Log Analytics workspace | 30-90 days (configurable) |
+| Metrics | Azure Monitor | 93 days (standard) |
+| Compliance events | Foundry Control Plane | 7 years (compliance) |
+| Audit trails | Azure Storage (archival) | Configurable per policy |
+
+## Configuration Steps
+
+### Step 1: Enable Control Plane Integration in Citadel
+
+Configure the Citadel Gateway to export diagnostic data to Foundry Control Plane:
+
+#### Diagnostic Settings Configuration
+
+```bicep
+// Enable diagnostic settings for APIM to Log Analytics
+resource apimDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'apim-to-loganalytics'
+  scope: apiManagementService
+  properties: {
+    workspaceId: logAnalyticsWorkspace.id
+    logs: [
+      {
+        category: 'GatewayLogs'
+        enabled: true
+        retentionPolicy: {
+          enabled: true
+          days: 90
+        }
+      }
+      {
+        category: 'RequestResponse'
+        enabled: true
+        retentionPolicy: {
+          enabled: true
+          days: 30
+        }
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+        retentionPolicy: {
+          enabled: true
+          days: 90
+        }
+      }
+    ]
+  }
+}
+```
+
+#### Log Categories
+
+| Category | Purpose | Recommended Retention |
+|----------|---------|----------------------|
+| `GatewayLogs` | API gateway operations | 90 days |
+| `RequestResponse` | Detailed request/response data | 30 days |
+| `WebSocketLogs` | WebSocket connection logs | 30 days |
+
+### Step 2: Configure Log Analytics Integration
+
+Link your Log Analytics workspace to the Foundry Control Plane:
+
+```bicep
+// Grant Foundry Control Plane access to Log Analytics
+resource logAnalyticsReaderRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(logAnalyticsWorkspace.id, foundryControlPlanePrincipalId, 'Reader')
+  scope: logAnalyticsWorkspace
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '43d0d8ad-25c7-4714-9337-8ba259a9fe05') // Log Analytics Reader
+    principalId: foundryControlPlanePrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Configure data export rules for long-term retention
+resource dataExportRule 'Microsoft.OperationalInsights/workspaces/dataExports@2020-08-01' = {
+  name: 'foundry-compliance-export'
+  parent: logAnalyticsWorkspace
+  properties: {
+    destination: {
+      resourceId: storageAccount.id
+      type: 'StorageAccount'
+    }
+    dataSources: [
+      {
+        tableNames: ['AzureDiagnostics', 'ApiManagementGatewayLogs']
+      }
+    ]
+    enable: true
+  }
+}
+```
+
+### Step 3: Set Up Foundry Project Connection
+
+Configure the Foundry project to ingest data from Citadel:
+
+```bicep
+// Foundry Control Plane connection resource
+resource foundryConnection 'Microsoft.MachineLearningServices/workspaces/connections@2024-04-01' = {
+  parent: mlWorkspace
+  name: 'citadel-gateway-connection'
+  properties: {
+    category: 'ApiManagement'
+    target: apiManagementService.properties.gatewayUrl
+    authType: 'ManagedIdentity'
+    useWorkspaceManagedIdentity: true
+    metadata: {
+      'ApiType': 'Azure'
+      'ApiVersion': '2023-05-01-preview'
+      'ResourceId': apiManagementService.id
+    }
+  }
+}
+
+// Configure data ingestion pipeline
+resource dataIngestion 'Microsoft.MachineLearningServices/workspaces/data@2024-04-01' = {
+  parent: mlWorkspace
+  name: 'citadel-telemetry'
+  properties: {
+    dataType: 'uri_folder'
+    properties: {
+      description: 'Citadel Gateway telemetry for Foundry Control Plane'
+      tags: {
+        environment: environment
+        source: 'citadel-gateway'
+      }
+    }
+  }
+}
+```
+
+### Step 4: Configure Data Export Policies
+
+Set up automated data export for compliance and archival:
+
+```bicep
+// Azure Policy for diagnostic settings enforcement
+resource diagnosticPolicy 'Microsoft.Authorization/policyDefinitions@2021-06-01' = {
+  name: 'enforce-apim-diagnostics'
+  properties: {
+    displayName: 'Enforce APIM Diagnostic Settings for Foundry'
+    policyType: 'Custom'
+    mode: 'Indexed'
+    description: 'Ensures all APIM services send diagnostic logs to Log Analytics for Foundry integration'
+    
+    policyRule: {
+      if: {
+        field: 'type'
+        equals: 'Microsoft.ApiManagement/service'
+      }
+      then: {
+        effect: 'deployIfNotExists'
+        details: {
+          type: 'Microsoft.Insights/diagnosticSettings'
+          existenceCondition: {
+            field: 'Microsoft.Insights/diagnosticSettings/workspaceId'
+            equals: logAnalyticsWorkspace.id
+          }
+          deployment: {
+            properties: {
+              mode: 'incremental'
+              template: {
+                '$schema': 'https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#'
+                contentVersion: '1.0.0.0'
+                resources: [
+                  {
+                    type: 'Microsoft.Insights/diagnosticSettings'
+                    apiVersion: '2021-05-01-preview'
+                    name: 'apim-to-foundry'
+                    properties: {
+                      workspaceId: logAnalyticsWorkspace.id
+                      logs: [
+                        {
+                          category: 'GatewayLogs'
+                          enabled: true
+                        }
+                      ]
+                      metrics: [
+                        {
+                          category: 'AllMetrics'
+                          enabled: true
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Observability Features
+
+### Model Usage Tracking
+
+Monitor AI model consumption across the gateway:
+
+| Metric | Description | Alert Threshold |
+|--------|-------------|-----------------|
+| **Requests/Minute** | Total API calls per minute | >10,000 |
+| **Token Consumption** | Input/output tokens per hour | >1M |
+| **Error Rate** | Failed requests percentage | >5% |
+| **Latency P95** | 95th percentile response time | >5s |
+
+### Token Consumption Monitoring
+
+Track costs and usage patterns:
+
+```kusto
+// Kusto query for token consumption analysis
+AzureDiagnostics
+| where Category == 'GatewayLogs'
+| where OperationName == 'GetChatCompletions' or OperationName == 'GetCompletions'
+| extend 
+    InputTokens = toint(extract_json('$.usage.prompt_tokens', Message)),
+    OutputTokens = toint(extract_json('$.usage.completion_tokens', Message)),
+    Model = extract_json('$.model', Message)
+| summarize 
+    TotalInput = sum(InputTokens),
+    TotalOutput = sum(OutputTokens),
+    RequestCount = count(),
+    AvgLatency = avg(DurationMs)
+    by Model, bin(TimeGenerated, 1h)
+| extend TotalTokens = TotalInput + TotalOutput
+| order by TimeGenerated desc
+```
+
+### Performance Metrics
+
+| Metric | Target | Critical |
+|--------|--------|----------|
+| Response Time (P50) | <1s | >3s |
+| Response Time (P95) | <3s | >10s |
+| Availability | 99.9% | <99% |
+| Error Rate | <1% | >5% |
+
+### Cost Allocation by Workload
+
+Track costs per project/team:
+
+```kusto
+// Cost allocation query by subscription ID or custom header
+AzureDiagnostics
+| where Category == 'GatewayLogs'
+| extend 
+    SubscriptionId = extract_json('$.subscriptionId', Message),
+    CostCenter = extract_json('$.headers.x-cost-center', Message),
+    Tokens = toint(extract_json('$.usage.total_tokens', Message))
+| summarize 
+    TotalTokens = sum(Tokens),
+    EstimatedCost = sum(Tokens) * 0.000002 // Example rate
+    by CostCenter, bin(TimeGenerated, 1d)
+| order by TimeGenerated desc, EstimatedCost desc
+```
+
+## Compliance Capabilities
+
+### Automatic Compliance Rule Evaluation
+
+Foundry Control Plane evaluates compliance in real-time:
+
+| Rule Type | Evaluation | Action |
+|-----------|------------|--------|
+| **Data Classification** | PII detection in prompts/responses | Block or flag |
+| **Content Safety** | Harmful content detection | Reject request |
+| **Rate Limiting** | Requests per user/application | Throttle or block |
+| **Model Allowlist** | Approved model versions only | Reject non-approved |
+
+### Sensitive Data Detection Integration
+
+Integrate with Microsoft Purview for sensitive data scanning:
+
+```bicep
+// Purview integration for sensitive data detection
+resource purviewScan 'Microsoft.Purview/accounts@2021-12-01' = {
+  name: 'citadel-purview'
+  location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    publicNetworkAccess: 'Enabled'
+    managedResourceGroupName: 'mrg-citadel-purview'
+  }
+}
+
+// Grant Purview access to Log Analytics
+resource purviewLogAnalyticsRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(logAnalyticsWorkspace.id, purviewScan.id, 'Reader')
+  scope: logAnalyticsWorkspace
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '43d0d8ad-25c7-4714-9337-8ba259a9fe05')
+    principalId: purviewScan.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+```
+
+### Audit Trail Aggregation
+
+Comprehensive audit logging:
+
+| Event Type | Logged Data | Retention |
+|------------|-------------|-----------|
+| **Access Events** | User, timestamp, resource, action | 7 years |
+| **Policy Violations** | Rule triggered, context, outcome | 7 years |
+| **Configuration Changes** | Who, what, when, old/new values | 7 years |
+| **Security Alerts** | Alert type, severity, resolution | 7 years |
+
+### Policy Violation Alerting
+
+Configure alerts for compliance issues:
+
+```bicep
+// Alert rule for policy violations
+resource policyViolationAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: 'foundry-policy-violations'
+  location: 'global'
+  properties: {
+    description: 'Alert on Foundry Control Plane policy violations'
+    severity: 2
+    enabled: true
+    scopes: [
+      mlWorkspace.id
+    ]
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT15M'
+    criteria: {
+      odata.type: 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+      allOf: [
+        {
+          name: 'PolicyViolations'
+          metricName: 'PolicyViolations'
+          operator: 'GreaterThan'
+          threshold: 10
+          timeAggregation: 'Count'
+        }
+      ]
+    }
+    actions: [
+      {
+        actionGroupId: actionGroup.id
+      }
+    ]
+  }
+}
+```
+
+## Integration Patterns
+
+### Pattern 1: Real-Time Streaming (Event Hub)
+
+Use for high-volume, low-latency scenarios:
+
+```
+Citadel Gateway → Event Hub → Stream Analytics → Foundry Control Plane
+                                    ↓
+                              Real-time Dashboard
+```
+
+**Best for:**
+- Real-time anomaly detection
+- Live operational dashboards
+- Immediate alerting
+
+### Pattern 2: Batch Export (Scheduled Sync)
+
+Use for compliance archival and cost optimization:
+
+```
+Citadel Gateway → Log Analytics → Scheduled Export → Storage → Foundry
+                                                       ↓
+                                               Compliance Reports
+```
+
+**Best for:**
+- Compliance reporting
+- Cost analysis
+- Historical trend analysis
+
+### Pattern 3: Hybrid Mode (Both Patterns)
+
+Combine real-time and batch for comprehensive coverage:
+
+```
+                    ┌→ Event Hub → Real-time Analytics
+Citadel Gateway ──┤
+                    └→ Log Analytics → Batch Export → Storage
+```
+
+**Best for:**
+- Enterprise production environments
+- Mixed latency requirements
+- Comprehensive audit needs
+
+## Configuration Examples
+
+### Example 1: Log Analytics Workspace Linking (Bicep)
+
+```bicep
+param location string = resourceGroup().location
+param environment string = 'production'
+param retentionDays int = 90
+
+// Log Analytics Workspace for Foundry integration
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
+  name: 'law-citadel-${environment}'
+  location: location
+  properties: {
+    sku: {
+      name: 'PerGB2018'
+    }
+    retentionInDays: retentionDays
+    features: {
+      enableLogAccessUsingOnlyResourcePermissions: true
+    }
+  }
+}
+
+// Linked storage for long-term retention
+resource linkedStorage 'Microsoft.OperationalInsights/workspaces/linkedStorageAccounts@2020-08-01' = {
+  parent: logAnalytics
+  name: 'CustomLogs'
+  properties: {
+    storageAccountIds: [
+      storageAccount.id
+    ]
+  }
+}
+
+output workspaceId string = logAnalytics.id
+output workspaceResourceId string = logAnalytics.properties.customerId
+```
+
+### Example 2: Azure Policy for Diagnostic Settings Enforcement
+
+```bicep
+// Policy initiative for Citadel diagnostic compliance
+resource citadelComplianceInitiative 'Microsoft.Authorization/policySetDefinitions@2021-06-01' = {
+  name: 'citadel-foundry-compliance'
+  properties: {
+    displayName: 'Citadel Foundry Integration Compliance'
+    description: 'Ensures all Citadel resources are properly integrated with Foundry Control Plane'
+    policyType: 'Custom'
+    
+    policyDefinitions: [
+      {
+        policyDefinitionId: subscriptionResourceId('Microsoft.Authorization/policyDefinitions', 'enforce-apim-diagnostics')
+        parameters: {
+          logAnalyticsWorkspaceId: {
+            value: logAnalyticsWorkspace.id
+          }
+        }
+      }
+    ]
+    
+    parameters: {
+      logAnalyticsWorkspaceId: {
+        type: 'String'
+        metadata: {
+          displayName: 'Log Analytics Workspace ID'
+          description: 'The workspace to send diagnostic logs'
+        }
+      }
+    }
+  }
+}
+
+// Assign the initiative to subscription
+resource policyAssignment 'Microsoft.Authorization/policyAssignments@2022-06-01' = {
+  name: 'citadel-compliance-assignment'
+  scope: subscription()
+  properties: {
+    displayName: 'Citadel Foundry Compliance'
+    policyDefinitionId: citadelComplianceInitiative.id
+    parameters: {
+      logAnalyticsWorkspaceId: {
+        value: logAnalyticsWorkspace.id
+      }
+    }
+  }
+}
+```
+
+### Example 3: Sample Kusto Queries for Monitoring
+
+#### Query 1: Gateway Health Overview
+
+```kusto
+// Gateway health metrics for the last hour
+AzureMetrics
+| where ResourceId contains 'Microsoft.ApiManagement/service'
+| where TimeGenerated > ago(1h)
+| summarize 
+    AvgRequests = avg(TotalRequests),
+    AvgLatency = avg(AvgResponseTime),
+    ErrorRate = avg(ErrorRequests) * 100.0 / avg(TotalRequests)
+    by Resource, bin(TimeGenerated, 5m)
+| order by TimeGenerated desc
+```
+
+#### Query 2: Top Consumers by Token Usage
+
+```kusto
+// Identify top token consumers
+AzureDiagnostics
+| where Category == 'GatewayLogs'
+| extend 
+    SubscriptionId = extract_json('$.subscriptionId', Message),
+    TotalTokens = toint(extract_json('$.usage.total_tokens', Message)),
+    Model = extract_json('$.model', Message)
+| where isnotempty(TotalTokens)
+| summarize 
+    TotalTokens = sum(TotalTokens),
+    Requests = count(),
+    Models = make_set(Model)
+    by SubscriptionId
+| order by TotalTokens desc
+| take 10
+```
+
+#### Query 3: Error Analysis
+
+```kusto
+// Analyze error patterns
+AzureDiagnostics
+| where Category == 'GatewayLogs'
+| where Level == 'Error'
+| extend 
+    ErrorCode = extract_json('$.error.code', Message),
+    ErrorMessage = extract_json('$.error.message', Message),
+    Endpoint = extract_json('$.request.uri', Message)
+| summarize 
+    Count = count(),
+    Endpoints = make_set(Endpoint),
+    LastOccurrence = max(TimeGenerated)
+    by ErrorCode, ErrorMessage
+| order by Count desc
+```
+
+## Troubleshooting
+
+### Common Issues
+
+| Issue | Symptom | Solution |
+|-------|---------|----------|
+| **No data in Foundry** | Empty dashboards | Verify diagnostic settings and Log Analytics link |
+| **High latency** | Slow response times | Check Event Hub throttling, increase capacity |
+| **Missing metrics** | Incomplete dashboards | Verify all log categories are enabled |
+| **Policy violations not alerting** | No notifications | Check alert rule configuration and action group |
+
+### Verification Commands
+
+```bash
+# Verify diagnostic settings
+az apim show -n <apim-name> -g <resource-group> --query "diagnosticSettings"
+
+# Check Log Analytics data ingestion
+az monitor log-analytics workspace show -n <workspace-name> -g <resource-group>
+
+# Verify Foundry connection
+az ml workspace show -n <workspace-name> -g <resource-group> --query "connections"
+```
+
+## Next Steps
+
+<Cards>
+  <Card
+    title="Validation Guide"
+    icon="check-circle"
+    href="/guides/validation-checklist"
+  >
+    Validate your integration with comprehensive testing procedures
+  </Card>
+  
+  <Card
+    title="Operational Runbooks"
+    icon="book-open"
+    href="/guides/troubleshooting"
+  >
+    Day-to-day operational procedures and troubleshooting guides
+  </Card>
+  
+  <Card
+    title="Layer 2 Architecture"
+    icon="layers"
+    href="/architecture/layer-2-control-plane"
+  >
+    Deep dive into AI Control Plane architecture
+  </Card>
+  
+  <Card
+    title="Monitoring Dashboards"
+    icon="chart-line"
+    href="/guides/best-practices"
+  >
+    Best practices for monitoring and observability
+  </Card>
+</Cards>
