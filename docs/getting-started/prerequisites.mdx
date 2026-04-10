@@ -1,0 +1,523 @@
+---
+title: Prerequisites
+description: Comprehensive prerequisites and readiness assessment for deploying the AI Landing Zone on Azure
+icon: clipboard-check
+---
+
+# Prerequisites
+
+Before deploying the AI Landing Zone (Citadel Governance Hub), ensure your organization meets the technical, organizational, and governance prerequisites outlined in this guide. Use the readiness assessments to identify gaps and plan remediation before beginning deployment.
+
+<Note>
+Complete the readiness assessment in each section before proceeding to the [Quick-Start Guide](/getting-started/quick-start). This will save significant time and prevent deployment blockers.
+</Note>
+
+---
+
+## Technical Prerequisites
+
+### Azure Subscription Requirements
+
+Your Azure subscription must meet the following requirements before deployment:
+
+| Requirement | Minimum | Recommended |
+|---|---|---|
+| Subscription type | Pay-As-You-Go or EA | Enterprise Agreement (EA) |
+| Azure regions | 1 region | 2 regions (primary + DR) |
+| Subscription owner access | Required | Required |
+| Azure Policy assignments | Write permission | Write permission |
+| Resource provider registrations | See list below | See list below |
+
+**Required resource provider registrations:**
+
+```bash
+# Register all required resource providers
+az provider register --namespace Microsoft.ApiManagement
+az provider register --namespace Microsoft.CognitiveServices
+az provider register --namespace Microsoft.MachineLearningServices
+az provider register --namespace Microsoft.Network
+az provider register --namespace Microsoft.KeyVault
+az provider register --namespace Microsoft.Monitor
+az provider register --namespace Microsoft.OperationalInsights
+az provider register --namespace Microsoft.EventHub
+az provider register --namespace Microsoft.Logic
+az provider register --namespace Microsoft.Web
+
+# Verify registration status
+az provider list --query "[?registrationState=='Registered'].namespace" -o table
+```
+
+### Required Azure Services and Quotas
+
+<Warning>
+Quota requests can take 24-72 hours to process. Submit quota increase requests before beginning deployment planning.
+</Warning>
+
+| Service | SKU/Tier | Minimum Quota | Purpose |
+|---|---|---|---|
+| Azure API Management | Premium v2 | 1 unit | AI gateway and governance |
+| Azure OpenAI | S0 | 100K TPM per model | AI workload serving |
+| Azure AI Foundry | Standard | 1 project | Foundry integration |
+| Azure Virtual Network | — | 3 subnets | Network isolation |
+| Azure Key Vault | Standard | 1 vault | Secrets management |
+| Log Analytics Workspace | — | 1 workspace | Centralized logging |
+| Event Hub | Standard | 10 TU | Usage ingestion pipeline |
+| Azure Monitor | — | Included | Observability |
+
+**Check current quotas:**
+
+```bash
+# Check APIM quotas
+az apim list --query "[].{name:name, sku:sku.name, location:location}" -o table
+
+# Check OpenAI quotas by region
+az cognitiveservices usage list --location eastus -o table
+
+# Check compute quotas
+az vm list-usage --location eastus --query "[?contains(name.value, 'Standard_D')]" -o table
+```
+
+### Network Configuration Requirements
+
+The AI Landing Zone requires a hub-spoke network topology. Review your existing network configuration against these requirements:
+
+**Hub Network (Governance VNet):**
+- `/22` address space minimum (1,024 IP addresses)
+- Subnet for APIM: `/27` minimum (32 addresses)
+- Subnet for private endpoints: `/26` minimum (64 addresses)
+- Subnet for Azure Bastion (if used): `/27` minimum
+
+**Spoke Networks (Workload VNets):**
+- `/24` address space per workload
+- VNet peering to hub with gateway transit
+- No overlapping address spaces across all VNets
+
+**DNS Configuration:**
+- Azure Private DNS Zones for all private endpoints
+- Custom DNS server configuration (if using on-premises DNS)
+- Private DNS zone links to all VNets
+
+**Firewall Rules Required:**
+- Outbound: Azure API Management management endpoint (port 3443)
+- Inbound: HTTPS (443) from authorized clients
+- Outbound: Azure Monitor, Key Vault, Storage (via service endpoints or private endpoints)
+
+### Identity and Access Management Prerequisites
+
+<Note>
+Microsoft Entra ID (formerly Azure Active Directory) is required. Verify your tenant has the necessary features enabled.
+</Note>
+
+**Entra ID Requirements:**
+
+| Feature | Required For | Action if Missing |
+|---|---|---|
+| App Registration creation | APIM OAuth2 | Request permission from Entra admin |
+| Service Principal creation | Deployment automation | Request permission from Entra admin |
+| Conditional Access policy read | Security integration | Ensure read access to CA policies |
+| Group creation | RBAC assignment | Request permission or use existing groups |
+| Enterprise Application assignment | AI workload auth | Coordinate with identity team |
+
+**Required RBAC Roles for Deployment:**
+
+```bash
+# Minimum roles required for the deployment service principal
+roles=(
+  "Contributor"                           # Resource creation
+  "User Access Administrator"             # RBAC assignment
+  "Key Vault Administrator"               # Secret management
+  "Network Contributor"                   # VNet configuration
+  "API Management Service Contributor"    # APIM management
+)
+
+# Assign roles to deployment service principal
+SP_ID="<your-service-principal-object-id>"
+SUBSCRIPTION_ID="<your-subscription-id>"
+
+for role in "${roles[@]}"; do
+  az role assignment create \
+    --assignee $SP_ID \
+    --role "$role" \
+    --scope "/subscriptions/$SUBSCRIPTION_ID"
+done
+```
+
+### Development Environment Setup
+
+Install the following tools before beginning deployment:
+
+```bash
+# Azure CLI (minimum version 2.60.0)
+az --version
+
+# Bicep CLI (minimum version 0.29.0)
+az bicep version
+
+# PowerShell (minimum version 7.4) or Azure Cloud Shell
+pwsh --version
+
+# Git (for cloning the repository)
+git --version
+
+# Optional but recommended
+# Python 3.11+ (for validation scripts)
+python3 --version
+
+# Azure Developer CLI (azd) for full deployment
+azd version
+```
+
+**Install or update tools:**
+
+```bash
+# Install Azure CLI
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+# Install/update Bicep
+az bicep install
+az bicep upgrade
+
+# Install Azure Developer CLI
+curl -fsSL https://aka.ms/install-azd.sh | bash
+
+# Login to Azure
+az login
+azd auth login
+```
+
+---
+
+## Organizational Prerequisites
+
+### Azure Landing Zone Maturity Assessment
+
+The AI Landing Zone is designed to **supplement** an existing Azure Landing Zone, not replace it. Assess your current maturity level:
+
+<Tabs>
+  <Tab title="Level 1 - Basic">
+    **Characteristics:**
+    - Azure subscription with basic governance policies
+    - Manual deployment processes
+    - Limited network segmentation
+    - Basic monitoring and alerting
+
+    **What to address before AI Landing Zone deployment:**
+    - [ ] Establish Azure Policy baseline (Security Center policies minimum)
+    - [ ] Implement basic network segmentation (separate VNet per environment)
+    - [ ] Configure Log Analytics workspace for centralized logging
+    - [ ] Define resource naming conventions
+
+    **Estimated preparation time:** 2-4 weeks
+  </Tab>
+  <Tab title="Level 2 - Standard">
+    **Characteristics:**
+    - Hub-spoke network topology in place
+    - Azure Policy initiatives deployed
+    - Management group hierarchy established
+    - Basic automation (Azure DevOps or GitHub Actions)
+
+    **What to address before AI Landing Zone deployment:**
+    - [ ] Verify hub VNet has sufficient address space for AI Landing Zone
+    - [ ] Confirm Azure Policy doesn't block required AI service deployments
+    - [ ] Establish cost management and tagging policies
+
+    **Estimated preparation time:** 1-2 weeks
+  </Tab>
+  <Tab title="Level 3 - Advanced">
+    **Characteristics:**
+    - Full Azure Landing Zone (CAF-compliant)
+    - Policy-as-code implemented
+    - Full automation pipeline
+    - Comprehensive monitoring and SIEM integration
+
+    **What to address before AI Landing Zone deployment:**
+    - [ ] Review existing APIM instances (upgrade or integrate vs. deploy new)
+    - [ ] Align AI governance with existing governance frameworks
+    - [ ] Integrate with existing SIEM and security tooling
+
+    **Estimated preparation time:** 1-3 days
+  </Tab>
+</Tabs>
+
+### Governance and Policy Readiness
+
+Before deploying the AI Landing Zone, your organization should have established:
+
+**Policy Requirements:**
+- [ ] Data residency policy (which Azure regions can process AI data)
+- [ ] Data classification framework (Public, Internal, Confidential, Restricted)
+- [ ] Acceptable use policy for AI systems
+- [ ] AI model access approval process
+
+**Security Requirements:**
+- [ ] Network security standards (NSG rules, firewall policies)
+- [ ] Key and secret management policy
+- [ ] Identity and access management standards
+- [ ] Vulnerability management process
+
+**Compliance Requirements:**
+- [ ] Identify applicable regulatory frameworks (GDPR, HIPAA, SOC 2, etc.)
+- [ ] Data Processing Agreements with Microsoft (for applicable regulations)
+- [ ] Audit logging retention requirements
+- [ ] Incident response procedure for AI-related incidents
+
+### Existing Network Topology Compatibility
+
+Assess compatibility with your current network topology:
+
+| Scenario | Compatibility | Action Required |
+|---|---|---|
+| No existing VNets | Full compatibility | Deploy hub-spoke from scratch |
+| Hub-spoke topology | Full compatibility | Extend existing hub |
+| Flat VNet topology | Partial compatibility | Migrate to hub-spoke or adapt |
+| ExpressRoute connected | Full compatibility | Leverage existing connectivity |
+| VPN Gateway | Full compatibility | Leverage existing connectivity |
+| Azure Virtual WAN | Compatible with modifications | Consult network team |
+| On-premises only | Requires Azure setup | Plan Azure network foundation first |
+
+---
+
+## Governance Prerequisites
+
+### AI Governance Framework Establishment
+
+Before deploying the AI Landing Zone, establish a basic AI governance framework:
+
+**Governance Artifacts Required:**
+
+```
+AI Governance Framework
+├── AI Acceptable Use Policy
+│   ├── Approved use cases
+│   ├── Prohibited uses
+│   └── Escalation procedures
+├── AI Access Request Process
+│   ├── Business justification template
+│   ├── Approval workflow (CAB or AI governance board)
+│   └── Review and renewal cadence
+├── AI Model Inventory
+│   ├── Approved models list
+│   ├── Model risk classifications
+│   └── Approved use case matrix
+└── AI Incident Response
+    ├── Incident classification (bias, security, availability)
+    ├── Response procedures
+    └── Escalation paths
+```
+
+<Note>
+The AI Landing Zone implements governance policies through **AI Access Contracts** — Bicep-deployed APIM products that enforce policies per workload. See [AI Access Contracts](/governance/ai-access-contracts) for details.
+</Note>
+
+### Data Classification and Handling Policies
+
+Define how different data classifications interact with AI systems:
+
+| Classification | AI Processing Allowed | PII Handling | Logging Policy |
+|---|---|---|---|
+| Public | Yes, unrestricted | N/A | Standard logging |
+| Internal | Yes, with audit trail | PII masking recommended | Full audit logging |
+| Confidential | Yes, with restrictions | PII masking required | Full audit + retention |
+| Restricted | Restricted use cases only | PII blocking required | Enhanced audit + SIEM |
+
+### Cost Management and Chargeback Models
+
+The AI Landing Zone supports cost attribution per workload through APIM subscriptions. Define your cost model:
+
+**Chargeback Model Options:**
+
+| Model | Description | Best For |
+|---|---|---|
+| Centralized | Platform team absorbs all AI costs | Early-stage adoption |
+| Showback | Costs tracked and reported per team | Cost awareness programs |
+| Chargeback | Costs billed back to consuming teams | Mature organizations |
+| Hybrid | Fixed platform cost + variable per-team usage | Most enterprise scenarios |
+
+**Required for any model:**
+- [ ] Azure Cost Management + Billing configured
+- [ ] Resource tagging strategy for AI workloads
+- [ ] Budget alerts per subscription or resource group
+- [ ] Monthly cost review process established
+
+---
+
+## Readiness Assessment
+
+### Self-Assessment Checklist
+
+Score your readiness by counting checked items in each category:
+
+<AccordionGroup>
+  <Accordion title="Technical Readiness (20 points)">
+    **Azure Subscription (5 points)**
+    - [ ] Azure subscription active with sufficient credits/budget (1 pt)
+    - [ ] Owner or Contributor access confirmed (1 pt)
+    - [ ] Required resource providers registered (1 pt)
+    - [ ] Quota increase requests submitted if needed (1 pt)
+    - [ ] Development tools installed and tested (1 pt)
+
+    **Network Readiness (5 points)**
+    - [ ] Hub VNet with sufficient address space exists or planned (1 pt)
+    - [ ] Private DNS zones strategy defined (1 pt)
+    - [ ] NSG and firewall rules reviewed (1 pt)
+    - [ ] VNet peering or transit connectivity planned (1 pt)
+    - [ ] No overlapping IP address spaces (1 pt)
+
+    **Identity Readiness (5 points)**
+    - [ ] Entra ID tenant with app registration permissions (1 pt)
+    - [ ] Deployment service principal created (1 pt)
+    - [ ] Required RBAC roles assigned (1 pt)
+    - [ ] Managed identity strategy defined (1 pt)
+    - [ ] OAuth2/OIDC flow tested with sample application (1 pt)
+
+    **Tooling Readiness (5 points)**
+    - [ ] Azure CLI installed and authenticated (1 pt)
+    - [ ] Bicep CLI installed (1 pt)
+    - [ ] Git repository access configured (1 pt)
+    - [ ] CI/CD pipeline or deployment method identified (1 pt)
+    - [ ] Monitoring and alerting baseline exists (1 pt)
+  </Accordion>
+
+  <Accordion title="Organizational Readiness (20 points)">
+    **Governance Foundation (5 points)**
+    - [ ] Azure Policy baseline established (1 pt)
+    - [ ] Management group hierarchy or subscription structure defined (1 pt)
+    - [ ] Resource naming convention documented (1 pt)
+    - [ ] Tagging strategy implemented (1 pt)
+    - [ ] Change management process exists (1 pt)
+
+    **Stakeholder Alignment (5 points)**
+    - [ ] Executive sponsor identified and committed (1 pt)
+    - [ ] Platform team resources allocated (1 pt)
+    - [ ] Security team reviewed and approved architecture (1 pt)
+    - [ ] Network team aligned on topology (1 pt)
+    - [ ] Compliance/legal team engaged for regulatory requirements (1 pt)
+
+    **Process Readiness (5 points)**
+    - [ ] AI access request process defined (1 pt)
+    - [ ] Incident response procedures for AI documented (1 pt)
+    - [ ] Cost review and approval process established (1 pt)
+    - [ ] Deployment pipeline with approval gates planned (1 pt)
+    - [ ] Training plan for platform team identified (1 pt)
+
+    **Documentation (5 points)**
+    - [ ] Architecture decision records process exists (1 pt)
+    - [ ] Runbook template available (1 pt)
+    - [ ] Data flow diagrams completed (1 pt)
+    - [ ] Network topology documented (1 pt)
+    - [ ] Stakeholder communication plan created (1 pt)
+  </Accordion>
+
+  <Accordion title="AI Governance Readiness (20 points)">
+    **Policy Framework (5 points)**
+    - [ ] AI acceptable use policy drafted (1 pt)
+    - [ ] Data classification framework includes AI guidance (1 pt)
+    - [ ] AI model approval process defined (1 pt)
+    - [ ] AI risk assessment process established (1 pt)
+    - [ ] Regulatory requirements identified (1 pt)
+
+    **Data Governance (5 points)**
+    - [ ] PII handling policy for AI workloads defined (1 pt)
+    - [ ] Data residency requirements documented (1 pt)
+    - [ ] Audit log retention policy set (1 pt)
+    - [ ] Data retention and deletion policy covers AI outputs (1 pt)
+    - [ ] Data Processing Agreement with Microsoft reviewed (1 pt)
+
+    **Cost Governance (5 points)**
+    - [ ] AI cost model selected (centralized/showback/chargeback) (1 pt)
+    - [ ] Budget thresholds defined (1 pt)
+    - [ ] Cost attribution tagging strategy for AI workloads (1 pt)
+    - [ ] FinOps review process includes AI spend (1 pt)
+    - [ ] Token quota allocation process established (1 pt)
+
+    **Security Controls (5 points)**
+    - [ ] AI workload security requirements documented (1 pt)
+    - [ ] Threat model for AI system completed (1 pt)
+    - [ ] Content safety policy requirements defined (1 pt)
+    - [ ] Secrets and key management for AI services planned (1 pt)
+    - [ ] Network isolation requirements for AI services defined (1 pt)
+  </Accordion>
+</AccordionGroup>
+
+### Readiness Levels
+
+Calculate your total score (out of 60) to determine your readiness level:
+
+| Score | Level | Recommendation |
+|---|---|---|
+| 50-60 | **Advanced** — Ready to deploy | Proceed to [Quick-Start Guide](/getting-started/quick-start) |
+| 35-49 | **Standard** — Mostly ready | Address gaps in 1-2 weeks, then deploy |
+| 20-34 | **Basic** — Significant gaps | Plan 4-8 week preparation sprint |
+| Under 20 | **Early Stage** — Not ready | Engage Microsoft partner for Landing Zone foundation |
+
+### Gap Analysis Guidance
+
+For each unchecked item, classify by impact and effort:
+
+| Gap Type | Example | Recommended Action |
+|---|---|---|
+| **Blocker** | No Azure subscription | Resolve before starting |
+| **High Impact** | No hub VNet | Address in first week |
+| **Medium Impact** | No tagging strategy | Address in parallel with deployment |
+| **Low Impact** | No runbook template | Address after initial deployment |
+
+---
+
+## Decision Framework
+
+### When You're Ready to Proceed
+
+Proceed with deployment when:
+- Technical readiness score is **15 or higher** (out of 20)
+- Organizational readiness score is **15 or higher** (out of 20)
+- AI governance readiness score is **10 or higher** (out of 20)
+- No **Blocker** gaps identified
+
+<Tip>
+You don't need a perfect score to start. Run the [Quick-Start Guide](/getting-started/quick-start) with a score as low as 35 to evaluate the platform while completing remaining prerequisites in parallel.
+</Tip>
+
+### When to Engage Microsoft Partners
+
+Consider engaging a Microsoft partner or the Microsoft Customer Success team when:
+
+- Azure Landing Zone maturity is **Level 1 (Basic)** and needs to reach Level 2
+- Regulatory compliance requirements are complex (HIPAA, FedRAMP, PCI-DSS)
+- Multi-region or multi-tenant architecture is needed
+- Organizational change management is a significant challenge
+- Integration with complex on-premises environments is required
+
+**Microsoft Partner resources:**
+- [Azure Expert MSP Partners](https://partner.microsoft.com/en-us/membership/azure-expert-msp)
+- [Microsoft FastTrack for Azure](https://azure.microsoft.com/en-us/programs/azure-fasttrack/)
+- [Microsoft Customer Success Unit](https://www.microsoft.com/en-us/success)
+
+### When to Start with Simpler Patterns
+
+Consider a simpler deployment pattern when:
+
+| Situation | Recommended Alternative | Reference |
+|---|---|---|
+| Small team, single project | Foundry-only deployment | [AI Pattern Comparison](/ai-patterns/pattern-comparison) |
+| Quick proof of concept only | Developer tier evaluation | [Quick-Start Guide](/getting-started/quick-start) |
+| No network isolation requirement | Basic APIM without VNet | [Network Approach](/guides/network-approach) |
+| Budget constraints | Start with consumption tier APIM | See cost optimization in deployment guide |
+
+---
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Quick-Start Guide" icon="rocket" href="/getting-started/quick-start">
+    Ready to evaluate? Deploy a working environment in 2-4 hours to validate the platform before committing to full deployment
+  </Card>
+  <Card title="Roles and Responsibilities" icon="users" href="/getting-started/roles-and-responsibilities">
+    Identify and align the stakeholders needed for successful deployment
+  </Card>
+  <Card title="Pattern Comparison" icon="arrows-split-up-and-left" href="/ai-patterns/pattern-comparison">
+    Review deployment pattern options to select the right architecture for your requirements
+  </Card>
+  <Card title="Deployment Guide" icon="server" href="/guides/deployment-guide">
+    Full production deployment guide with step-by-step instructions
+  </Card>
+</CardGroup>
