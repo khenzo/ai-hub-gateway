@@ -1,0 +1,168 @@
+---
+title: AI Landing Zone Patterns
+description: Overview of AI Landing Zone patterns for enterprise AI governance and deployment
+icon: robot
+---
+
+# AI Landing Zone Patterns
+
+AI Landing Zones provide enterprise-scale, production-ready reference architectures for deploying secure and resilient AI applications and agents on Azure. This documentation covers the two primary implementation patterns and helps you choose the right approach for your organization.
+
+## What is an AI Landing Zone?
+
+An AI Landing Zone is an **application landing zone** that acts as a foundation for various AI workloads. It can be deployed with or without an existing platform landing zone, providing a secure, governed environment for AI applications.
+
+<Note>
+The AI Landing Zone focuses on [AI on Azure Platform (PaaS)](https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/platform/architectures) and is designed per the [Cloud Adoption Framework AI Scenario](https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/).
+</Note>
+
+## Primary Patterns
+
+<CardGroup>
+  <Card title="APIM-Based AI Landing Zone" icon="server" href="/ai-patterns/apim-reference">
+    Uses Azure API Management as a central AI gateway for comprehensive governance, policy enforcement, and observability
+  </Card>
+  <Card title="Foundry-Only Deployment" icon="cloud" href="/ai-patterns/foundry-integration">
+    Leverages Azure AI Foundry directly for simpler scenarios with built-in AI capabilities
+  </Card>
+</CardGroup>
+
+## When to Use Each Pattern
+
+### Choose APIM-Based When
+
+- **Enterprise governance** is critical (regulated industries, multi-team environments)
+- **Cost attribution** across business units is required
+- **Token rate limiting** and quota management are needed
+- **Multi-model routing** (Azure OpenAI, Foundry, third-party LLMs)
+- **Centralized observability** and audit trails are mandatory
+- **Hybrid or multi-cloud** AI scenarios
+
+### Choose Foundry-Only When
+
+- **Simpler deployment** is preferred
+- **Team-level AI projects** without enterprise-wide governance needs
+- **Built-in AI capabilities** are sufficient
+- **Lower operational overhead** is a priority
+- **Proof of concepts** or experimental workloads
+
+## Decision Framework
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    AI Landing Zone Decision Tree                     │
+│                                                                      │
+│  ┌──────────────────┐                                                │
+│  │ Do you need       │──YES────────────────────────┐                 │
+│  │ enterprise        │                            ▼                 │
+│  │ governance?       │              ┌──────────────────────┐        │
+│  └────────┬──────────┘              │  APIM-Based Pattern   │        │
+│           │                         │  • Token quotas       │        │
+│          NO                         │  • Cost attribution   │        │
+│           │                         │  • Multi-model        │        │
+│           ▼                         │  • Central observability       │
+│  ┌──────────────────┐               └──────────────────────┘        │
+│  │ Is this a        │──YES──────────┐                               │
+│  │ simple team      │               ▼                               │
+│  │ project?         │    ┌──────────────────────┐                   │
+│  └────────┬──────────┘    │  Foundry-Only Pattern │                   │
+│           │               │  • Simpler setup      │                   │
+│          NO               │  • Built-in AI        │                   │
+│           │               │  • Lower overhead     │                   │
+│           ▼               └──────────────────────┘                   │
+│  ┌──────────────────┐                                               │
+│  │ Evaluate hybrid  │                                               │
+│  │ approach or      │                                               │
+│  │ custom gateway   │                                               │
+│  └──────────────────┘                                               │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+## Relationship to Azure Landing Zones
+
+The AI Landing Zone patterns integrate with [Azure Landing Zones](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/) in two ways:
+
+### With Existing Azure Landing Zone
+
+The AI Landing Zone acts as a **supplemental application landing zone** that extends your existing platform landing zone:
+
+- Reuses shared infrastructure (identity, networking, management)
+- Follows enterprise governance policies
+- Integrates with existing monitoring and logging
+- Maintains security standards
+
+### Standalone Deployment
+
+For organizations without an existing Azure Landing Zone:
+
+- Provides a complete foundation for AI workloads
+- Includes necessary networking and governance components
+- Can be integrated with a platform landing zone later
+
+## Key Benefits
+
+<CardGroup>
+  <Card title="Security" icon="shield">
+    Defense in depth with network isolation, private connectivity, and centralized policy enforcement
+  </Card>
+  <Card title="Governance" icon="building-columns">
+    Centralized control plane for AI traffic, usage tracking, and compliance
+  </Card>
+  <Card title="Scalability" icon="arrow-trend-up">
+    Hub-and-spoke architecture supports growth from single team to enterprise scale
+  </Card>
+  <Card title="Flexibility" icon="arrows-rotate">
+    Choose the right pattern for your needs and evolve as requirements change
+  </Card>
+</CardGroup>
+
+## Architecture Principles
+
+All AI Landing Zone patterns follow these core principles:
+
+1. **Separation of Concerns**: Central governance layer handles security and observability, while spokes focus on AI workload development
+2. **Unified Oversight**: Single control plane provides visibility across all AI consumption
+3. **Local Freedom**: Business units maintain autonomy within centrally-defined guardrails
+4. **Defense in Depth**: Layered security with network isolation and centralized policy enforcement
+
+## Prerequisites
+
+Before implementing any AI Landing Zone pattern:
+
+- Azure subscription with appropriate permissions
+- Understanding of your organization's network topology
+- Identity management strategy (Entra ID integration)
+- Governance requirements and compliance frameworks
+- Cost management and budget allocation processes
+
+## Next Steps
+
+<CardGroup>
+  <Card title="APIM Reference Architecture" href="/ai-patterns/apim-reference" icon="book">
+    Detailed guide for implementing the APIM-based AI Landing Zone
+  </Card>
+  <Card title="Foundry Integration" href="/ai-patterns/foundry-integration" icon="book">
+    Learn about Foundry Control Plane integration patterns
+  </Card>
+  <Card title="Pattern Comparison" href="/ai-patterns/pattern-comparison" icon="scale-balanced">
+    Comprehensive comparison to help you choose the right pattern
+  </Card>
+  <Card title="Hub-Spoke Overview" href="/architecture/hub-spoke-overview" icon="network-wired">
+    Understand the underlying hub-spoke networking model
+  </Card>
+</CardGroup>
+
+## Additional Resources
+
+- [Azure Landing Zones Documentation](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/)
+- [CAF AI Scenario](https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/)
+- [AI Workloads on Azure](https://learn.microsoft.com/azure/well-architected/ai/)
+- [Azure Verified Modules](https://aka.ms/AVM)
+
+## Alignment with Cloud Adoption Framework
+
+The AI Landing Zone aligns with the guidance in the [Cloud Adoption Framework AI Scenario](https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/) and the [Well-Architected Framework for AI workloads](https://learn.microsoft.com/azure/well-architected/ai/).
+
+![CAF AI Ready](https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/images/ai-ready.svg)
+
+The AI Landing Zone is part of the **AI Ready** stage, specifically for [AI on Azure platforms (PaaS)](https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/platform/architectures).
