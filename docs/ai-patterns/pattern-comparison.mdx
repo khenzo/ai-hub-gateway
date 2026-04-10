@@ -1,0 +1,421 @@
+---
+title: AI Landing Zone Pattern Comparison
+subtitle: Guide for selecting the right AI Landing Zone implementation pattern
+description: Comprehensive comparison of AI Landing Zone patterns including APIM-based, Foundry-only, and custom gateway approaches with decision criteria
+tags: ['Pattern Comparison', 'Decision Guide', 'Architecture Selection']
+icon: scale-balanced
+---
+
+# AI Landing Zone Pattern Comparison
+
+Choosing the right AI Landing Zone pattern is critical for successful AI governance at scale. This guide compares the available patterns and provides decision criteria to help you select the best approach for your organization.
+
+<Info>
+The AI Landing Zone offers multiple implementation patterns to match different organizational needs, governance requirements, and technical capabilities.
+</Info>
+
+## Pattern Overview
+
+### Pattern 1: APIM-Based AI Landing Zone
+
+**Description:** Uses Azure API Management as a central AI gateway for comprehensive governance, policy enforcement, and observability.
+
+**Best For:**
+- Enterprise environments requiring strong governance
+- Multi-team organizations with shared AI infrastructure
+- Regulated industries (finance, healthcare, government)
+- Organizations with existing Azure Landing Zones
+
+[Detailed Documentation →](/ai-patterns/apim-reference)
+
+### Pattern 2: Foundry-Only Deployment
+
+**Description:** Leverages Azure AI Foundry directly without a central gateway, relying on Foundry's built-in capabilities.
+
+**Best For:**
+- Small teams or single projects
+- Proof of concepts and experimentation
+- Organizations without strict governance requirements
+- Rapid prototyping scenarios
+
+[Detailed Documentation →](/ai-patterns/foundry-integration)
+
+### Pattern 3: Custom Gateway Pattern
+
+**Description:** Build or use a custom AI gateway solution tailored to specific organizational needs.
+
+**Best For:**
+- Organizations with unique requirements not met by standard patterns
+- Teams with specialized compliance needs
+- Advanced scenarios requiring custom logic
+- Organizations with existing gateway investments
+
+## Detailed Comparison Matrix
+
+| Criteria | APIM-Based | Foundry-Only | Custom Gateway |
+|----------|------------|--------------|----------------|
+| **Governance Strength** | ⭐⭐⭐⭐⭐ Strong | ⭐⭐⭐ Moderate | ⭐⭐⭐⭐⭐ Strong (if built well) |
+| **Implementation Complexity** | ⭐⭐⭐⭐ Higher | ⭐⭐ Lower | ⭐⭐⭐⭐⭐ Highest |
+| **Time to Deploy** | ⭐⭐⭐ 3-4 weeks | ⭐⭐⭐⭐⭐ 1 week | ⭐⭐ 2-3 months+ |
+| **Operational Overhead** | ⭐⭐⭐ Moderate | ⭐⭐⭐⭐⭐ Low | ⭐⭐ High |
+| **Scalability** | ⭐⭐⭐⭐⭐ Enterprise | ⭐⭐⭐ Team/Dept | ⭐⭐⭐⭐⭐ Enterprise |
+| **Cost** | ⭐⭐⭐ Higher | ⭐⭐⭐⭐⭐ Lower | ⭐⭐ Variable |
+| **Security** | ⭐⭐⭐⭐⭐ Comprehensive | ⭐⭐⭐ Basic | ⭐⭐⭐⭐⭐ Comprehensive |
+| **Multi-Model Support** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐⭐ Good | ⭐⭐⭐⭐⭐ Excellent |
+| **Observability** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐⭐ Good | ⭐⭐⭐⭐⭐ Excellent |
+| **Maintenance Burden** | ⭐⭐⭐⭐⭐ Low (managed) | ⭐⭐⭐⭐⭐ Low (managed) | ⭐⭐ High (custom) |
+
+## Decision Criteria by Scenario
+
+### Enterprise Production Workloads
+
+**Recommended Pattern:** APIM-Based
+
+**Why:**
+- Comprehensive governance and audit capabilities
+- Centralized cost attribution and quota management
+- Enterprise-grade security and compliance
+- Integration with existing Azure Landing Zone
+
+**Key Considerations:**
+- Requires APIM Premium tier for production
+- More complex initial setup
+- Higher ongoing service costs
+
+**Migration Path:** Start with Foundry-only for pilot, migrate to APIM-based for production
+
+### Regulated Industries (Finance, Healthcare)
+
+**Recommended Pattern:** APIM-Based
+
+**Why:**
+- Comprehensive audit trails and logging
+- Content safety and PII detection integration
+- Policy-as-code for compliance enforcement
+- Private connectivity options
+
+**Additional Requirements:**
+- Enable comprehensive logging
+- Implement content safety policies
+- Configure private endpoints
+- Document compliance controls
+
+**Key Considerations:**
+- May require additional security reviews
+- Compliance documentation overhead
+- Regular policy audits required
+
+### Multi-Team Shared Platform
+
+**Recommended Pattern:** APIM-Based
+
+**Why:**
+- Token quotas per team prevent cost overruns
+- Centralized cost attribution and showback
+- Self-service onboarding through API subscriptions
+- Consistent governance across all teams
+
+**Benefits:**
+- Fair resource allocation
+- Transparent cost tracking
+- Reduced duplicate infrastructure
+- Shared model catalogs
+
+**Key Considerations:**
+- Requires platform team to manage CGH
+- Need clear ownership and SLAs
+- Team onboarding process required
+
+### Simple Experimentation / POC
+
+**Recommended Pattern:** Foundry-Only
+
+**Why:**
+- Fastest time to value
+- No additional infrastructure
+- Lower cost for small scale
+- Built-in AI capabilities
+
+**When to Consider Migration:**
+- POC moves to production
+- Multiple teams need access
+- Governance requirements emerge
+- Cost tracking becomes important
+
+**Migration Path:** Straightforward to migrate to APIM-based when needed
+
+### Existing Azure Landing Zone
+
+**Recommended Pattern:** APIM-Based
+
+**Why:**
+- Integrates seamlessly with existing ALZ
+- Reuses shared infrastructure (Entra ID, networking, monitoring)
+- Follows CAF guidance for application landing zones
+- Maintains governance consistency
+
+**Integration Benefits:**
+- 50-60% faster deployment via shared services
+- Consistent with enterprise architecture
+- Unified monitoring and logging
+- Inherits security posture
+
+**Key Considerations:**
+- Coordinate with platform team
+- Plan VNet peering and routing
+- Align with existing policies
+
+## Decision Flowchart
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    AI LANDING ZONE PATTERN DECISION                      │
+│                                                                          │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │  Question 1: Do you need enterprise-grade governance?            │   │
+│  │                                                                  │   │
+│  │  Indicators:                                                    │   │
+│  │  • Multiple teams sharing AI resources                          │   │
+│  │  • Cost attribution required                                    │   │
+│  │  • Regulatory compliance (SOX, HIPAA, etc.)                     │   │
+│  │  • Production workloads with SLAs                               │   │
+│  │  • Centralized audit requirements                               │   │
+│  └──────────────────────────────┬───────────────────────────────────┘   │
+│                                 │                                        │
+│                    ┌────────────┴────────────┐                          │
+│                   YES                         NO                        │
+│                    │                           │                        │
+│                    ▼                           ▼                        │
+│  ┌──────────────────────────┐    ┌──────────────────────────┐          │
+│  │      APIM-BASED          │    │  Question 2: Is this for │          │
+│  │                          │    │  production or just POC? │          │
+│  │  • Comprehensive         │    │                          │          │
+│  │    governance            │    └───────────┬──────────────┘          │
+│  │  • Cost attribution      │                │                        │
+│  │  • Enterprise security   │       ┌────────┴────────┐                 │
+│  │  • Multi-model support   │      PROD              POC               │
+│  │                          │       │                 │                │
+│  │  [Continue to detailed   │       ▼                 ▼                │
+│  │   APIM planning]         │  ┌──────────┐    ┌──────────┐            │
+│  └──────────────────────────┘  │Consider  │    │ Foundry- │            │
+│                                │APIM for  │    │ Only     │            │
+│                                │governance│    │          │            │
+│                                │benefits  │    │ • Simple │            │
+│                                └──────────┘    │ • Fast   │            │
+│                                                │ • Low cost│            │
+│                                                └──────────┘            │
+│                                                                          │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │  Question 3: Do you have unique requirements not met by         │   │
+│  │  standard patterns?                                             │   │
+│  │                                                                  │   │
+│  │  Indicators:                                                    │   │
+│  │  • Existing gateway investment                                  │   │
+│  │  • Specialized compliance needs                                 │   │
+│  │  • Custom routing logic required                                │   │
+│  │  • Multi-cloud/hybrid specific requirements                     │   │
+│  └──────────────────────────────┬───────────────────────────────────┘   │
+│                                 │                                        │
+│                    ┌────────────┴────────────┐                          │
+│                   YES                         NO                        │
+│                    │                           │                        │
+│                    ▼                           ▼                        │
+│  ┌──────────────────────────┐    ┌──────────────────────────┐          │
+│  │    CUSTOM GATEWAY        │    │   Reconsider standard    │          │
+│  │                          │    │   patterns or consult    │          │
+│  │  • Maximum flexibility   │    │   with architecture      │          │
+│  │  • Custom requirements   │    │   team                   │          │
+│  │  • Higher cost/effort    │    │                          │          │
+│  │                          │    │  Patterns cover 90%+ of  │          │
+│  │  [Requires custom dev    │    │  enterprise scenarios    │          │
+│  │   and maintenance]       │    └──────────────────────────┘          │
+│  └──────────────────────────┘                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+## Migration Paths Between Patterns
+
+### Foundry-Only → APIM-Based
+
+**Timeline:** 4-6 weeks
+
+**Steps:**
+1. **Week 1-2:** Deploy CGH with APIM
+2. **Week 3:** Configure policies and observability
+3. **Week 4:** Migrate first workload (pilot)
+4. **Week 5-6:** Migrate remaining workloads incrementally
+
+**Considerations:**
+- No data migration needed (models remain in Foundry)
+- Update application connection strings
+- Gradual traffic cutover
+- Rollback plan if issues arise
+
+### APIM-Based → Foundry-Only
+
+**Timeline:** 2-3 weeks
+
+**When to Consider:**
+- Simplifying architecture
+- Reducing costs for small-scale usage
+- Team consolidation
+
+**Steps:**
+1. Document existing policies
+2. Implement equivalent controls in Foundry
+3. Migrate applications to direct Foundry access
+4. Decommission APIM instance
+
+### Custom Gateway → APIM-Based
+
+**Timeline:** 6-8 weeks
+
+**When to Consider:**
+- Reducing maintenance burden
+- Leveraging managed services
+- Standardizing on Microsoft patterns
+
+**Steps:**
+1. Map custom policies to APIM policies
+2. Migrate configuration
+3. Update backend connections
+4. Parallel testing
+5. Traffic cutover
+
+## Hybrid Approaches
+
+Some organizations benefit from hybrid patterns:
+
+### Hub-Spoke with Mixed Patterns
+
+```
+Central Governance Hub (CGM)
+├── APIM Gateway (primary)
+└── Foundry Hub (direct access for specific teams)
+
+Spokes
+├── Team A: Routes through APIM (production workloads)
+├── Team B: Routes through APIM (production workloads)
+└── Research Team: Direct Foundry access (experimentation)
+```
+
+**Benefits:**
+- Production workloads have full governance
+- Research teams have flexibility
+- Cost optimization for different use cases
+- Gradual adoption of governance
+
+### Regional Variations
+
+```
+Region 1 (Primary): APIM-Based
+└── Full governance stack
+
+Region 2 (Secondary): Foundry-Only
+└── Simplified for specific use cases
+
+Region 3 (Edge): Custom Gateway
+└── Specialized for edge computing
+```
+
+## Common Anti-Patterns to Avoid
+
+### ❌ Direct Model Access (Shadow AI)
+
+**Problem:** Teams connect directly to Azure OpenAI or Foundry without governance.
+
+**Risks:**
+- No cost visibility
+- Security vulnerabilities
+- Compliance gaps
+- No audit trail
+
+**Solution:** Route all AI traffic through governed gateway
+
+### ❌ Over-Engineering for Simple Needs
+
+**Problem:** Deploying APIM-based pattern for single team with simple requirements.
+
+**Costs:**
+- Unnecessary complexity
+- Higher costs
+- Longer time to value
+
+**Solution:** Start with Foundry-only, migrate when needed
+
+### ❌ Custom Gateway Without Clear Need
+
+**Problem:** Building custom gateway when standard patterns suffice.
+
+**Costs:**
+- 6-12 months development
+- Ongoing maintenance burden
+- Security risks in custom code
+
+**Solution:** Exhaust standard options first
+
+### ❌ Ignoring Migration Path
+
+**Problem:** Choosing pattern without considering future needs.
+
+**Risks:**
+- Lock-in to limited pattern
+- Expensive rework later
+- Technical debt
+
+**Solution:** Consider 2-3 year roadmap when selecting pattern
+
+## Recommendations by Organization Type
+
+| Organization Type | Recommended Pattern | Rationale |
+|-------------------|---------------------|-----------|
+| **Enterprise (>1000 employees)** | APIM-Based | Need governance at scale |
+| **Regulated (Finance/Healthcare)** | APIM-Based | Compliance requirements |
+| **Mid-Market (100-1000)** | Start with Foundry, migrate to APIM | Balance speed and governance |
+| **Startup/Small Team** | Foundry-Only | Speed to market |
+| **Government** | APIM-Based | Security and audit requirements |
+| **Research/Education** | Foundry-Only | Flexibility for experimentation |
+| **Multi-Cloud Enterprise** | APIM-Based | Consistent governance across clouds |
+
+## Next Steps
+
+Based on your selected pattern:
+
+<CardGroup>
+  <Card title="APIM-Based Pattern" href="/ai-patterns/apim-reference" icon="server">
+    Review the detailed APIM reference architecture
+  </Card>
+  <Card title="Foundry Integration" href="/ai-patterns/foundry-integration" icon="cloud">
+    Learn about Foundry Control Plane integration
+  </Card>
+  <Card title="Network Topology" href="/architecture/network-topology" icon="network-wired">
+    Plan your network architecture
+  </Card>
+  <Card title="Getting Started Guide" href="/guides/getting-started" icon="rocket">
+    Begin implementation with step-by-step guidance
+  </Card>
+</CardGroup>
+
+## Decision Checklist
+
+Before finalizing your pattern selection, verify:
+
+- [ ] **Governance Requirements:** Do you need token quotas, cost attribution, or audit trails?
+- [ ] **Scale:** Will multiple teams share AI resources?
+- [ ] **Compliance:** Are there regulatory requirements (SOX, HIPAA, GDPR)?
+- [ ] **Timeline:** What's your target go-live date?
+- [ ] **Budget:** What's your budget for infrastructure and operations?
+- [ ] **Skills:** Does your team have APIM expertise or prefer managed services?
+- [ ] **Existing Infrastructure:** Do you have an Azure Landing Zone?
+- [ ] **Migration Path:** Can you start simple and add governance later?
+
+## Still Unsure?
+
+If you're uncertain which pattern to choose:
+
+1. **Start with Foundry-Only** for rapid prototyping
+2. **Implement basic governance** using Foundry's built-in features
+3. **Monitor usage patterns** for 2-4 weeks
+4. **Evaluate migration** to APIM-Based if governance needs emerge
+
+Most organizations find that starting simple and evolving their architecture as needs clarify is more successful than over-engineering from the start.
