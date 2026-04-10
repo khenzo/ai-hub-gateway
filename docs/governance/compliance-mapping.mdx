@@ -1,0 +1,543 @@
+---
+title: "Compliance Framework Mapping"
+description: "Map AI Landing Zone controls to SOC 2, GDPR, HIPAA, and other compliance frameworks with automated compliance monitoring"
+---
+
+# 📋 Compliance Framework Mapping
+
+## Overview
+
+AI Landing Zones must address multiple compliance frameworks simultaneously. This document provides comprehensive mappings between AI Landing Zone security controls and major regulatory requirements, enabling organizations to demonstrate compliance across SOC 2, GDPR, HIPAA, and industry-specific frameworks.
+
+## Framework Overview
+
+### Why Compliance Matters for AI
+
+| Risk Area | Compliance Impact | Example |
+|-----------|------------------|---------|
+| **Data Privacy** | Personal data in AI training | GDPR violations |
+| **Algorithmic Bias** | Discriminatory outcomes | Regulatory action |
+| **Transparency** | Lack of explainability | Audit failures |
+| **Security** | AI-specific vulnerabilities | Data breaches |
+| **Documentation** | Insufficient AI governance | Certification denials |
+
+### Shared Responsibility Model
+
+```
+Compliance Responsibilities:
+
+┌─────────────────────────────────────────────────────────────┐
+│                    COMPLIANCE LAYERS                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Microsoft (Cloud Provider)                                  │
+│  ├── Physical security                                       │
+│  ├── Infrastructure patching                                 │
+│  ├── Service availability                                    │
+│  └── Compliance certifications (SOC 2, ISO 27001)           │
+│                                                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Organization (Customer)                                     │
+│  ├── Data classification                                     │
+│  ├── Access management                                       │
+│  ├── AI model governance                                     │
+│  ├── Data subject requests                                   │
+│  └── Compliance documentation                                │
+│                                                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Shared Responsibilities                                     │
+│  ├── Encryption key management                               │
+│  ├── Network security                                        │
+│  ├── Identity management                                     │
+│  └── Logging and monitoring                                  │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Compliance as Code Approach
+
+Implement compliance through infrastructure-as-code:
+
+| Compliance Requirement | Code Implementation | Tool |
+|----------------------|-------------------|------|
+| Encryption at rest | Storage account settings | Bicep/Terraform |
+| Network isolation | NSG rules, private endpoints | ARM templates |
+| Access logging | Diagnostic settings | Azure Policy |
+| Data classification | Sensitivity labels | Purview policies |
+
+## SOC 2 Mapping
+
+### Trust Services Criteria
+
+| Criteria | Description | AI Landing Zone Controls |
+|----------|-------------|-------------------------|
+| **CC6.1** | Logical access security | RBAC, conditional access, MFA |
+| **CC6.2** | Access removal | Automated deprovisioning |
+| **CC6.6** | Encryption | TLS 1.3, AES-256-GCM |
+| **CC6.7** | Data transmission | Private endpoints, VPN |
+| **CC7.1** | Security monitoring | Microsoft Sentinel |
+| **CC7.2** | Incident response | Automated alerting |
+| **CC8.1** | Change management | CI/CD pipelines |
+
+### AI Landing Zone Controls
+
+```
+SOC 2 Control Implementation:
+
+┌─────────────────────────────────────────────────────────────┐
+│              LOGICAL ACCESS (CC6.1)                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Control: Multi-factor authentication required               │
+│  Implementation:                                             │
+│  • Conditional Access policies                               │
+│  • Require MFA for all AI gateway access                     │
+│  • Risk-based step-up authentication                         │
+│                                                              │
+│  Evidence:                                                   │
+│  • Conditional Access policy exports                         │
+│  • Sign-in logs showing MFA usage                            │
+│  • Risk detection reports                                    │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Audit Evidence Collection
+
+| Control | Evidence Source | Collection Method |
+|---------|----------------|-------------------|
+| **Access Reviews** | Entra ID | Automated reports |
+| **Encryption Status** | Azure Policy | Continuous compliance |
+| **Network Security** | NSG flow logs | Log Analytics |
+| **Change History** | Azure Activity Log | Export to storage |
+| **Vulnerability Scan** | Defender | API export |
+
+### Continuous Monitoring
+
+```yaml
+# Azure Policy for SOC 2 monitoring
+policyRule:
+  if:
+    field: type
+    equals: Microsoft.Storage/storageAccounts
+  then:
+    effect: auditIfNotExists
+    details:
+      type: Microsoft.Security/secureScores
+      existenceCondition:
+        field: Microsoft.Security/secureScores/score
+        greater: 90
+```
+
+## GDPR Mapping
+
+### Data Protection Principles
+
+| Principle | Requirement | AI Implementation |
+|-----------|-------------|-------------------|
+| **Lawfulness** | Legal basis for processing | Consent tracking, legitimate interest |
+| **Purpose Limitation** | Use data only for specified purpose | Data tagging, access controls |
+| **Data Minimization** | Collect only necessary data | Input filtering, PII detection |
+| **Accuracy** | Keep data accurate | Validation, updates |
+| **Storage Limitation** | Delete when no longer needed | Retention policies |
+| **Integrity** | Protect from unauthorized processing | Encryption, access controls |
+| **Accountability** | Demonstrate compliance | Audit trails, documentation |
+
+### Lawful Basis for Processing
+
+```
+GDPR Lawful Basis Matrix:
+
+Processing Activity          Lawful Basis          Documentation
+─────────────────────────────────────────────────────────────────────
+AI Model Training            Legitimate Interest   DPIA, LIA
+User Query Processing        Contract              Terms of Service
+Analytics                    Consent               Cookie banner
+Fraud Detection              Legal Obligation      Legal review
+Employee AI Access           Legitimate Interest   HR policies
+Customer Support AI          Contract              Support agreement
+```
+
+### Data Subject Rights
+
+| Right | Implementation | AI Considerations |
+|-------|---------------|-------------------|
+| **Access** | DSAR portal | Export training data involvement |
+| **Rectification** | Update APIs | Model retraining triggers |
+| **Erasure** | Deletion workflows | Vector store cleanup |
+| **Portability** | Export formats | Conversation history |
+| **Objection** | Opt-out mechanisms | Exclude from training |
+| **Restriction** | Processing flags | Quarantine data |
+
+### Automated Decision-Making (Article 22)
+
+AI systems making significant decisions require special consideration:
+
+```
+Article 22 Compliance:
+
+Required:
+□ Human oversight mechanism
+□ Right to contest decisions
+□ Explanation of logic
+□ Regular model validation
+□ Bias monitoring
+
+Implementation:
+├── Review queue for automated decisions
+├── Human-in-the-loop for high-impact cases
+├── Model cards documenting decision logic
+├── A/B testing for bias detection
+└── Regular fairness audits
+```
+
+### Cross-Border Transfer Mechanisms
+
+| Transfer Type | Mechanism | Implementation |
+|--------------|-----------|----------------|
+| **EU → US** | Standard Contractual Clauses | Azure DPA |
+| **EU → UK** | Adequacy decision | No additional measures |
+| **EU → Third Countries** | SCCs + TIA | Transfer impact assessment |
+| **Intra-company** | Binding Corporate Rules | BCR approval |
+
+```bicep
+// Data residency configuration for GDPR
+resource aiServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
+  name: aiServicesName
+  location: 'westeurope'  // EU data residency
+  // ... configuration
+}
+
+resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+  name: storageName
+  location: 'westeurope'  // EU data residency
+  // ... configuration
+}
+```
+
+## HIPAA Mapping
+
+### Safeguards Requirements
+
+| Safeguard | HIPAA Requirement | AI Landing Zone Implementation |
+|-----------|------------------|-------------------------------|
+| **Administrative** | Security management | Risk assessment, training |
+| **Physical** | Facility access | Data center security |
+| **Technical** | Access control | Encryption, authentication |
+
+### PHI Handling in AI Workloads
+
+```
+PHI Protection Architecture:
+
+┌─────────────────────────────────────────────────────────────┐
+│                    PHI WORKFLOW                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   Input                                                      │
+│     │                                                        │
+│     ▼                                                        │
+│   ┌─────────────┐                                            │
+│   │   Detect    │  ──▶ Log detection event                   │
+│   │    PHI      │                                            │
+│   └──────┬──────┘                                            │
+│          │                                                   │
+│          ▼                                                   │
+│   ┌─────────────┐                                            │
+│   │  Validate   │  ──▶ Business associate agreement check    │
+│   │   Access    │                                            │
+│   └──────┬──────┘                                            │
+│          │                                                   │
+│          ▼                                                   │
+│   ┌─────────────┐                                            │
+│   │   Process   │  ──▶ Minimum necessary principle           │
+│   │     PHI     │                                            │
+│   └──────┬──────┘                                            │
+│          │                                                   │
+│          ▼                                                   │
+│   ┌─────────────┐                                            │
+│   │    Audit    │  ──▶ Access logging, retention             │
+│   │    Trail    │                                            │
+│   └─────────────┘                                            │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Business Associate Agreements
+
+| Party | Responsibility | BAA Required |
+|-------|---------------|--------------|
+| **Microsoft** | Cloud infrastructure | Yes (covered by BAA) |
+| **AI Model Provider** | Model service | Evaluate necessity |
+| **Integration Partner** | Custom development | Yes |
+| **Analytics Provider** | Usage analytics | Evaluate data access |
+
+### Audit and Breach Notification
+
+```
+HIPAA Audit Requirements:
+
+Access Logs (§164.312(b)):
+├─ User ID
+├─ Date/Time
+├─ Type of access
+├─ PHI accessed
+└─ Action taken
+
+Breach Notification (§164.404):
+├─ Discovery: Immediate documentation
+├─ Risk Assessment: 24 hours
+├─ Notification to HHS: 60 days (if >500)
+├─ Individual Notice: 60 days
+└─ Media Notice: 60 days (if >500)
+```
+
+## Industry-Specific Frameworks
+
+### Financial Services
+
+| Framework | Focus | AI Landing Zone Alignment |
+|-----------|-------|--------------------------|
+| **PCI DSS** | Cardholder data | Tokenization, network segmentation |
+| **SOX** | Financial controls | Audit trails, change management |
+| **Basel III** | Operational risk | Risk assessment, documentation |
+
+### Healthcare
+
+| Framework | Focus | AI Landing Zone Alignment |
+|-----------|-------|--------------------------|
+| **HIPAA** | PHI protection | Encryption, access controls |
+| **HITRUST** | Healthcare security | Comprehensive framework mapping |
+
+### Government
+
+| Framework | Focus | AI Landing Zone Alignment |
+|-----------|-------|--------------------------|
+| **FedRAMP** | Cloud security | Azure Government compliance |
+| **NIST 800-53** | Federal controls | Control mapping available |
+| **NIST AI RMF** | AI risk management | Risk-based AI governance |
+
+### International
+
+| Framework | Region | AI Landing Zone Alignment |
+|-----------|--------|--------------------------|
+| **ISO 27001** | Global | Information security management |
+| **CSA STAR** | Cloud | Cloud security assurance |
+| **EU AI Act** | EU | AI system categorization |
+
+## Control Implementation Matrix
+
+### Core Security Controls
+
+| Control | SOC 2 | GDPR | HIPAA | Implementation |
+|---------|-------|------|-------|----------------|
+| **Access Control** | CC6.1 | Art. 32 | 164.312(a) | APIM + Entra ID |
+| **Encryption at Rest** | CC6.7 | Art. 32 | 164.312(a)(2) | Azure Storage SSE |
+| **Encryption in Transit** | CC6.7 | Art. 32 | 164.312(e) | TLS 1.3 |
+| **Audit Logging** | CC7.2 | Art. 5(2) | 164.312(b) | Diagnostic settings |
+| **Data Backup** | A1.2 | Art. 32 | 164.308(a)(7) | Azure Backup |
+| **Incident Response** | CC7.3 | Art. 33 | 164.308(a)(6) | Sentinel playbooks |
+| **Change Management** | CC8.1 | Art. 32 | 164.308(a)(8) | CI/CD pipelines |
+| **Risk Assessment** | CC3.2 | Art. 35 | 164.308(a)(1) | Regular assessments |
+
+### AI-Specific Controls
+
+| Control | Purpose | Framework Mapping |
+|---------|---------|-------------------|
+| **Model Documentation** | Explainability | EU AI Act, GDPR |
+| **Bias Testing** | Fairness | EU AI Act, industry |
+| **Training Data Governance** | Quality | GDPR, HIPAA |
+| **Output Monitoring** | Safety | SOC 2, EU AI Act |
+| **Human Oversight** | Control | EU AI Art. 14 |
+
+## Compliance Automation
+
+### Azure Policy Initiatives
+
+```json
+{
+  "properties": {
+    "displayName": "AI Landing Zone Compliance",
+    "description": "Policy initiative for AI workload compliance",
+    "metadata": {
+      "category": "Compliance"
+    },
+    "parameters": {},
+    "policyDefinitions": [
+      {
+        "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/404c3081-a854-4457-ad45-7fdda0e78a67",
+        "policyDefinitionReferenceId": "encrypt-storage",
+        "parameters": {}
+      },
+      {
+        "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/1f905d99-2ab7-462c-a6b0-f709acca6c8f",
+        "policyDefinitionReferenceId": "private-endpoint",
+        "parameters": {}
+      }
+    ]
+  }
+}
+```
+
+### Compliance Manager Integration
+
+```
+Compliance Manager Assessment:
+
+┌─────────────────────────────────────────────────────────────┐
+│              COMPLIANCE SCORECARD                            │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Overall Compliance Score: 87%                              │
+│                                                              │
+│  By Framework:                                               │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
+│  │   SOC 2     │ │    GDPR     │ │   HIPAA     │           │
+│  │    92%      │ │    85%      │ │    84%      │           │
+│  └─────────────┘ └─────────────┘ └─────────────┘           │
+│                                                              │
+│  Action Items:                                               │
+│  1. Complete risk assessment (GDPR Art. 35)                 │
+│  2. Update BAA with integration partner                     │
+│  3. Document AI model decision logic                        │
+│  4. Test incident response playbooks                        │
+│                                                              │
+│  Recent Improvements:                                        │
+│  ✓ Encryption at rest: 100% coverage                        │
+│  ✓ MFA enrollment: 98% of users                             │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Automated Evidence Collection
+
+```powershell
+# Collect compliance evidence
+$evidence = @()
+
+# Access logs
+$accessLogs = Get-AzureADAuditSignInLogs -Filter "createdDateTime gt 2024-01-01"
+$evidence += @{ Type = "AccessLogs"; Data = $accessLogs }
+
+# Encryption status
+$storageAccounts = Get-AzStorageAccount
+$encryptionStatus = $storageAccounts | Select-Object StorageAccountName, 
+    @{N="EncryptionEnabled";E={$_.Encryption.Services.Blob.Enabled}}
+$evidence += @{ Type = "EncryptionStatus"; Data = $encryptionStatus }
+
+# Export to compliance storage
+$evidence | ConvertTo-Json -Depth 10 | 
+    Set-AzStorageBlobContent -Container "compliance-evidence" -Blob "$(Get-Date -Format 'yyyy-MM').json"
+```
+
+### Continuous Compliance Monitoring
+
+```yaml
+# GitHub Actions workflow for compliance monitoring
+name: Compliance Check
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Daily
+  workflow_dispatch:
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run Azure Policy Compliance Scan
+        run: |
+          az policy state summarize --output json > compliance-report.json
+      
+      - name: Check for Non-Compliance
+        run: |
+          nonCompliant=$(cat compliance-report.json | jq '.results.nonCompliantResources')
+          if [ "$nonCompliant" -gt 0 ]; then
+            echo "::error::Found $nonCompliant non-compliant resources"
+            exit 1
+          fi
+      
+      - name: Upload Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: compliance-report
+          path: compliance-report.json
+```
+
+## Audit Preparation
+
+### Documentation Requirements
+
+| Framework | Required Documentation | Location |
+|-----------|----------------------|----------|
+| **SOC 2** | Control narratives, evidence | Compliance portal |
+| **GDPR** | Records of processing, DPIAs | Privacy portal |
+| **HIPAA** | Risk analysis, policies | Security portal |
+
+### Evidence Artifacts
+
+```
+Evidence Repository Structure:
+
+/compliance-evidence
+├── /2024
+│   ├── /Q1
+│   │   ├── access-logs.json
+│   │   ├── encryption-audit.pdf
+│   │   └── vulnerability-scan.sarif
+│   ├── /Q2
+│   │   ├── penetration-test.pdf
+│   │   ├── policy-compliance.json
+│   │   └── training-records.pdf
+│   └── /Q3
+│       └── ...
+├── /policies
+│   ├── data-retention.pdf
+│   ├── incident-response.pdf
+│   └── access-control.pdf
+└── /contracts
+    ├── microsoft-baa.pdf
+    └── integration-partner-baa.pdf
+```
+
+### Penetration Test Reports
+
+| Test Type | Frequency | Scope | Deliverable |
+|-----------|-----------|-------|-------------|
+| **External** | Annual | Public endpoints | Executive summary |
+| **Internal** | Annual | Internal network | Technical report |
+| **AI Red Team** | Per model | Model safety | Remediation plan |
+| **Cloud Config** | Quarterly | Azure resources | Compliance report |
+
+### Risk Assessment Documentation
+
+```
+Risk Assessment Template:
+
+Asset: AI Landing Zone
+Threat: Unauthorized AI model access
+Likelihood: Medium (requires valid credentials)
+Impact: High (access to sensitive data)
+Risk: High
+
+Controls:
+1. Multi-factor authentication (reduces likelihood)
+2. Role-based access control (reduces impact)
+3. Session timeout (reduces exposure window)
+4. Audit logging (enables detection)
+
+Residual Risk: Low
+Mitigation Date: 2024-01-15
+Review Date: 2024-07-15
+Owner: Security Team
+```
+
+## Next Steps
+
+- Review [Content Safety](./content-safety) for content moderation compliance
+- Explore [PII Protection](./pii-protection) for data privacy compliance
+- Learn about [Security Compliance](./security-compliance) for security framework alignment
+- See [Security Implementation](../ai-patterns/security-implementation) for deploying compliant controls
