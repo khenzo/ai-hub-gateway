@@ -1,0 +1,685 @@
+---
+title: "Identity Management"
+description: "Identity and access management patterns for enterprise AI — human, service, and agent identities with Microsoft Entra ID integration"
+---
+
+# 🆔 Identity Management
+
+## Introduction
+
+Effective identity management is the foundation of AI governance. The Foundry Citadel Platform implements comprehensive identity patterns that distinguish between **human identities** (developers, operators), **service identities** (applications, workloads), and **agent identities** (autonomous AI agents), each with appropriate lifecycle management and access controls.
+
+## Identity Architecture Overview
+
+### Three Identity Types
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        IDENTITY ARCHITECTURE                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │
+│  │  HUMAN          │  │  SERVICE        │  │  AGENT          │             │
+│  │  IDENTITIES     │  │  IDENTITIES     │  │  IDENTITIES     │             │
+│  │                 │  │                 │  │                 │             │
+│  │ • Developers    │  │ • Applications  │  │ • AI Agents     │             │
+│  │ • Operators     │  │ • Microservices │  │ • Bots          │             │
+│  │ • Admins        │  │ • Functions     │  │ • Assistants    │             │
+│  │                 │  │                 │  │                 │             │
+│  │ Auth: MFA,      │  │ Auth: Managed   │  │ Auth: Service   │             │
+│  │       Password  │  │       Identity  │  │       Principal │             │
+│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘             │
+│           │                    │                    │                       │
+│           └────────────────────┼────────────────────┘                       │
+│                                │                                            │
+│                                ▼                                            │
+│              ┌─────────────────────────────────────┐                       │
+│              │      MICROSOFT ENTRA ID             │                       │
+│              │                                     │                       │
+│              │  • Users & Groups                   │                       │
+│              │  • Service Principals               │                       │
+│              │  • Managed Identities               │                       │
+│              │  • Access Policies                  │                       │
+│              │  • Conditional Access               │                       │
+│              └─────────────────────────────────────┘                       │
+│                                │                                            │
+│                                ▼                                            │
+│                   ┌───────────────────────┐                                │
+│                   │  AI GATEWAY (APIM)    │                                │
+│                   │  Identity Validation  │                                │
+│                   └───────────────────────┘                                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Microsoft Entra ID Integration
+
+Microsoft Entra ID (formerly Azure AD) serves as the central identity provider:
+
+| Feature | Purpose | Implementation |
+|---------|---------|----------------|
+| **Users** | Human identity management | Employee accounts with MFA |
+| **Groups** | Role-based access control | Security groups for teams |
+| **Service Principals** | Application identities | App registrations |
+| **Managed Identities** | Azure resource authentication | System/user-assigned |
+| **Access Packages** | Bundled permissions | Entitlement management |
+| **Conditional Access** | Risk-based policies | Location, device compliance |
+
+## Human Identities
+
+### User Types
+
+| Type | Description | Typical Access |
+|------|-------------|----------------|
+| **Developers** | Build AI applications | Dev environment, read-only prod |
+| **Data Scientists** | Train and deploy models | Training resources, model registry |
+| **Operators** | Run production systems | Monitoring, incident response |
+| **Compliance Officers** | Audit and governance | Audit logs, compliance reports |
+| **Administrators** | Platform management | Full administrative access |
+
+### Authentication Patterns
+
+#### Multi-Factor Authentication (MFA)
+
+Required for all human access to AI services:
+
+```
+MFA Requirements:
+├── Required for: All interactive access
+├── Methods: Authenticator app, SMS, hardware key
+├── Exemptions: Emergency break-glass accounts only
+└── Enforcement: Conditional Access policy
+```
+
+#### Privileged Access Workstations (PAW)
+
+For high-privilege operations:
+
+- Dedicated hardened workstations
+- No internet browsing
+- Just-in-time (JIT) access elevation
+- Session recording for audit
+
+### Authorization Patterns
+
+#### Role-Based Access Control (RBAC)
+
+Built-in roles for AI governance:
+
+| Role | Permissions | Scope |
+|------|-------------|-------|
+| **AI Reader** | View models, usage, logs | Resource group |
+| **AI User** | Deploy models, make requests | Subscription |
+| **AI Contributor** | Full management except IAM | Subscription |
+| **AI Administrator** | Full management including IAM | Management group |
+
+#### Custom Roles
+
+Fine-grained permissions for specific scenarios:
+
+```json
+{
+  "name": "AI Contract Manager",
+  "description": "Manage AI access contracts",
+  "actions": [
+    "Microsoft.ApiManagement/service/products/read",
+    "Microsoft.ApiManagement/service/products/write",
+    "Microsoft.ApiManagement/service/subscriptions/read",
+    "Microsoft.ApiManagement/service/subscriptions/write"
+  ],
+  "notActions": [],
+  "dataActions": [],
+  "notDataActions": []
+}
+```
+
+## Service Identities
+
+### App Registrations
+
+Register applications for programmatic access:
+
+```powershell
+# Create app registration
+$app = New-AzADApplication `
+  -DisplayName "CustomerServiceBot" `
+  -SignInAudience "AzureADMyOrg"
+
+# Create service principal
+$sp = New-AzADServicePrincipal `
+  -ApplicationId $app.AppId
+
+# Assign role
+New-AzRoleAssignment `
+  -ObjectId $sp.Id `
+  -RoleDefinitionName "Cognitive Services User" `
+  -Scope "/subscriptions/$subscriptionId/resourceGroups/$rgName"
+```
+
+### Managed Identities
+
+#### System-Assigned Managed Identity
+
+Automatically created and managed by Azure:
+
+```json
+{
+  "identity": {
+    "type": "SystemAssigned"
+  }
+}
+```
+
+Use when:
+- Single application per resource
+- Lifecycle tied to Azure resource
+- No credential management needed
+
+#### User-Assigned Managed Identity
+
+Standalone identity resource:
+
+```json
+{
+  "identity": {
+    "type": "UserAssigned",
+    "userAssignedIdentities": {
+      "/subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{name}": {}
+    }
+  }
+}
+```
+
+Use when:
+- Multiple resources share identity
+- Separate lifecycle from resources
+- Cross-resource access patterns
+
+### Service Principal Security
+
+#### Certificate-Based Authentication
+
+More secure than client secrets:
+
+```powershell
+# Generate certificate
+$cert = New-SelfSignedCertificate `
+  -Subject "CN=AI-Service" `
+  -CertStoreLocation "Cert:\CurrentUser\My" `
+  -KeyExportPolicy Exportable
+
+# Add certificate to app registration
+New-AzADAppCredential `
+  -ApplicationId $appId `
+  -CertValue $cert.RawData
+```
+
+#### Credential Rotation
+
+Automated secret rotation:
+
+```
+Rotation Schedule:
+├── Client Secrets: 90 days
+├── Certificates: 1 year
+├── Emergency break-glass: 6 months
+└── Automation: Key Vault + Azure Functions
+```
+
+## Agent Identities (Agent 365)
+
+### Unique Agent Identity Assignment
+
+Every agent receives a unique identity:
+
+```json
+{
+  "agent": {
+    "id": "agent-12345-unique-id",
+    "displayName": "Customer Support Bot",
+    "type": "chatbot",
+    "version": "2.1.0",
+    "servicePrincipal": {
+      "appId": "00000000-0000-0000-0000-000000000000",
+      "objectId": "11111111-1111-1111-1111-111111111111"
+    },
+    "createdAt": "2024-01-15T10:00:00Z",
+    "sponsor": "john.doe@contoso.com"
+  }
+}
+```
+
+### Agent Lifecycle Management
+
+```
+AGENT LIFECYCLE:
+
+┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│  DRAFT   │ →  │ PENDING  │ →  │  ACTIVE  │ →  │  REVIEW  │ →  │RETIRED   │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘    └──────────┘
+     │               │               │               │               │
+     ▼               ▼               ▼               ▼               ▼
+  Developer     Platform         Production      Quarterly      Decommission
+  creates       team approves    deployment      review          archived
+```
+
+### Shadow Agent Detection
+
+Automatically discover unregistered agents:
+
+| Detection Method | Data Source | Action |
+|-----------------|-------------|--------|
+| **Traffic Analysis** | Gateway logs | Identify unknown API keys |
+| **Entra Signals** | Sign-in logs | Detect unrecognized applications |
+| **Network Scanning** | NSG flow logs | Find unauthorized endpoints |
+| **Code Scanning** | Repositories | Detect hardcoded credentials |
+
+```powershell
+# Query for potential shadow agents
+Get-AzLog `
+  -ResourceGroupName "ai-gateway-rg" `
+  -StartTime (Get-Date).AddDays(-7) `
+  -Caller "Unknown" |
+  Where-Object { $_.OperationName -like "*OpenAI*" }
+```
+
+### Sponsorship Model
+
+Every agent has a human sponsor accountable for its behavior:
+
+```json
+{
+  "sponsorship": {
+    "primarySponsor": {
+      "userId": "john.doe@contoso.com",
+      "department": "Customer Service",
+      "responsibilities": [
+        "Agent behavior compliance",
+        "Security updates",
+        "Access reviews"
+      ]
+    },
+    "secondaryContacts": [
+      {
+        "userId": "jane.smith@contoso.com",
+        "role": "Technical Lead"
+      }
+    ],
+    "escalationPath": [
+      "team-lead@contoso.com",
+      "security@contoso.com"
+    ]
+  }
+}
+```
+
+## Authentication Patterns
+
+### OAuth 2.0 Flows
+
+#### Client Credentials Flow (Service-to-Service)
+
+For automated service authentication:
+
+```
+┌─────────┐                              ┌─────────────┐          ┌─────────┐
+│ Service │                              │    Entra    │          │   AI    │
+│    A    │                              │     ID      │          │ Service │
+└────┬────┘                              └──────┬──────┘          └────┬────┘
+     │                                          │                      │
+     │ 1. POST /token                           │                      │
+     │    grant_type=client_credentials         │                      │
+     │    client_id={app_id}                    │                      │
+     │    client_secret={secret}                │                      │
+     │ ────────────────────────────────────────>│                      │
+     │                                          │                      │
+     │ 2. Access Token                          │                      │
+     │ <────────────────────────────────────────│                      │
+     │                                          │                      │
+     │ 3. GET /openai/deployments               │                      │
+     │    Authorization: Bearer {token}         │                      │
+     │ ────────────────────────────────────────────────────────────────>│
+     │                                          │                      │
+     │ 4. Response                              │                      │
+     │ <────────────────────────────────────────────────────────────────│
+```
+
+Implementation:
+
+```csharp
+// Using Azure.Identity
+var credential = new ClientSecretCredential(
+    tenantId: "contoso.onmicrosoft.com",
+    clientId: "app-id",
+    clientSecret: "secret"
+);
+
+var token = await credential.GetTokenAsync(
+    new TokenRequestContext(new[] { "https://cognitiveservices.azure.com/.default" })
+);
+```
+
+#### On-Behalf-Of Flow (Delegated Access)
+
+For acting on behalf of users:
+
+```
+Client → API A → API B (AI Service)
+
+1. Client authenticates with user credentials
+2. Client calls API A with user's token
+3. API A exchanges token for AI service access
+4. API A calls AI service on behalf of user
+```
+
+```csharp
+// Server-side token exchange
+var credential = new OnBehalfOfCredential(
+    tenantId: "contoso.onmicrosoft.com",
+    clientId: "api-a-app-id",
+    clientSecret: "api-a-secret",
+    userAssertionToken: incomingUserToken
+);
+
+var token = await credential.GetTokenAsync(
+    new TokenRequestContext(new[] { "https://cognitiveservices.azure.com/.default" })
+);
+```
+
+### Managed Identity Authentication
+
+System-assigned managed identity:
+
+```csharp
+// Azure SDK automatically uses managed identity when deployed to Azure
+var credential = new DefaultAzureCredential();
+
+var openAIClient = new OpenAIClient(
+    new Uri("https://{your-resource}.openai.azure.com/"),
+    credential
+);
+```
+
+## Authorization Patterns
+
+### Role-Based Access Control (RBAC)
+
+Assign roles to identities:
+
+```powershell
+# Assign role to user
+New-AzRoleAssignment `
+  -SignInName "developer@contoso.com" `
+  -RoleDefinitionName "Cognitive Services OpenAI User" `
+  -ResourceName "openai-resource" `
+  -ResourceGroupName "ai-rg"
+
+# Assign role to service principal
+New-AzRoleAssignment `
+  -ObjectId $servicePrincipalId `
+  -RoleDefinitionName "Cognitive Services OpenAI Contributor" `
+  -Scope "/subscriptions/$subId/resourceGroups/$rgName/providers/Microsoft.CognitiveServices/accounts/$accountName"
+```
+
+### Attribute-Based Access Control (ABAC)
+
+Fine-grained conditions:
+
+```json
+{
+  "condition": "(
+    (
+      !(ActionMatches{'Microsoft.CognitiveServices/accounts/deployments/read'})
+    )
+    OR
+    (
+      @Resource[Microsoft.CognitiveServices/accounts/deployments:model.name] StringEquals 'gpt-35-turbo'
+    )
+  )",
+  "conditionVersion": "2.0"
+}
+```
+
+### Custom Authorization Policies
+
+APIM policy for custom authorization:
+
+```xml
+<policies>
+  <inbound>
+    <!-- Check custom claims -->
+    <choose>
+      <when condition="@(!context.User.Groups.Any(g => g.Name == "AI-Users"))">
+        <return-response>
+          <set-status code="403" reason="Forbidden" />
+          <set-body>{
+            "error": "User not authorized for AI access. Contact your administrator to join the AI-Users group."
+          }</set-body>
+        </return-response>
+      </when>
+    </choose>
+    
+    <!-- Check environment access -->
+    <set-variable name="user-env" value="@(context.User.Groups.FirstOrDefault(g => g.Name.StartsWith("Env-"))?.Name ?? "none")" />
+    <choose>
+      <when condition="@(!context.Request.Url.Path.Contains(context.Variables.GetValueOrDefault("user-env", "").Replace("Env-", "").ToLower()))">
+        <return-response>
+          <set-status code="403" reason="Forbidden" />
+          <set-body>{
+            "error": "User not authorized for this environment"
+          }</set-body>
+        </return-response>
+      </when>
+    </choose>
+  </inbound>
+</policies>
+```
+
+### Agent Sponsorship Model
+
+Enforce human accountability:
+
+```xml
+<policies>
+  <inbound>
+    <!-- Validate agent has active sponsor -->
+    <send-request mode="new" response-variable-name="sponsor-check">
+      <set-url>{{agent-365-url}}/agents/{{contract.agentId}}/sponsor</set-url>
+      <set-method>GET</set-method>
+    </send-request>
+    
+    <choose>
+      <when condition="@(((IResponse)context.Variables["sponsor-check"]).StatusCode != 200)">
+        <return-response>
+          <set-status code="403" reason="Agent Not Authorized" />
+          <set-body>{
+            "error": "Agent does not have an active sponsor. Contact your platform team."
+          }</set-body>
+        </return-response>
+      </when>
+    </choose>
+    
+    <!-- Add sponsor info to headers for audit -->
+    <set-header name="x-agent-sponsor" exists-action="override">
+      <value>@(((IResponse)context.Variables["sponsor-check"]).Body.As<JObject>()["sponsor"]?.ToString())</value>
+    </set-header>
+  </inbound>
+</policies>
+```
+
+## Identity Governance
+
+### Access Reviews
+
+Periodic certification of access:
+
+```
+Access Review Schedule:
+├── AI Administrators: Monthly
+├── AI Contributors: Quarterly
+├── AI Users: Semi-annually
+├── Service Principals: Quarterly
+├── Agent Sponsors: Quarterly
+└── Emergency Access: After each use
+```
+
+Configuration:
+
+```powershell
+# Create access review
+New-MgIdentityGovernanceAccessReviewDefinition `
+  -DisplayName "AI Service Access Review" `
+  -Description "Review access to AI services" `
+  -Scope ({
+    "@odata.type": "#microsoft.graph.groupAccessReviewScope",
+    "groupId": "ai-users-group-id"
+  }) `
+  -Reviewers ({
+    "@odata.type": "#microsoft.graph.groupOwnersReviewers",
+    "groupId": "ai-admins-group-id"
+  }) `
+  -Settings ({
+    "recurrence": {
+      "pattern": { "type": "quarterly" },
+      "range": { "type": "noEnd" }
+    },
+    "defaultDecision": "Deny",
+    "autoApplyDecisionsEnabled": true
+  })
+```
+
+### Privileged Access Management
+
+Just-in-time elevation:
+
+```powershell
+# Request elevation
+New-MgPrivilegedAccessResourceRoleAssignmentRequest `
+  -ResourceId $aiResourceId `
+  -RoleDefinitionId $adminRoleId `
+  -SubjectId $userId `
+  -AssignmentState "Eligible" `
+  -Type "AdminAdd" `
+  -Schedule ({
+    "startDateTime": "2024-01-15T09:00:00Z",
+    "endDateTime": "2024-01-15T17:00:00Z"
+  })
+```
+
+### Conditional Access Policies
+
+Risk-based access:
+
+| Condition | Requirement | Applies To |
+|-----------|-------------|------------|
+| **High-risk sign-in** | Block | All AI admin roles |
+| **Outside corporate network** | MFA + Compliant device | AI production access |
+| **New device** | MFA + Register device | All AI access |
+| **Legacy authentication** | Block | All AI services |
+
+### Identity Protection
+
+Monitor for risky identities:
+
+```powershell
+# Get risky users
+Get-MgRiskyUser | Where-Object { 
+  $_.RiskState -eq "atRisk" -and 
+  $_.RiskLevel -eq "high" 
+}
+
+# Get risky sign-ins
+Get-MgAuditLogSignIn -Filter "riskState eq 'atRisk'" |
+  Where-Object { $_.AppDisplayName -like "*OpenAI*" }
+```
+
+## Cross-Spoke Identity Patterns
+
+### Identity Federation
+
+Trust between identity providers:
+
+```
+┌─────────────────────┐              ┌─────────────────────┐
+│   Spoke A Entra     │              │   Spoke B Entra     │
+│   (Finance Tenant)  │◄────────────►│   (HR Tenant)       │
+└──────────┬──────────┘   Trust      └──────────┬──────────┘
+           │                                     │
+           │                                     │
+           ▼                                     ▼
+  ┌─────────────────┐                   ┌─────────────────┐
+  │  Finance Apps   │                   │     HR Apps     │
+  │  Access Hub     │                   │  Access Hub     │
+  └─────────────────┘                   └─────────────────┘
+```
+
+### Token Exchange Patterns
+
+Exchange tokens across boundaries:
+
+```csharp
+// Token exchange for cross-spoke access
+var request = new HttpRequestMessage(HttpMethod.Post, "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token");
+request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+{
+    ["grant_type"] = "urn:ietf:params:oauth:grant-type:jwt-bearer",
+    ["client_id"] = "{spoke-b-app-id}",
+    ["client_secret"] = "{secret}",
+    ["assertion"] = "{token-from-spoke-a}",
+    ["scope"] = "https://cognitiveservices.azure.com/.default",
+    ["requested_token_use"] = "on_behalf_of"
+});
+```
+
+### Cross-Tenant Access
+
+B2B collaboration for external users:
+
+```powershell
+# Invite external user
+New-MgInvitation `
+  -InvitedUserEmailAddress "external@partner.com" `
+  -InvitedUserDisplayName "External Partner" `
+  -InviteRedirectUrl "https://ai-portal.contoso.com" `
+  -SendInvitationMessage:$true `
+  -InvitedUserType "Guest"
+
+# Assign limited AI access
+New-AzRoleAssignment `
+  -SignInName "external_partner_partner.com#EXT#@contoso.onmicrosoft.com" `
+  -RoleDefinitionName "Cognitive Services OpenAI User" `
+  -Scope "/subscriptions/$subId/resourceGroups/external-rg"
+```
+
+## Best Practices
+
+### Identity Hygiene
+
+1. **Regular Reviews**: Quarterly access reviews for all AI identities
+2. **Least Privilege**: Start with minimal permissions, expand as needed
+3. **Time-Bound Access**: Set expiration dates on all non-permanent access
+4. **Credential Rotation**: Automate secret and certificate rotation
+5. **Monitoring**: Alert on anomalous access patterns
+
+### Agent Identity Management
+
+1. **One Identity Per Agent**: Never share agent identities
+2. **Sponsor Verification**: Validate sponsor before agent activation
+3. **Lifecycle Integration**: Disable agent identity when agent retired
+4. **Shadow Detection**: Regular scans for unregistered agents
+5. **Access Packages**: Use pre-approved permission bundles
+
+### Security Considerations
+
+1. **No Hardcoded Secrets**: Use Managed Identities or Key Vault
+2. **Network Isolation**: Private endpoints for identity traffic
+3. **Audit Everything**: Log all identity operations
+4. **Break-Glass Ready**: Emergency access procedures documented
+5. **Regular Testing**: Penetration testing of identity flows
+
+## Next Steps
+
+- Learn about [AI Access Contracts](./access-contracts) for policy binding
+- Explore [policy enforcement mechanisms](./policy-enforcement)
+- Review the [Governance Hub architecture](../architecture/layer-1-governance-hub)
+- See [Layer 3: Agent Identity](../architecture/layer-3-agent-identity) for agent-specific patterns
