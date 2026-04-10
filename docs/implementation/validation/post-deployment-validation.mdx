@@ -1,0 +1,718 @@
+---
+title: Post-Deployment Validation
+description: Comprehensive post-deployment testing procedures including smoke tests, connectivity verification, and performance baseline establishment
+icon: check-circle
+---
+
+# Post-Deployment Validation
+
+Run these validation procedures immediately after deploying AI Landing Zone infrastructure to confirm correct operation before enabling production workloads.
+
+<Note>
+Allow 4-8 hours for complete validation. Do not skip steps—each validates critical functionality that production workloads depend on.
+</Note>
+
+---
+
+## Smoke Tests
+
+### Resource Deployment Verification
+
+Verify all resources deployed successfully and are in the correct state:
+
+| # | Test | Command | Expected Result | Status |
+|---|------|---------|-----------------|--------|
+| **1.1** | APIM service state | `az apim show --name <apim-name> -g <rg> --query provisioningState` | `"Succeeded"` | [ ] |
+| **1.2** | VNet state | `az network vnet show --name <vnet-name> -g <rg> --query provisioningState` | `"Succeeded"` | [ ] |
+| **1.3** | Key Vault state | `az keyvault show --name <kv-name> --query properties.provisioningState` | `"Succeeded"` | [ ] |
+| **1.4** | Log Analytics workspace | `az monitor log-analytics workspace show -g <rg> -n <workspace> --query provisioningState` | `"Succeeded"` | [ ] |
+| **1.5** | Resource count matches plan | Count resources in resource group | Matches expected count | [ ] |
+
+**Comprehensive resource check:**
+
+```bash
+#!/bin/bash
+# smoke-test-resources.sh
+
+RG="<resource-group>"
+APIM="<apim-name>"
+
+echo "=== Resource Smoke Tests ==="
+echo ""
+
+# Check APIM
+APIM_STATE=$(az apim show --name "$APIM" -g "$RG" --query "provisioningState" -o tsv 2>/dev/null)
+if [ "$APIM_STATE" = "Succeeded" ]; then
+    echo "✅ APIM: Succeeded"
+else
+    echo "❌ APIM: $APIM_STATE"
+fi
+
+# Check VNet
+VNET_STATE=$(az network vnet list -g "$RG" --query "[0].provisioningState" -o tsv)
+echo "VNet State: ${VNET_STATE:-"Not Found"}"
+
+# List all resources with their states
+echo ""
+echo "All Resources:"
+az resource list -g "$RG" --query "[].{name:name, type:type, state:provisioningState}" -o table
+```
+
+### Azure CLI Resource List Commands
+
+```bash
+# List all resources by type
+az resource list -g <resource-group> --query "[].{name:name, type:type}"
+
+# Expected resource types:
+# - Microsoft.ApiManagement/service
+# - Microsoft.Network/virtualNetworks
+# - Microsoft.Network/networkSecurityGroups
+# - Microsoft.KeyVault/vaults
+# - Microsoft.OperationalInsights/workspaces
+# - Microsoft.Insights/components (Application Insights)
+# - Microsoft.Network/privateEndpoints (if deployed)
+```
+
+---
+
+## Connectivity Tests
+
+### APIM Gateway Health Check
+
+| # | Test | Command | Expected Result | Status |
+|---|------|---------|-----------------|--------|
+| **2.1** | Gateway URL reachable | `curl -s -o /dev/null -w "%{http_code}" https://<apim-name>.azure-api.net/` | `200`, `404`, or `403` | [ ] |
+| **2.2** | Management endpoint accessible | `az apim show -n <apim> -g <rg> --query "managementApiUrl"` | URL returned | [ ] |
+| **2.3** | Gateway private IP assigned (VNet mode) | `az apim show -n <apim> -g <rg> --query "privateIPAddresses[0]"` | Private IP returned | [ ] |
+
+**APIM health verification:**
+
+```bash
+APIM_NAME="<apim-name>"
+RG="<resource-group>"
+
+# Get gateway URL
+GATEWAY_URL=$(az apim show -n "$APIM_NAME" -g "$RG" --query "gatewayUrl" -o tsv)
+echo "Gateway URL: $GATEWAY_URL"
+
+# Test gateway response
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$GATEWAY_URL")
+echo "HTTP Response: $HTTP_CODE"
+
+# Get detailed status
+az apim show -n "$APIM_NAME" -g "$RG" --query "{
+    name: name,
+    state: provisioningState,
+    sku: sku.name,
+    vnetType: virtualNetworkType,
+    gatewayUrl: gatewayUrl,
+    managementApiUrl: managementApiUrl,
+    privateIp: privateIPAddresses[0],
+    publicIp: publicIPAddresses[0]
+}"
+```
+
+### Network Connectivity (VNet Integration)
+
+| # | Test | From | To | Expected | Status |
+|---|------|------|-----|----------|--------|
+| **2.4** | Hub to spoke | Jumpbox in hub | Spoke VM IP | Ping successful | [ ] |
+| **2.5** | Spoke to hub | VM in spoke | APIM private IP | Ping successful | [ ] |
+| **2.6** | VNet peering state | — | — | `Connected` both directions | [ ] |
+| **2.7** | Cross-spoke isolation | Spoke 1 VM | Spoke 2 VM | No connectivity | [ ] |
+
+**Network connectivity validation:**
+
+```bash
+# Check VNet peering status
+az network vnet peering list \
+  --resource-group <hub-rg> \
+  --vnet-name <hub-vnet> \
+  --query "[].{name:name, remote:remoteVirtualNetwork.id, state:peeringState}"
+
+# Verify bidirectional connectivity
+# Run from a VM in the hub VNet:
+ping <spoke-vm-private-ip>
+
+# Run from a VM in the spoke VNet:
+ping <apim-private-ip>
+```
+
+### DNS Resolution Tests
+
+| # | Test | Command | Expected Result | Status |
+|---|------|---------|-----------------|--------|
+| **2.8** | OpenAI private endpoint resolves | `nslookup <openai>.openai.azure.com` | Returns `10.x.x.x` | [ ] |
+| **2.9** | Key Vault private endpoint resolves | `nslookup <kv>.vault.azure.net` | Returns `10.x.x.x` | [ ] |
+| **2.10** | APIM gateway resolves | `nslookup <apim>.azure-api.net` | Returns IPs | [ ] |
+
+**DNS resolution script:**
+
+```bash
+#!/bin/bash
+# dns-validation.sh
+
+# Must be run from a VM inside the VNet
+
+echo "=== DNS Resolution Tests ==="
+echo ""
+
+# Test Azure OpenAI DNS
+echo "Testing Azure OpenAI DNS..."
+nslookup <openai-name>.openai.azure.com
+
+# Should return something like:
+# Server:  168.63.129.16
+# Address: 168.63.129.16#53
+# Non-authoritative answer:
+# <openai-name>.openai.azure.com  canonical name = <openai-name>.privatelink.openai.azure.com
+# Name: <openai-name>.privatelink.openai.azure.com
+# Address: 10.0.2.4  <-- Private IP
+
+echo ""
+echo "Testing Key Vault DNS..."
+nslookup <kv-name>.vault.azure.net
+
+echo ""
+echo "Testing APIM Gateway DNS..."
+nslookup <apim-name>.azure-api.net
+```
+
+### Private Endpoint Validation
+
+| # | Test | Command | Expected Result | Status |
+|---|------|---------|-----------------|--------|
+| **2.11** | OpenAI private endpoint approved | `az network private-endpoint show --name <pe>` | `connectionState: "Approved"` | [ ] |
+| **2.12** | Key Vault private endpoint approved | `az network private-endpoint show --name <pe>` | `connectionState: "Approved"` | [ ] |
+| **2.13** | No public network access enabled | Check Azure OpenAI networking | `publicNetworkAccess: "Disabled"` | [ ] |
+
+```bash
+# Verify private endpoints
+az network private-endpoint list \
+  -g <resource-group> \
+  --query "[].{name:name, resource:privateLinkServiceConnections[0].privateLinkServiceId, state:privateLinkServiceConnections[0].privateLinkServiceConnectionState.status}"
+
+# Check Azure OpenAI network settings
+az cognitiveservices account show \
+  -n <openai-name> -g <resource-group> \
+  --query "properties.publicNetworkAccess"
+```
+
+---
+
+## Functionality Tests
+
+### Sample API Call Through Gateway
+
+| # | Test | Command | Expected Result | Status |
+|---|------|---------|-----------------|--------|
+| **3.1** | Echo API responds | `curl <gateway>/echo/resource` | JSON response | [ ] |
+| **3.2** | OpenAI API registered | `az apim api list -g <rg> --service-name <apim>` | OpenAI API in list | [ ] |
+| **3.3** | Chat completions work | Test API call (see below) | HTTP 200 with completion | [ ] |
+
+**API functionality test:**
+
+```bash
+APIM_GATEWAY="https://<apim-name>.azure-api.net"
+SUBSCRIPTION_KEY="<your-subscription-key>"
+
+# Test Echo API (built-in)
+curl -s "$APIM_GATEWAY/echo/resource?param1=sample" \
+  -H "Ocp-Apim-Subscription-Key: $SUBSCRIPTION_KEY" | jq .
+
+# Test Azure OpenAI API (if configured)
+curl -s "$APIM_GATEWAY/openai/deployments/<model>/chat/completions?api-version=2024-02-01" \
+  -H "Content-Type: application/json" \
+  -H "Ocp-Apim-Subscription-Key: $SUBSCRIPTION_KEY" \
+  -d '{
+    "messages": [{"role": "user", "content": "Say hello"}],
+    "max_tokens": 50
+  }' | jq .
+```
+
+### Authentication/Authorization Test
+
+| # | Test | Command | Expected Result | Status |
+|---|------|---------|-----------------|--------|
+| **3.4** | Unauthenticated request rejected | `curl <gateway>/openai/...` (no key) | HTTP `401` | [ ] |
+| **3.5** | Invalid subscription key rejected | `curl -H "api-key: invalid" ...` | HTTP `401` | [ ] |
+| **3.6** | Valid subscription key accepted | `curl -H "api-key: <valid-key>" ...` | HTTP `200` | [ ] |
+| **3.7** | Entra ID token works (if configured) | `curl -H "Authorization: Bearer <token>" ...` | HTTP `200` | [ ] |
+
+**Auth validation commands:**
+
+```bash
+GATEWAY="https://<apim-name>.azure-api.net"
+API_PATH="/openai/deployments/<model>/chat/completions?api-version=2024-02-01"
+VALID_KEY="<valid-subscription-key>"
+
+echo "Test 1: No authentication (should fail)..."
+curl -s -o /dev/null -w "%{http_code}" "$GATEWAY$API_PATH"
+# Expected: 401 or 403
+
+echo "Test 2: Invalid key (should fail)..."
+curl -s -o /dev/null -w "%{http_code}" \
+  -H "Ocp-Apim-Subscription-Key: invalid-key" \
+  "$GATEWAY$API_PATH"
+# Expected: 401
+
+echo "Test 3: Valid key (should succeed)..."
+curl -s -o /dev/null -w "%{http_code}" \
+  -H "Ocp-Apim-Subscription-Key: $VALID_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"hi"}],"max_tokens":5}' \
+  "$GATEWAY$API_PATH"
+# Expected: 200
+```
+
+### Rate Limiting Verification
+
+| # | Test | Method | Expected Result | Status |
+|---|------|--------|-----------------|--------|
+| **3.8** | Rate limit enforced | Send 100+ requests rapidly | HTTP `429` after threshold | [ ] |
+| **3.9** | Retry-after header present | Inspect 429 response | `Retry-After` header present | [ ] |
+| **3.10** | Rate limit resets | Wait for window, retry | Request succeeds | [ ] |
+
+**Rate limit test:**
+
+```bash
+#!/bin/bash
+# rate-limit-test.sh
+
+GATEWAY="https://<apim-name>.azure-api.net"
+API_PATH="/echo/resource"
+SUBSCRIPTION_KEY="<your-key>"
+RATE_LIMIT=100  # Per your contract
+
+echo "Sending $((RATE_LIMIT + 20)) requests..."
+for i in $(seq 1 $((RATE_LIMIT + 20))); do
+    RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+        -H "Ocp-Apim-Subscription-Key: $SUBSCRIPTION_KEY" \
+        "$GATEWAY$API_PATH")
+    
+    if [ "$RESPONSE" = "429" ]; then
+        echo "Rate limit hit at request $i"
+        break
+    fi
+done
+```
+
+### Policy Enforcement Test
+
+| # | Test | Input | Expected Result | Status |
+|---|------|-------|-----------------|--------|
+| **3.11** | Content Safety blocks harmful content | Harmful prompt in request | HTTP `400` with safety message | [ ] |
+| **3.12** | PII redaction working (if configured) | Request with SSN | PII masked in response/logs | [ ] |
+| **3.13** | Request transformation applied | Custom header in request | Header processed correctly | [ ] |
+
+---
+
+## Integration Tests
+
+### Foundry Control Plane Connection
+
+| # | Test | Command | Expected Result | Status |
+|---|------|---------|-----------------|--------|
+| **4.1** | Diagnostic settings enabled | `az monitor diagnostic-settings list --resource <apim-id>` | Settings exist | [ ] |
+| **4.2** | Logs flowing to Log Analytics | Query in Log Analytics | Recent APIM logs present | [ ] |
+| **4.3** | Connection resource created | `az ml workspace connection list -g <rg> --workspace-name <foundry>` | Citadel connection listed | [ ] |
+
+**Foundry integration validation:**
+
+```bash
+# Check diagnostic settings on APIM
+APIM_ID=$(az apim show -n <apim-name> -g <resource-group> --query "id" -o tsv)
+
+az monitor diagnostic-settings list --resource "$APIM_ID" \
+  --query "[].{name:name, workspace:workspaceId, logs:logs[].category}"
+
+# Query Log Analytics for recent logs
+WORKSPACE_ID=$(az monitor log-analytics workspace show -g <rg> -n <workspace> --query "id" -o tsv)
+
+az monitor log-analytics query \
+  --workspace "$WORKSPACE_ID" \
+  --analytics-query "ApiManagementGatewayLogs | where TimeGenerated > ago(1h) | count"
+```
+
+### Log Analytics Data Flow
+
+| # | Test | Query | Expected Result | Status |
+|---|------|-------|-----------------|--------|
+| **4.4** | APIM GatewayLogs ingesting | `ApiManagementGatewayLogs | count` | Count > 0 | [ ] |
+| **4.5** | AzureDiagnostics from OpenAI | `AzureDiagnostics | where ResourceProvider == "MICROSOFT.COGNITIVESERVICES" | count` | Count > 0 | [ ] |
+| **4.6** | Key Vault audit logs present | `AzureDiagnostics | where ResourceProvider == "MICROSOFT.KEYVAULT" | count` | Count > 0 | [ ] |
+
+### Monitoring Dashboard Population
+
+| # | Test | Method | Expected Result | Status |
+|---|------|--------|-----------------|--------|
+| **4.7** | Azure Monitor metrics available | Portal: APIM > Metrics | Charts populate with data | [ ] |
+| **4.8** | Application Insights receiving telemetry | Portal: App Insights > Live Metrics | Live requests visible | [ ] |
+| **4.9** | Custom dashboards deployed | Portal: Dashboards | Citadel dashboard listed | [ ] |
+
+### Alert Configuration Verification
+
+| # | Test | Command | Expected Result | Status |
+|---|------|---------|-----------------|--------|
+| **4.10** | Alert rules deployed | `az monitor scheduled-query list -g <rg>` | Rules exist | [ ] |
+| **4.11** | Action groups configured | `az monitor action-group list -g <rg>` | Groups with recipients | [ ] |
+| **4.12** | Test alert fires | Trigger test alert | Notification received | [ ] |
+
+**Alert validation:**
+
+```bash
+# List all alert rules
+az monitor scheduled-query list -g <resource-group> \
+  --query "[].{name:name, enabled:properties.enabled, severity:properties.severity}"
+
+# List action groups
+az monitor action-group list -g <resource-group> \
+  --query "[].{name:name, enabled:enabled, emails:emailReceivers[].emailAddress}"
+```
+
+---
+
+## Performance Baseline
+
+### Latency Tests
+
+Establish baseline latency metrics for your deployment:
+
+| Metric | Target | Critical | Test Command |
+|--------|--------|----------|--------------|
+| **P50 Response Time** | < 1s | > 3s | See script below |
+| **P95 Response Time** | < 3s | > 10s | See script below |
+| **P99 Response Time** | < 5s | > 15s | See script below |
+
+**Latency test script:**
+
+```bash
+#!/bin/bash
+# latency-baseline.sh
+
+GATEWAY="https://<apim-name>.azure-api.net"
+API_PATH="/openai/deployments/<model>/chat/completions?api-version=2024-02-01"
+SUBSCRIPTION_KEY="<your-key>"
+REQUESTS=100
+
+echo "Running $REQUESTS requests for latency baseline..."
+
+# Create temp file for timing data
+TIMINGS_FILE=$(mktemp)
+
+for i in $(seq 1 $REQUESTS); do
+    TIME=$(curl -s -o /dev/null -w "%{time_total}" \
+        -H "Content-Type: application/json" \
+        -H "Ocp-Apim-Subscription-Key: $SUBSCRIPTION_KEY" \
+        -d '{"messages":[{"role":"user","content":"Hello"}],"max_tokens":10}' \
+        "$GATEWAY$API_PATH")
+    echo "$TIME" >> "$TIMINGS_FILE"
+done
+
+# Calculate statistics
+echo ""
+echo "=== Latency Baseline Results ==="
+echo "Samples: $REQUESTS"
+echo "P50: $(sort -n "$TIMINGS_FILE" | awk 'NR==50{print $1*1000"ms"}')"
+echo "P95: $(sort -n "$TIMINGS_FILE" | awk 'NR==95{print $1*1000"ms"}')"
+echo "P99: $(sort -n "$TIMINGS_FILE" | awk 'NR==99{print $1*1000"ms"}')"
+
+rm "$TIMINGS_FILE"
+```
+
+### Throughput Capacity Check
+
+| # | Test | Method | Expected Result | Status |
+|---|------|--------|-----------------|--------|
+| **5.1** | Single-thread throughput | Sequential requests | > 10 req/sec sustained | [ ] |
+| **5.2** | Concurrent connection handling | Parallel requests (see script) | No connection errors | [ ] |
+| **5.3** | Token throughput | Measure tokens/minute | Meets business requirement | [ ] |
+
+**Concurrent connection test:**
+
+```bash
+#!/bin/bash
+# concurrent-test.sh
+
+GATEWAY="https://<apim-name>.azure-api.net"
+API_PATH="/echo/resource"
+SUBSCRIPTION_KEY="<your-key>"
+CONCURRENT=50
+
+echo "Testing $CONCURRENT concurrent connections..."
+
+# Start background jobs
+for i in $(seq 1 $CONCURRENT); do
+    curl -s -o /dev/null -w "%{http_code}\n" \
+        -H "Ocp-Apim-Subscription-Key: $SUBSCRIPTION_KEY" \
+        "$GATEWAY$API_PATH" &
+done
+
+# Wait for all to complete
+wait
+
+echo "All $CONCURRENT requests completed"
+```
+
+### Resource Utilization Metrics
+
+Monitor these metrics during baseline testing:
+
+| Metric | Target | Critical | Where to Check |
+|--------|--------|----------|----------------|
+| APIM Capacity | < 60% | > 80% | Azure Monitor > APIM > Capacity |
+| Backend latency | < 500ms | > 2s | APIM Gateway Logs |
+| Error rate | < 1% | > 5% | Azure Monitor > Failed Requests |
+| CPU utilization | < 70% | > 90% | APIM Capacity metric |
+
+---
+
+## Validation Scripts
+
+### Complete Post-Deployment Validation
+
+```bash
+#!/bin/bash
+# post-deployment-validation.sh
+# Run all validation tests
+
+set -e
+
+RG="<resource-group>"
+APIM="<apim-name>"
+VNET="<vnet-name>"
+KV="<keyvault-name>"
+OPENAI="<openai-name>"
+
+echo "========================================="
+echo "Post-Deployment Validation Suite"
+echo "========================================="
+echo ""
+
+PASSED=0
+FAILED=0
+
+run_test() {
+    local name="$1"
+    local command="$2"
+    local expected="$3"
+    
+    echo -n "Testing: $name... "
+    
+    if RESULT=$(eval "$command" 2>/dev/null); then
+        if [[ "$RESULT" == *"$expected"* ]] || [[ "$RESULT" == "$expected" ]]; then
+            echo "✅ PASS"
+            ((PASSED++))
+        else
+            echo "❌ FAIL (got: $RESULT, expected: $expected)"
+            ((FAILED++))
+        fi
+    else
+        echo "❌ FAIL (command error)"
+        ((FAILED++))
+    fi
+}
+
+# Smoke Tests
+run_test "APIM State" \
+    "az apim show -n $APIM -g $RG --query provisioningState -o tsv" \
+    "Succeeded"
+
+run_test "VNet State" \
+    "az network vnet show -n $VNET -g $RG --query provisioningState -o tsv" \
+    "Succeeded"
+
+# Connectivity Tests
+GATEWAY_URL=$(az apim show -n "$APIM" -g "$RG" --query gatewayUrl -o tsv)
+run_test "Gateway Reachable" \
+    "curl -s -o /dev/null -w '%{http_code}' $GATEWAY_URL" \
+    "200"
+
+echo ""
+echo "========================================="
+echo "Results: $PASSED passed, $FAILED failed"
+echo "========================================="
+
+if [ $FAILED -gt 0 ]; then
+    exit 1
+fi
+```
+
+### Sample cURL Commands for API Testing
+
+```bash
+# Set variables
+APIM_GATEWAY="https://<apim-name>.azure-api.net"
+SUBSCRIPTION_KEY="<your-key>"
+
+# Test 1: Echo API
+curl -s "$APIM_GATEWAY/echo/resource?param1=test" \
+  -H "Ocp-Apim-Subscription-Key: $SUBSCRIPTION_KEY" | jq .
+
+# Test 2: OpenAI Chat Completions
+curl -s "$APIM_GATEWAY/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01" \
+  -H "Content-Type: application/json" \
+  -H "Ocp-Apim-Subscription-Key: $SUBSCRIPTION_KEY" \
+  -d '{
+    "messages": [{"role": "system", "content": "You are a helpful assistant."},
+                 {"role": "user", "content": "Say hello"}],
+    "max_tokens": 50,
+    "temperature": 0.7
+  }'
+
+# Test 3: With verbose output
+curl -v "$APIM_GATEWAY/echo/resource" \
+  -H "Ocp-Apim-Subscription-Key: $SUBSCRIPTION_KEY" \
+  -H "Ocp-Apim-Trace: true" 2>&1 | grep -E "(< HTTP|Ocp-Apim)"
+```
+
+### Azure CLI Validation Commands
+
+```bash
+# Resource health check
+az resource list -g <resource-group> \
+  --query "[].{name:name, type:type, state:provisioningState}"
+
+# APIM detailed status
+az apim show -n <apim> -g <rg> \
+  --query "{name:name, state:provisioningState, sku:sku.name, vnet:virtualNetworkType}"
+
+# Network configuration
+az network vnet show -n <vnet> -g <rg> \
+  --query "{name:name, cidr:addressSpace.addressPrefixes[0], subnets:subnets[].{name:name, cidr:addressPrefix}}"
+
+# Private endpoints
+az network private-endpoint list -g <rg> \
+  --query "[].{name:name, resource:privateLinkServiceConnections[0].privateLinkServiceId}"
+```
+
+---
+
+## Success Criteria
+
+### All Tests Pass Definition
+
+Deployment is successful when:
+
+- [ ] **100%** of smoke tests pass
+- [ ] **100%** of connectivity tests pass
+- [ ] **100%** of security tests pass
+- [ ] **90%+** of functionality tests pass
+- [ ] **100%** of integration tests pass
+- [ ] Performance meets **baseline targets**
+
+### Performance Thresholds
+
+| Component | P50 Latency | P95 Latency | Availability |
+|-----------|-------------|-------------|--------------|
+| APIM Gateway | < 50ms overhead | < 100ms overhead | 99.9% |
+| Azure OpenAI | Model-dependent | < 5s | 99.5% |
+| End-to-end | < 2s | < 5s | 99.5% |
+
+### Remediation Steps for Failures
+
+| Failure Type | Immediate Action | Escalation |
+|--------------|------------------|------------|
+| Resource in failed state | Review Activity Log, retry deployment | Platform Engineer |
+| Network connectivity issues | Check NSG rules, VNet peering | Network Engineer |
+| Authentication failures | Verify APIM policies, Key Vault access | Security Engineer |
+| Performance below threshold | Check capacity, scale if needed | SRE |
+| Missing logs/alerts | Verify diagnostic settings | DevOps Engineer |
+
+---
+
+## Documentation
+
+### Record Baseline Metrics
+
+Capture and document the following:
+
+```markdown
+## Deployment Baseline
+
+**Environment:** [Production/Staging/Dev]
+**Date:** [YYYY-MM-DD]
+**Deployed By:** [Name]
+**APIM Gateway:** [URL]
+**Log Analytics:** [Workspace ID]
+
+### Performance Baseline
+| Metric | Value | Notes |
+|--------|-------|-------|
+| P50 Latency | [X]ms | |
+| P95 Latency | [X]ms | |
+| P99 Latency | [X]ms | |
+| Throughput | [X] req/sec | |
+
+### Validation Results
+- Smoke Tests: [X]/[X] passed
+- Connectivity: [X]/[X] passed
+- Functionality: [X]/[X] passed
+- Security: [X]/[X] passed
+
+### Known Issues
+- [List any deviations or workarounds]
+
+### Next Review Date
+[Schedule monthly validation]
+```
+
+### Update Operational Documentation
+
+Update the following with actual values:
+
+- [ ] Resource names and IDs
+- [ ] IP addresses and CIDR blocks
+- [ ] Gateway URLs and endpoints
+- [ ] Subscription keys (store securely)
+- [ ] Alert thresholds
+- [ ] Escalation contacts
+
+### Schedule Regular Validation
+
+Set up recurring validation:
+
+- **Daily:** Automated smoke tests
+- **Weekly:** Review monitoring dashboards
+- **Monthly:** Full validation run
+- **Quarterly:** DR and failover testing
+
+---
+
+## Next Steps
+
+After successful validation:
+
+<CardGroup cols={2}>
+  <Card
+    title="Troubleshooting Guide"
+    icon="wrench"
+    href="/implementation/validation/troubleshooting"
+  >
+    Diagnostic procedures if issues are discovered
+  </Card>
+  
+  <Card
+    title="Operational Runbooks"
+    icon="book-open"
+    href="/operations/runbooks"
+  >
+    Day-to-day operational procedures
+  </Card>
+  <Card
+    title="Access Contracts"
+    icon="shield-check"
+    href="/governance/access-contracts"
+  >
+    Configure governance for AI workloads
+  </Card>
+  
+  <Card
+    title="Best Practices"
+    icon="star"
+    href="/guides/best-practices"
+  >
+    Optimize and harden your deployment
+  </Card>
+</CardGroup>
