@@ -48,6 +48,10 @@
     {
       "name": "Governance",
       "url": "governance"
+    },
+    {
+      "name": "Operations",
+      "url": "operations"
     }
   ],
   "anchors": [
@@ -113,6 +117,15 @@
               "implementation/integration/index",
               "implementation/integration/foundry-control-plane"
             ]
+          },
+          {
+            "group": "Validation",
+            "pages": [
+              "implementation/validation/index",
+              "implementation/validation/pre-deployment-checklist",
+              "implementation/validation/post-deployment-validation",
+              "implementation/validation/troubleshooting"
+            ]
           }
         ]
       },
@@ -138,6 +151,19 @@
           "governance/identity-management",
           "governance/content-safety",
           "governance/pii-protection"
+        ]
+      },
+      {
+        "group": "Operations",
+        "pages": [
+          "operations/index",
+          {
+            "group": "Runbooks",
+            "pages": [
+              "operations/runbooks/index",
+              "operations/runbooks/common-issues"
+            ]
+          }
         ]
       }
     ]
