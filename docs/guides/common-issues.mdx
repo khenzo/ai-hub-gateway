@@ -1,0 +1,670 @@
+---
+title: Common Issues and FAQ
+description: Quick-reference guide for the most frequent AI Landing Zone deployment and runtime issues, with fast resolution paths and answers to frequently asked questions
+icon: circle-question
+---
+
+# Common Issues and FAQ
+
+Quick-scan reference for resolving the most frequent AI Landing Zone issues. Each entry follows the pattern: **Symptom → Root Cause → Fix**. For deeper diagnostic procedures, see the [Troubleshooting Guide](/guides/troubleshooting).
+
+<Tip>
+Use `Ctrl+F` (or `Cmd+F`) to search by error message or symptom. Most issues are resolved in under 5 minutes with the fixes below.
+</Tip>
+
+---
+
+## Top 10 Deployment Issues
+
+### 1. Bicep Deployment Fails with "ResourceNotFound"
+
+**Symptom:** Deployment error: `Resource type 'Microsoft.ApiManagement/service' was not found`
+
+**Root Cause:** Azure resource provider not registered in the subscription.
+
+**Fix (2 minutes):**
+```bash
+az provider register --namespace Microsoft.ApiManagement --wait
+az provider register --namespace Microsoft.CognitiveServices --wait
+az provider register --namespace Microsoft.MachineLearningServices --wait
+```
+
+---
+
+### 2. APIM Deployment Stuck in "Activating" State
+
+**Symptom:** APIM shows `provisioningState: Activating` for more than 60 minutes.
+
+**Root Cause:** NSG blocking APIM management port (3443) or route table directing management traffic to a firewall/NVA.
+
+**Fix (5 minutes):**
+
+Add NSG inbound rule allowing port 3443 from `ApiManagement` service tag:
+```bash
+az network nsg rule create \
+  --resource-group <rg> \
+  --nsg-name <nsg-name> \
+  --name AllowAPIMManagement \
+  --priority 100 \
+  --protocol Tcp \
+  --source-address-prefixes ApiManagement \
+  --destination-port-ranges 3443 \
+  --access Allow \
+  --direction Inbound
+```
+
+---
+
+### 3. "QuotaExceeded" Error During Deployment
+
+**Symptom:** `Operation results in exceeding quota limits of Core resource of type 'Standard_DS2_v2'`
+
+**Root Cause:** Azure subscription compute or service quota limit reached.
+
+**Fix:**
+1. Check current quota: Azure portal → Subscriptions → Usage + Quotas
+2. Request quota increase: Click "Request Increase" for the specific quota
+3. **Or** deploy in a different region with available capacity:
+   ```bash
+   az cognitiveservices usage list --location westus2 \
+     --query "[?contains(name.value,'OpenAI')].{name:name.value, used:currentValue, limit:limit}"
+   ```
+
+---
+
+### 4. Service Principal Lacks Permissions
+
+**Symptom:** `AuthorizationFailed: ... does not have authorization to perform action`
+
+**Root Cause:** Deployment identity (service principal or user) missing required RBAC role at the correct scope.
+
+**Fix:**
+```bash
+# Grant Contributor + User Access Administrator at resource group scope
+DEPLOYER_OID="<service-principal-object-id>"
+RG_ID=$(az group show --name <rg-name> --query "id" -o tsv)
+
+az role assignment create --assignee "$DEPLOYER_OID" --role "Contributor" --scope "$RG_ID"
+az role assignment create --assignee "$DEPLOYER_OID" --role "User Access Administrator" --scope "$RG_ID"
+```
+
+---
+
+### 5. Private Endpoint Connection Fails
+
+**Symptom:** Private endpoint shows `Pending` or resources are unreachable on private IP.
+
+**Root Cause:** Auto-approval not configured, or subnet DNS zone not linked to VNet.
+
+**Fix (2 steps):**
+```bash
+# Step 1: Approve pending connection
+az network private-endpoint-connection approve \
+  --resource-group <rg> \
+  --name <connection-name> \
+  --resource-name <resource-name> \
+  --type Microsoft.CognitiveServices/accounts \
+  --description "Approved by AI Landing Zone automation"
+
+# Step 2: Verify DNS zone is linked to VNet
+az network private-dns link vnet create \
+  --resource-group <rg> \
+  --zone-name "privatelink.openai.azure.com" \
+  --name link-to-hub-vnet \
+  --virtual-network <vnet-resource-id> \
+  --registration-enabled false
+```
+
+---
+
+### 6. "InvalidTemplateDeployment" on Bicep Parameters
+
+**Symptom:** `The template parameter 'xxx' is not found. The parameters must be defined in the template.`
+
+**Root Cause:** Parameter file references a parameter that doesn't exist or was renamed in the Bicep template.
+
+**Fix:**
+```bash
+# Validate Bicep before deployment
+az bicep build --file main.bicep
+az deployment group validate \
+  --resource-group <rg> \
+  --template-file main.bicep \
+  --parameters main.bicepparam
+```
+
+---
+
+### 7. VNet Peering Shows "Disconnected"
+
+**Symptom:** Hub-spoke VNet peering state is `Disconnected` or `Initiated`.
+
+**Root Cause:** Peering only created on one side, or one VNet was deleted and recreated.
+
+**Fix:**
+```bash
+# Re-create spoke-to-hub peering
+az network vnet peering create \
+  --resource-group <spoke-rg> \
+  --vnet-name <spoke-vnet> \
+  --name peer-to-hub \
+  --remote-vnet <hub-vnet-id> \
+  --allow-vnet-access \
+  --allow-forwarded-traffic
+```
+
+---
+
+### 8. Key Vault Soft-Delete Conflict
+
+**Symptom:** `A vault with the same name already exists in deleted state. You need to either recover or purge existing key vault first.`
+
+**Root Cause:** Key Vault with this name was recently deleted; soft-delete prevents reuse.
+
+**Fix:**
+```bash
+# Recover the deleted Key Vault
+az keyvault recover --name <vault-name> --location <region>
+
+# Or permanently purge (if you don't need the old vault)
+az keyvault purge --name <vault-name> --location <region>
+```
+
+---
+
+### 9. APIM Unable to Connect to Backend via Private Endpoint
+
+**Symptom:** APIM returns `503` for requests; backend is an Azure PaaS service on private network.
+
+**Root Cause:** APIM virtual network does not have connectivity to the private endpoint subnet, or DNS not resolving to private IP.
+
+**Fix:**
+1. Verify APIM subnet route table allows traffic to private endpoint subnet
+2. Ensure private DNS zone is linked to APIM's VNet
+3. Check APIM diagnostic logs:
+```kql
+ApiManagementGatewayLogs
+| where responseCode == 503
+| project TimeGenerated, backendUrl, lastError_message_s
+| take 20
+```
+
+---
+
+### 10. Foundry Integration Deployment Fails
+
+**Symptom:** `foundry-integration` Bicep deployment fails with connection errors.
+
+**Root Cause:** AI Foundry project or workspace not yet provisioned, or wrong workspace name.
+
+**Fix:**
+```bash
+# Verify Foundry workspace exists
+az ml workspace list \
+  --resource-group <rg> \
+  --query "[].{name:name, state:provisioningState, kind:kind}"
+
+# If not provisioned, deploy Foundry first:
+az deployment group create \
+  --resource-group <rg> \
+  --template-file bicep/infra/main.bicep \
+  --parameters bicep/infra/main.bicepparam
+```
+
+---
+
+## Top 10 Runtime Issues
+
+### 1. API Calls Returning 401 Unauthorized
+
+**Symptom:** All API calls return `401 Unauthorized` with message "Unauthorized: Invalid or missing token"
+
+**Root Cause:** Bearer token missing, expired, wrong audience, or wrong scope.
+
+**Quick checks:**
+```bash
+# Verify token is not expired
+echo "<your-token>" | cut -d. -f2 | base64 --decode 2>/dev/null | jq -r '.exp | todate'
+
+# Check audience claim matches APIM expected value
+echo "<your-token>" | cut -d. -f2 | base64 --decode 2>/dev/null | jq -r '.aud'
+```
+
+**Fix by symptom:**
+- `Token expired` → Refresh token, check token lifetime settings
+- `Wrong audience` → Update `validate-jwt` policy `<claim name="aud">` value
+- `Missing scope` → Add required API permission in Entra app registration
+
+---
+
+### 2. Rate Limiting Too Aggressive or Not Working
+
+**Symptom:** Legitimate requests throttled unexpectedly, or limits not enforced.
+
+**Root Cause:** `counter-key` in rate limit policy using wrong context value; or product-level limit lower than API-level limit.
+
+**Fix:**
+```xml
+<!-- Verify counter-key targets correct granularity -->
+<!-- Per subscription (default — recommended): -->
+<rate-limit-by-key counter-key="@(context.Subscription.Id)" calls="60" renewal-period="60" />
+
+<!-- Per user: -->
+<rate-limit-by-key counter-key="@(context.User.Id)" calls="30" renewal-period="60" />
+
+<!-- Per IP (for unauthenticated APIs): -->
+<rate-limit-by-key counter-key="@(context.Request.IpAddress)" calls="10" renewal-period="60" />
+```
+
+---
+
+### 3. High Latency on AI Model Calls
+
+**Symptom:** P95 latency > 10 seconds on model inference requests.
+
+**Root Cause:** No caching, requests hitting cold model, or network routing through multiple hops.
+
+**Fix (immediate):** Enable APIM caching for deterministic requests:
+```xml
+<cache-lookup vary-by-developer="false" vary-by-developer-groups="false" downstream-caching-type="none">
+  <vary-by-header>Accept</vary-by-header>
+</cache-lookup>
+<!-- ... in outbound: -->
+<cache-store duration="300" />  <!-- Cache 5 minutes -->
+```
+
+**Fix (structural):** Check network path — requests should flow directly to private endpoint, not through public internet. Verify DNS resolves to private IP.
+
+---
+
+### 4. Content Safety Blocking Legitimate Requests
+
+**Symptom:** Business requests blocked with `400 Bad Request` from content safety policy.
+
+**Root Cause:** Default Content Safety thresholds are too strict for the workload domain.
+
+**Fix:** Adjust thresholds in access contract:
+```json
+{
+  "contentSafety": {
+    "enabled": true,
+    "categories": {
+      "hate": "high",       // Allow unless clearly hateful
+      "violence": "high",   // Appropriate for technical/medical content
+      "sexual": "low",      // Strict for workplace
+      "selfHarm": "medium"
+    }
+  }
+}
+```
+
+---
+
+### 5. Logs Not Appearing in Log Analytics
+
+**Symptom:** No data in `ApiManagementGatewayLogs` table after 30 minutes.
+
+**Root Cause:** Diagnostic settings not configured, or wrong workspace ID.
+
+**Fix:**
+```bash
+# Check and fix diagnostic settings
+APIM_ID=$(az apim show --name <apim> --resource-group <rg> --query "id" -o tsv)
+LAW_ID=$(az monitor log-analytics workspace show --resource-group <rg> --workspace-name <law> --query "id" -o tsv)
+
+az monitor diagnostic-settings create \
+  --resource "$APIM_ID" \
+  --name "diag-apim-law" \
+  --workspace "$LAW_ID" \
+  --logs '[{"category":"GatewayLogs","enabled":true}]' \
+  --metrics '[{"category":"AllMetrics","enabled":true}]'
+```
+
+---
+
+### 6. APIM Subscription Key Not Working
+
+**Symptom:** API call fails with `401` even with valid subscription key.
+
+**Root Cause:** Key regenerated, subscription suspended, or product/API doesn't require subscription.
+
+**Fix:**
+```bash
+# Check subscription state
+az apim subscription show \
+  --resource-group <rg> \
+  --service-name <apim> \
+  --sid <subscription-id> \
+  --query "{state:state, primaryKey:primaryKey}"
+
+# Reactivate suspended subscription
+az apim subscription update \
+  --resource-group <rg> \
+  --service-name <apim> \
+  --sid <subscription-id> \
+  --state active
+```
+
+---
+
+### 7. PII Anonymization Not Working
+
+**Symptom:** PII data visible in logs or passed to AI model without anonymization.
+
+**Root Cause:** PII policy fragment not applied at correct scope, or Cognitive Services Language service endpoint misconfigured.
+
+**Fix:**
+```bash
+# Verify PII policy fragment is applied
+az apim policy-fragment show \
+  --resource-group <rg> \
+  --service-name <apim> \
+  --name "pii-anonymization-inbound" \
+  --query "properties.value"
+
+# Check Language service connectivity
+az cognitiveservices account show \
+  --resource-group <rg> \
+  --name <language-service-name> \
+  --query "{state:provisioningState, endpoint:properties.endpoint}"
+```
+
+---
+
+### 8. AI Foundry Models Not Discoverable via APIM
+
+**Symptom:** Dynamic model discovery returns empty list; calls to `/openai/deployments` fail.
+
+**Root Cause:** Foundry connection not properly configured or managed identity lacks access.
+
+**Fix:**
+```bash
+# Verify APIM identity has access to Foundry workspace
+az ml workspace show \
+  --resource-group <rg> \
+  --name <foundry-workspace> \
+  --query "id" -o tsv | xargs -I{} az role assignment list --scope {}
+
+# Add missing role for APIM identity
+APIM_PRINCIPAL=$(az apim show --name <apim> --resource-group <rg> \
+  --query "identity.principalId" -o tsv)
+az role assignment create \
+  --assignee "$APIM_PRINCIPAL" \
+  --role "Azure AI Developer" \
+  --scope <foundry-workspace-resource-id>
+```
+
+---
+
+### 9. Cost Attribution Missing for AI Workloads
+
+**Symptom:** Azure cost reports don't show per-workload breakdown; all costs attributed to shared APIM/OpenAI.
+
+**Root Cause:** Workload tags not applied to resources or not propagated to billing.
+
+**Fix:** Apply consistent tags to all AI Landing Zone resources:
+```bash
+# Tag all resources in resource group
+az tag update \
+  --resource-id $(az group show --name <rg> --query "id" -o tsv) \
+  --operation merge \
+  --tags "environment=prod" "workload=hr-ai" "costcenter=12345" "owner=hr-platform-team"
+
+# Verify tags are propagated
+az resource list --resource-group <rg> \
+  --query "[].{name:name, tags:tags.workload}" \
+  --output table
+```
+
+---
+
+### 10. APIM Gateway Returns Inconsistent Responses
+
+**Symptom:** Same request sometimes succeeds, sometimes returns 500 or different results.
+
+**Root Cause:** Multiple backend instances with inconsistent configuration, or load balancer routing to unhealthy backend.
+
+**Fix:**
+```bash
+# Check backend pool health
+az apim backend list \
+  --resource-group <rg> \
+  --service-name <apim> \
+  --query "[].{name:name, url:url, protocol:protocol}" \
+  --output table
+```
+
+```kql
+// Correlate by backend instance
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(1h)
+| extend backendHost = tostring(parse_url(backendUrl).Host)
+| summarize
+    SuccessRate = 100.0 * countif(responseCode < 400) / count(),
+    AvgLatency = avg(backendTime)
+  by backendHost
+| order by SuccessRate asc
+```
+
+---
+
+## Frequently Asked Questions
+
+### Can I use Terraform instead of Bicep?
+
+Yes. The AI Landing Zone ships with Bicep examples, but the architecture is infrastructure-agnostic. Community Terraform modules exist, but the official samples use Bicep. If using Terraform, map Bicep module parameters to equivalent Terraform resource blocks.
+
+---
+
+### What is the minimum viable deployment for evaluation?
+
+A 2-4 hour evaluation deployment uses:
+- **APIM Developer tier** (single unit, no SLA — for evaluation only)
+- **Azure OpenAI** with one model deployment
+- **Log Analytics workspace** (free tier)
+- No private endpoints (reduces setup time for evaluation)
+
+See [Quick-Start Guide](/getting-started/quick-start) for the evaluation deployment path.
+
+---
+
+### How do I migrate from an existing APIM setup?
+
+Use the brownfield migration path:
+1. Deploy Citadel alongside existing APIM
+2. Register existing APIs as backends in new APIM
+3. Migrate subscriptions with keys (export/import)
+4. Test with non-production traffic
+5. Gradually shift traffic via Azure Front Door or DNS updates
+
+See [Deployment Guide](/guides/deployment-guide) for the brownfield scenario.
+
+---
+
+### Can I deploy to multiple regions?
+
+Yes. APIM Premium tier supports multi-region deployment. Steps:
+1. Deploy hub with APIM Premium
+2. Add secondary region to APIM:
+   ```bash
+   az apim update \
+     --name <apim-name> \
+     --resource-group <rg> \
+     --set additionalLocations="[{location:'westus2',sku:{name:'Premium',capacity:1}}]"
+   ```
+3. Deploy OpenAI account in each region
+4. Configure APIM backend pool with regional endpoints
+
+---
+
+### How do I integrate with an existing Azure Landing Zone?
+
+The Citadel Governance Hub is designed as a supplemental landing zone that works alongside the Azure Cloud Adoption Framework (CAF) landing zone. Key integration points:
+- **Connectivity subscription**: Deploy hub VNet in the existing Connectivity subscription
+- **Spoke subscriptions**: Deploy AI workload VNets in application subscriptions
+- **Existing VNets**: Use VNet peering to connect to existing Hub VNet if you have one
+
+See the [Prerequisites Guide](/getting-started/prerequisites) for the landing zone readiness assessment.
+
+---
+
+### What APIM tier should I use?
+
+| Tier | Use Case | Monthly Cost (Est.) |
+|------|----------|---------------------|
+| **Developer** | Evaluation/POC (no SLA) | ~$50 |
+| **Basic** | Small teams, limited traffic | ~$150 |
+| **Standard** | Single-region production | ~$750 |
+| **Premium** | Enterprise, multi-region, zone redundancy | ~$2,800+ |
+
+For enterprise production deployments, Premium is required for:
+- Zone redundancy (99.99% SLA)
+- Multi-region deployment
+- VNet integration with internal mode
+- Higher capacity scaling
+
+---
+
+### How are costs attributed to individual teams?
+
+Cost attribution uses a combination of:
+1. **Resource tags** on APIM subscriptions and products
+2. **APIM usage tracking policy** (records team/product per request)
+3. **Log Analytics queries** to aggregate token consumption by subscription
+4. **Azure Cost Management** with tag-based filters
+
+See the monitoring configuration in [Configuration Examples](/guides/configuration-examples).
+
+---
+
+### Can the AI Access Contract prevent a team from exceeding budget?
+
+Yes. Set `actionOnExceed: "block"` in the budget control section of the contract:
+```json
+"budgetControl": {
+  "monthlyTokenBudget": 10000000,
+  "alertThresholdPercent": 80,
+  "actionOnExceed": "block"  // "throttle" reduces, "block" stops access
+}
+```
+
+This requires the usage tracking policy fragment to be active and configured to update a shared counter.
+
+---
+
+### How do I add a new AI model without disrupting existing users?
+
+Use the LLM Backend Onboarding module:
+1. Deploy new model deployment in Azure OpenAI
+2. Register as new backend in APIM backend pool
+3. Update model access policy in affected Access Contracts
+4. No disruption to existing requests — old model remains until contracts updated
+
+---
+
+### Is GPT-4o the only supported model?
+
+No. The AI Landing Zone supports all Azure OpenAI models and Azure AI models via the Universal LLM API pattern. Supported models include:
+- All Azure OpenAI GPT models (GPT-4o, GPT-4o mini, GPT-4, GPT-3.5-Turbo)
+- Azure AI model inference (Phi, Mistral, Meta Llama via AI Foundry)
+- Embedding models (text-embedding-ada-002, text-embedding-3-large)
+- Image generation (DALL-E 3)
+- Azure AI Language, Speech, Document Intelligence
+
+---
+
+### What should I do if I hit a GitHub issue or have a feature request?
+
+1. Check existing issues at the project repository
+2. For bugs, include: error message, Bicep template version, Azure region, and steps to reproduce
+3. For feature requests, describe the use case and expected behavior
+
+---
+
+## Quick Fixes Reference
+
+Use these quick fixes for common operational tasks:
+
+### Restart APIM Gateway (Developer/Standard)
+```bash
+# No native restart — redeploy triggers a soft restart
+az apim update \
+  --name <apim-name> \
+  --resource-group <rg>
+# Or via portal: APIM → Overview → Restart (if available)
+```
+
+### Refresh VNet Peering
+```bash
+# Force peering sync
+az network vnet peering sync \
+  --resource-group <rg> \
+  --vnet-name <vnet-name> \
+  --name <peering-name>
+```
+
+### Regenerate APIM Subscription Keys
+```bash
+# Regenerate primary key
+az apim subscription regenerate-primary-key \
+  --resource-group <rg> \
+  --service-name <apim-name> \
+  --sid <subscription-id>
+```
+
+### Clear APIM Cache
+```bash
+# Clear all cached responses in APIM
+# Via REST API (requires APIM Management credentials)
+curl -X POST \
+  "https://management.azure.com/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.ApiManagement/service/<apim>/caches/default/clear?api-version=2023-05-01-preview" \
+  -H "Authorization: Bearer <management-token>"
+```
+
+### Force Policy Synchronization
+```bash
+# Re-apply policy by touching the API resource
+az apim api update \
+  --resource-group <rg> \
+  --service-name <apim-name> \
+  --api-id <api-id>
+```
+
+---
+
+## Escalation Matrix
+
+### When to Contact Microsoft Support
+
+| Scenario | Severity | Required Info |
+|----------|----------|---------------|
+| Azure service outage affecting production | Critical (Sev A) | Subscription ID, resource IDs, error messages, timestamps |
+| APIM provisioning failure persisting >2 hours | High (Sev B) | Deployment logs, NSG rules, VNet config |
+| Quota increase request | Standard | Subscription ID, region, current quota, requested quota |
+| OpenAI content safety false positive patterns | Standard | Example prompts, category settings, model version |
+| Billing discrepancy | Standard | Usage report, cost report, subscription ID |
+
+### Required Information for Support Tickets
+
+Always include:
+1. **Subscription ID** and **Resource Group name**
+2. **Resource IDs** of affected resources
+3. **Exact error message** (copy-paste, not paraphrase)
+4. **Timestamp** (UTC) when issue first occurred
+5. **Correlation ID** from failed requests (in response headers)
+6. **Steps to reproduce** the issue
+
+### Severity Levels
+
+- **Sev A (Critical)**: Complete outage, no workaround, production affected — response within 1 hour
+- **Sev B (High)**: Significant impact, workaround exists — response within 4 hours
+- **Sev C (Standard)**: Limited impact or non-production — response within 8 business hours
+
+---
+
+## Related Resources
+
+- **[Troubleshooting Guide](/guides/troubleshooting)** — Detailed diagnostic procedures
+- **[Configuration Examples](/guides/configuration-examples)** — Correct configuration templates
+- **[Best Practices](/guides/best-practices)** — Prevention is better than cure
+- **[Deployment Checklist](/guides/deployment-checklist)** — Verify correct setup during deployment
