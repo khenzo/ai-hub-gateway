@@ -86,7 +86,16 @@
           "pages": [
             "guides/operations/citadel-sizing",
             "guides/operations/estimation-guide",
-            "guides/operations/power-bi-dashboard"
+            "guides/operations/power-bi-dashboard",
+            "guides/operations/usage-analytics",
+            "guides/operations/scripts-reference"
+          ]
+        },
+        {
+          "group": "Development",
+          "pages": [
+            "guides/development/shared-resources",
+            "guides/development/testing-tools"
           ]
         },
         {
