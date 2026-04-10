@@ -1,0 +1,607 @@
+---
+title: Roles and Responsibilities
+description: Stakeholder roles, RACI matrix, skills requirements, and governance responsibilities for AI Landing Zone deployment
+icon: users
+---
+
+# Roles and Responsibilities
+
+Successful AI Landing Zone deployment requires clear ownership across cloud architecture, networking, security, AI engineering, and governance teams. This guide defines the key roles, maps responsibilities across deployment phases, and provides org chart templates for teams of different sizes.
+
+<Note>
+Governance responsibilities in the AI Landing Zone are operationalized through **AI Access Contracts** — define contract ownership before deployment begins. See [AI Access Contracts](/governance/ai-access-contracts) for details.
+</Note>
+
+---
+
+## Key Stakeholders
+
+### Cloud Architect / Platform Lead
+
+**Primary accountable party for the AI Landing Zone platform.**
+
+The Platform Lead owns the overall architecture, makes design decisions, and ensures the deployment meets enterprise standards. This role bridges technical and business requirements.
+
+**Responsibilities:**
+- Define the target architecture and validate against enterprise standards
+- Own AI Access Contract governance framework
+- Make final decisions on deployment pattern (APIM-based vs. Foundry-only)
+- Coordinate cross-functional team alignment
+- Approve changes to core infrastructure components
+- Review and approve deployment runbooks
+
+**Required experience:**
+- Azure Solutions Architect Expert certification (or equivalent experience)
+- 3+ years deploying Azure Platform services (APIM, networking, identity)
+- Experience with Azure Landing Zones or Cloud Adoption Framework
+
+---
+
+### Network Engineer
+
+**Owns all VNet, DNS, and connectivity configuration.**
+
+The Network Engineer configures the hub-spoke topology, private DNS zones, and ensures network security policy compliance. Critical for the private endpoint configuration that isolates AI services.
+
+**Responsibilities:**
+- Design and deploy hub-spoke VNet topology
+- Configure private endpoints for all AI services
+- Manage Azure Private DNS zones
+- Define and implement NSG rules
+- Configure ExpressRoute or VPN gateway (if applicable)
+- Validate network isolation between workloads
+- Maintain network topology documentation
+
+**Required experience:**
+- Azure Network Engineer Associate certification (or equivalent)
+- Experience with Azure private endpoints and Private DNS
+- Understanding of hub-spoke network design patterns
+
+---
+
+### Security Engineer
+
+**Ensures the deployment meets organizational security standards and regulatory requirements.**
+
+The Security Engineer reviews architecture for security gaps, configures identity integration, implements content safety policies, and owns the threat model.
+
+**Responsibilities:**
+- Review and approve architecture threat model
+- Configure Microsoft Entra ID integration and OAuth2 flows
+- Define and implement content safety policies
+- Configure PII detection and masking rules
+- Manage Key Vault access policies and rotation
+- Integrate with SIEM (Microsoft Sentinel or third-party)
+- Conduct security review before go-live
+- Own incident response procedures for AI-related security events
+
+**Required experience:**
+- Microsoft Certified: Security Operations Analyst (or equivalent)
+- Experience with Microsoft Entra ID and OAuth2/OIDC
+- Familiarity with APIM policy expressions (XML)
+- Understanding of applicable regulatory requirements (GDPR, HIPAA, SOC 2)
+
+---
+
+### AI/ML Engineer
+
+**Owns AI workload design, model selection, and AI Access Contract specifications.**
+
+The AI/ML Engineer bridges AI requirements with platform capabilities. They define the requirements for each AI workload and ensure the governance framework supports the intended use cases.
+
+**Responsibilities:**
+- Define AI workload requirements (models, token quotas, latency SLAs)
+- Author AI Access Contract specifications per workload
+- Validate model routing and load balancing configuration
+- Test AI workload end-to-end through the gateway
+- Define content safety thresholds per workload
+- Monitor AI model performance and quality metrics
+- Onboard new AI workloads to the platform
+
+**Required experience:**
+- Experience deploying and managing Azure OpenAI or Azure AI Foundry
+- Understanding of LLM tokenization and quota management
+- Familiarity with responsible AI practices
+- Desirable: Azure AI Engineer Associate certification
+
+---
+
+### Compliance Officer
+
+**Ensures the deployment meets regulatory and policy requirements.**
+
+The Compliance Officer provides requirements input, reviews the governance framework, and validates that audit trails and controls meet applicable frameworks (SOC 2, GDPR, HIPAA, etc.).
+
+**Responsibilities:**
+- Define regulatory requirements and controls applicable to AI systems
+- Review and approve data classification policies for AI workloads
+- Validate audit log coverage meets retention requirements
+- Approve AI acceptable use policy and access request process
+- Review AI Access Contract terms for compliance alignment
+- Conduct periodic compliance reviews post-deployment
+- Manage regulatory inquiries related to AI systems
+
+**Required experience:**
+- Knowledge of applicable regulatory frameworks (GDPR, HIPAA, SOC 2, ISO 27001)
+- Understanding of data governance principles
+- Familiarity with Azure compliance tools (Policy, Defender for Cloud)
+
+---
+
+### Project Manager
+
+**Coordinates the deployment project, manages dependencies, and tracks progress.**
+
+The Project Manager ensures all stakeholders are aligned, dependencies are resolved, and the deployment stays on track. Critical for managing the cross-functional nature of AI Landing Zone deployment.
+
+**Responsibilities:**
+- Maintain deployment project plan and timeline
+- Facilitate cross-functional meetings and decision-making
+- Track and resolve blockers and dependencies
+- Manage stakeholder communication and status reporting
+- Coordinate change management activities
+- Document decisions and action items
+- Manage deployment risk register
+
+**Required experience:**
+- Project management experience in cloud or infrastructure deployments
+- Familiarity with Azure deployment processes
+- Desirable: PMP or equivalent certification
+
+---
+
+### Business Sponsor
+
+**Executive champion who owns the business case and removes organizational blockers.**
+
+The Business Sponsor ensures the AI Landing Zone initiative has organizational support, budget, and alignment with business strategy.
+
+**Responsibilities:**
+- Own and defend the business case for AI Landing Zone investment
+- Allocate budget for platform deployment and ongoing operations
+- Remove organizational blockers (procurement, policy exceptions, etc.)
+- Champion adoption across consuming business units
+- Review and approve AI governance policy at organizational level
+- Communicate vision and progress to senior leadership
+
+**Required experience:**
+- Senior business leadership role
+- Understanding of AI strategy and business objectives
+- Budget authority for technology investments
+
+---
+
+## RACI Matrix
+
+The following RACI matrix maps responsibilities across the five deployment phases.
+
+**Legend:** R = Responsible, A = Accountable, C = Consulted, I = Informed
+
+<Tabs>
+  <Tab title="Design and Planning">
+    | Activity | Platform Lead | Network Eng | Security Eng | AI/ML Eng | Compliance | PM | Sponsor |
+    |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+    | Architecture design | **A/R** | C | C | C | C | I | I |
+    | Network topology design | C | **A/R** | C | I | I | I | I |
+    | Threat model | A | C | **R** | C | C | I | I |
+    | Compliance requirements | C | I | C | I | **A/R** | I | A |
+    | AI governance framework | **A/R** | I | C | C | C | I | A |
+    | Cost model design | A | I | I | C | I | **R** | C |
+    | Stakeholder alignment | C | I | I | I | I | **A/R** | A |
+    | Architecture approval | **A** | I | I | I | I | I | A |
+  </Tab>
+  <Tab title="Infrastructure Deployment">
+    | Activity | Platform Lead | Network Eng | Security Eng | AI/ML Eng | Compliance | PM | Sponsor |
+    |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+    | Hub VNet deployment | C | **A/R** | C | I | I | I | I |
+    | APIM deployment | **A/R** | C | C | C | I | I | I |
+    | Private endpoint config | C | **A/R** | C | I | I | I | I |
+    | Key Vault setup | A | C | **R** | I | I | I | I |
+    | Log Analytics setup | **A/R** | I | C | I | I | I | I |
+    | Entra ID app registration | A | I | **R** | C | I | I | I |
+    | NSG and firewall rules | C | **A/R** | C | I | I | I | I |
+    | Monitoring and alerting | **A/R** | I | C | C | I | I | I |
+    | Deployment validation | **A/R** | C | C | C | I | **R** | I |
+  </Tab>
+  <Tab title="Governance Configuration">
+    | Activity | Platform Lead | Network Eng | Security Eng | AI/ML Eng | Compliance | PM | Sponsor |
+    |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+    | AI Access Contract design | **A/R** | I | C | C | C | I | I |
+    | Content safety policies | A | I | **R** | C | C | I | I |
+    | PII masking configuration | A | I | **R** | C | C | I | I |
+    | Token quota policies | **A/R** | I | C | **R** | I | I | I |
+    | RBAC assignment | **A** | C | **R** | C | C | I | I |
+    | Audit policy configuration | A | I | **R** | I | **R** | I | I |
+    | Cost allocation setup | **A/R** | I | I | C | I | C | I |
+    | Developer portal setup | **A/R** | I | C | C | I | I | I |
+  </Tab>
+  <Tab title="AI Workload Onboarding">
+    | Activity | Platform Lead | Network Eng | Security Eng | AI/ML Eng | Compliance | PM | Sponsor |
+    |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+    | Access contract request review | **A** | I | C | **R** | C | I | I |
+    | Contract deployment | **R** | I | C | C | I | I | I |
+    | Model backend configuration | **A/R** | I | I | **R** | I | I | I |
+    | Workload-specific policy | A | I | **R** | **R** | C | I | I |
+    | Integration testing | C | I | C | **A/R** | I | I | I |
+    | Consumer documentation | C | I | I | **A/R** | I | I | I |
+    | Go-live approval | **A** | I | C | C | C | **R** | I |
+    | Post-go-live monitoring | **R** | I | C | **R** | I | I | I |
+  </Tab>
+  <Tab title="Operations and Maintenance">
+    | Activity | Platform Lead | Network Eng | Security Eng | AI/ML Eng | Compliance | PM | Sponsor |
+    |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+    | Platform upgrades | **A/R** | C | C | I | I | **R** | I |
+    | Security patching | A | C | **R** | I | I | **R** | I |
+    | Quota management | **A/R** | I | I | **R** | I | I | I |
+    | Incident response | **A** | C | **R** | C | I | **R** | I |
+    | Compliance audit support | C | I | C | I | **A/R** | **R** | A |
+    | Cost optimization | **A/R** | I | I | C | I | C | I |
+    | Capacity planning | **A/R** | C | I | **R** | I | I | I |
+    | Policy reviews | **A** | I | **R** | C | **R** | I | I |
+    | Workload decommissioning | **A/R** | C | C | **R** | I | **R** | I |
+  </Tab>
+</Tabs>
+
+---
+
+## Skills and Competencies
+
+### Required Skills by Role
+
+<AccordionGroup>
+  <Accordion title="Cloud Architect / Platform Lead">
+    **Core Azure skills (required):**
+    - Azure API Management: policy authoring, product/subscription management, developer portal
+    - Azure networking: VNet, NSG, private endpoints, DNS
+    - Azure identity: Entra ID, managed identities, RBAC
+    - Infrastructure as Code: Bicep or Terraform
+    - Azure Monitor, Log Analytics, Application Insights
+
+    **AI/ML skills (required):**
+    - Azure OpenAI Service: deployment, quota management, API usage
+    - Azure AI Foundry: project management, model deployment
+    - LLM concepts: tokenization, context windows, rate limiting
+
+    **Architecture skills (required):**
+    - Hub-spoke network design
+    - Zero-trust security architecture
+    - API gateway patterns
+    - Cloud governance frameworks (CAF, WAF)
+
+    **Recommended certifications:**
+    - AZ-305: Designing Microsoft Azure Infrastructure Solutions
+    - AZ-204: Developing Solutions for Microsoft Azure
+    - AI-102: Designing and Implementing an Azure AI Solution
+  </Accordion>
+
+  <Accordion title="Network Engineer">
+    **Core skills (required):**
+    - Azure Virtual Network: subnets, peering, UDR, BGP
+    - Azure Private Endpoints and Private DNS Zones
+    - Network Security Groups and Azure Firewall
+    - ExpressRoute and VPN Gateway (if applicable)
+    - Azure Virtual WAN (if applicable)
+
+    **Security skills (required):**
+    - Network segmentation principles
+    - Zero-trust networking concepts
+    - Packet capture and network diagnostics
+
+    **Recommended certifications:**
+    - AZ-700: Designing and Implementing Microsoft Azure Networking Solutions
+    - AZ-305: Designing Microsoft Azure Infrastructure Solutions
+  </Accordion>
+
+  <Accordion title="Security Engineer">
+    **Identity skills (required):**
+    - Microsoft Entra ID: app registrations, enterprise apps, conditional access
+    - OAuth2 and OIDC flows: authorization code, client credentials
+    - Managed identities and service principals
+    - Azure Key Vault: policies, RBAC, rotation
+
+    **Policy and compliance skills (required):**
+    - Azure Policy: initiative definitions, assignments, remediation
+    - Azure Defender for Cloud (Microsoft Defender for Cloud)
+    - Microsoft Purview (data governance)
+    - APIM policy authoring (XML expressions)
+
+    **Threat management skills (required):**
+    - Threat modeling (STRIDE or equivalent)
+    - SIEM integration (Microsoft Sentinel preferred)
+    - Incident response procedures
+
+    **Recommended certifications:**
+    - AZ-500: Microsoft Azure Security Technologies
+    - SC-200: Microsoft Security Operations Analyst
+    - SC-300: Microsoft Identity and Access Administrator
+  </Accordion>
+
+  <Accordion title="AI/ML Engineer">
+    **AI platform skills (required):**
+    - Azure OpenAI Service: deployments, fine-tuning, embeddings
+    - Azure AI Foundry: projects, connections, agents
+    - LLM prompt engineering and evaluation
+    - Token optimization and cost management
+
+    **API integration skills (required):**
+    - REST API design and integration
+    - OpenAI API specification (chat completions, embeddings)
+    - API key and OAuth2 authentication patterns
+    - Streaming responses and async patterns
+
+    **Governance skills (required):**
+    - Responsible AI principles (Microsoft RAI framework)
+    - Content safety configuration
+    - PII detection and handling
+    - Model risk assessment
+
+    **Recommended certifications:**
+    - AI-102: Designing and Implementing an Azure AI Solution
+    - AI-900: Microsoft Azure AI Fundamentals
+    - DP-100: Designing and Implementing a Data Science Solution on Azure
+  </Accordion>
+</AccordionGroup>
+
+### Training Resources and Learning Paths
+
+| Role | Primary Learning Path | Estimated Time |
+|---|---|---|
+| Platform Lead | [Azure Solutions Architect](https://learn.microsoft.com/certifications/azure-solutions-architect/) | 40-60 hours |
+| Network Engineer | [Azure Network Engineer](https://learn.microsoft.com/certifications/azure-network-engineer-associate/) | 30-40 hours |
+| Security Engineer | [Azure Security Engineer](https://learn.microsoft.com/certifications/azure-security-engineer/) | 40-50 hours |
+| AI/ML Engineer | [Azure AI Engineer](https://learn.microsoft.com/certifications/azure-ai-engineer/) | 30-40 hours |
+| All Roles | [Responsible AI for developers](https://learn.microsoft.com/training/paths/responsible-ai-for-developers/) | 4-6 hours |
+
+**AI Landing Zone specific training:**
+- [Azure API Management learning path](https://learn.microsoft.com/training/paths/developer-apis-azure-api-management/)
+- [AI Governance on Azure](https://learn.microsoft.com/training/modules/intro-to-responsible-ai/)
+- [Azure Private Endpoint configuration](https://learn.microsoft.com/azure/private-link/private-endpoint-overview)
+
+---
+
+## Governance Responsibilities
+
+### AI Access Contract Ownership
+
+Each AI Access Contract deployed on the platform must have a clearly defined owner:
+
+| Contract Component | Owner Role | Responsibility |
+|---|---|---|
+| Contract definition (Bicep) | Platform Lead | Infrastructure spec, quotas, base policy |
+| Business requirements | AI/ML Engineer | Token quotas, model selection, use case definition |
+| Security policy | Security Engineer | Content safety, PII, authentication requirements |
+| Compliance review | Compliance Officer | Regulatory control mapping, audit requirements |
+| Ongoing monitoring | AI/ML Engineer | Performance, quality, anomaly detection |
+| Renewal/decommission | Platform Lead | Lifecycle management, cleanup |
+
+### Policy Definition and Maintenance
+
+```
+AI Platform Policy Lifecycle
+│
+├── Policy Authoring
+│   ├── Owner: Security Engineer (security policies)
+│   ├── Owner: Platform Lead (quota and governance policies)
+│   └── Review: AI/ML Engineer (business requirements)
+│
+├── Policy Testing
+│   ├── Test: AI/ML Engineer (functional testing)
+│   └── Review: Security Engineer (security validation)
+│
+├── Policy Deployment
+│   ├── Deploy: Platform Lead
+│   └── Approval: Security Engineer (security review gate)
+│
+└── Policy Review (quarterly)
+    ├── Effectiveness review: Platform Lead + AI/ML Engineer
+    └── Compliance alignment: Compliance Officer
+```
+
+### Monitoring and Compliance Oversight
+
+**Daily operations responsibilities:**
+
+| Activity | Responsible | Frequency |
+|---|---|---|
+| Review failed request alerts | Platform Lead | Daily |
+| Monitor token quota utilization | AI/ML Engineer | Daily |
+| Review security alerts | Security Engineer | Daily |
+| Check content safety violations | Security Engineer | Daily |
+| Review cost anomalies | Platform Lead | Daily |
+
+**Periodic review responsibilities:**
+
+| Activity | Responsible | Frequency |
+|---|---|---|
+| AI Access Contract review | Platform Lead | Monthly |
+| Policy effectiveness review | Security Engineer | Monthly |
+| Compliance posture review | Compliance Officer | Quarterly |
+| Cost optimization review | Platform Lead | Monthly |
+| Capacity planning review | Platform Lead | Quarterly |
+| Security posture review | Security Engineer | Quarterly |
+
+### Incident Response Roles
+
+<Warning>
+Define and test incident response procedures before going live. AI-related incidents can involve data exposure, model abuse, or availability issues.
+</Warning>
+
+**Incident response matrix:**
+
+| Incident Type | Lead | Support | Notify |
+|---|---|---|---|
+| Authentication bypass | Security Engineer | Platform Lead | Compliance Officer, Sponsor |
+| Data exposure (PII in logs) | Security Engineer | Platform Lead | Compliance Officer, Legal |
+| Content policy violation (severe) | Security Engineer | AI/ML Engineer | Compliance Officer |
+| Platform availability (P1) | Platform Lead | Network Engineer | PM, Sponsor |
+| Token quota abuse | Platform Lead | AI/ML Engineer | PM |
+| Model quality degradation | AI/ML Engineer | Platform Lead | PM, Sponsor |
+| Compliance audit finding | Compliance Officer | Platform Lead | Sponsor |
+
+---
+
+## Communication Plan
+
+### Meeting Cadence by Phase
+
+<Tabs>
+  <Tab title="Planning Phase">
+    | Meeting | Participants | Frequency | Purpose |
+    |---|---|---|---|
+    | Architecture review | All technical roles | Weekly | Design decisions and sign-off |
+    | Stakeholder alignment | PM, Sponsor, Platform Lead | Bi-weekly | Progress, blockers, priorities |
+    | Security review | Security Eng, Platform Lead, Compliance | Weekly | Security design decisions |
+    | Network design review | Platform Lead, Network Eng | As needed | Network topology finalization |
+  </Tab>
+  <Tab title="Deployment Phase">
+    | Meeting | Participants | Frequency | Purpose |
+    |---|---|---|---|
+    | Daily standup | Platform Lead, Network Eng, Security Eng | Daily | Progress, blockers, coordination |
+    | Stakeholder update | PM, Sponsor, Platform Lead | Weekly | Status, timeline, risks |
+    | Go-live readiness review | All roles | Before go-live | Final approval gate |
+    | Incident bridge (if needed) | All roles | Ad hoc | Resolve deployment blockers |
+  </Tab>
+  <Tab title="Operations Phase">
+    | Meeting | Participants | Frequency | Purpose |
+    |---|---|---|---|
+    | Operations review | Platform Lead, AI/ML Eng | Weekly | Platform health, workload metrics |
+    | Security review | Security Eng, Platform Lead | Monthly | Security posture, incidents |
+    | Governance review | All roles | Quarterly | Policy, compliance, cost |
+    | Capacity planning | Platform Lead, AI/ML Eng, PM | Quarterly | Quota, scaling, roadmap |
+  </Tab>
+</Tabs>
+
+### Escalation Paths
+
+```
+Level 1: Self-service
+  - AI/ML Engineer resolves workload-specific issues
+  - Network Engineer resolves connectivity issues
+  - Security Engineer resolves authentication issues
+
+Level 2: Cross-functional
+  - Platform Lead coordinates multi-team resolution
+  - PM tracks and communicates status
+  - Timeline: Respond within 4 hours, resolve within 1 business day
+
+Level 3: Management
+  - PM escalates to Sponsor for organizational blockers
+  - Compliance Officer escalates to Legal for regulatory issues
+  - Timeline: Respond within 2 hours, executive decision within same day
+
+Level 4: Microsoft Support
+  - Platform Lead engages Azure support for platform issues
+  - AI/ML Engineer engages OpenAI support for model issues
+  - Timeline: P1 issues engaged immediately with Sev A support
+```
+
+### Documentation Handoffs
+
+| Document | Author | Reviewer | Handoff Point |
+|---|---|---|---|
+| Architecture design document | Platform Lead | Security Eng, Compliance | Before deployment |
+| Network topology diagram | Network Engineer | Platform Lead | Before deployment |
+| Threat model | Security Engineer | Platform Lead, Compliance | Before deployment |
+| Operations runbook | Platform Lead | All technical roles | Before go-live |
+| AI Access Contract catalog | Platform Lead | AI/ML Eng | Before workload onboarding |
+| Incident response playbook | Security Engineer | All roles | Before go-live |
+| Consumer onboarding guide | AI/ML Engineer | Platform Lead | Before portal launch |
+
+---
+
+## Org Chart Templates
+
+### Small Team (5-10 people)
+
+In smaller teams, individuals often hold multiple roles. Here is a typical mapping:
+
+```
+Executive Sponsor (1 person)
+  └── Platform Lead + Architect (1 person — typically a senior cloud architect)
+        ├── Security + Network Engineer (1 person — full-stack infra engineer)
+        ├── AI/ML Engineer (1-2 people)
+        ├── Compliance Advisor (part-time or shared resource)
+        └── PM (part-time — often the Platform Lead handles this)
+```
+
+**Key considerations for small teams:**
+- Platform Lead must have broad Azure and networking skills
+- Security + Network can be combined for someone with AZ-500 and AZ-700
+- Compliance Advisor can be a shared resource from legal or risk team
+- External Microsoft partner support is often valuable to supplement gaps
+
+---
+
+### Medium Organization (10-50 people)
+
+```
+AI Platform Executive Sponsor (VP/Director level)
+  └── AI Platform Program Manager (dedicated PM)
+        ├── Platform Engineering Lead (Cloud Architect)
+        │     ├── Senior Network Engineer
+        │     └── Infrastructure Engineer (Bicep/deployment)
+        ├── AI Platform Security Lead
+        │     └── Identity and Access Engineer
+        ├── AI/ML Platform Team Lead
+        │     ├── AI Integration Engineer
+        │     └── Prompt/AI Product Engineer
+        └── Governance and Compliance Lead (Compliance Officer)
+```
+
+**Key considerations for medium organizations:**
+- Dedicated PM prevents coordination bottlenecks
+- Split security and network into separate individuals
+- AI/ML team handles both platform config and workload onboarding
+- Governance lead spans compliance AND cost management
+
+---
+
+### Enterprise (50+ people)
+
+```
+Chief AI Officer / AI Strategy Executive
+  └── AI Platform Director
+        ├── Platform Engineering Manager
+        │     ├── Cloud Architecture Lead (Platform Lead)
+        │     ├── Network Engineering Team (2-4 engineers)
+        │     ├── Infrastructure Automation Team (2-3 engineers)
+        │     └── Site Reliability Engineering (SRE) Team
+        ├── AI Security and Compliance Manager
+        │     ├── Cloud Security Architect
+        │     ├── Identity and Access Management Lead
+        │     ├── Compliance Engineering Team
+        │     └── Security Operations (SOC integration)
+        ├── AI/ML Platform Team Manager
+        │     ├── AI Platform Architects (2-3)
+        │     ├── AI Integration Engineers (3-5)
+        │     └── AI/ML Ops Engineers
+        └── AI Governance Office
+              ├── AI Governance Lead (Compliance Officer)
+              ├── Data Governance Analyst
+              └── Risk and Controls Analyst
+```
+
+**Key considerations for enterprise organizations:**
+- Formal AI Governance Office ensures sustained compliance posture
+- SRE team handles platform reliability and on-call operations
+- Workload teams (consuming AI) are NOT part of the platform team
+- Center of Excellence model: platform team enables workload teams via the governance framework
+
+---
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Prerequisites Checklist" icon="clipboard-check" href="/getting-started/prerequisites">
+    Confirm your organization meets all technical and governance requirements before deployment
+  </Card>
+  <Card title="Quick-Start Guide" icon="rocket" href="/getting-started/quick-start">
+    Deploy a working evaluation environment to validate the platform with your team
+  </Card>
+  <Card title="AI Access Contracts" icon="file-contract" href="/governance/ai-access-contracts">
+    Understand how governance responsibilities are operationalized through AI Access Contracts
+  </Card>
+  <Card title="Deployment Guide" icon="server" href="/guides/deployment-guide">
+    Full production deployment guide — execute with your fully aligned team
+  </Card>
+</CardGroup>
