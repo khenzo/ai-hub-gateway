@@ -1,0 +1,857 @@
+---
+title: "PII Protection"
+description: "Personally Identifiable Information detection, classification, and protection patterns for AI workloads using Microsoft Purview and Azure services"
+---
+
+# 🔒 PII Protection
+
+## Overview
+
+**Personally Identifiable Information (PII)** represents any data that could identify an individual. In AI workloads, PII protection is critical for regulatory compliance, data security, and maintaining user trust. This document covers comprehensive patterns for detecting, classifying, and protecting PII in AI Landing Zones.
+
+## PII Protection Overview
+
+### Types of PII in AI Workloads
+
+| Category | Examples | Risk Level |
+|----------|----------|------------|
+| **Personal Identifiers** | Name, SSN, Passport number | Critical |
+| **Contact Information** | Email, phone, address | High |
+| **Financial Data** | Credit card, bank account | Critical |
+| **Health Information** | Medical records, diagnoses | Critical |
+| **Biometric Data** | Fingerprints, facial recognition | Critical |
+| **Online Identifiers** | IP address, cookies, device IDs | Medium |
+| **Professional Data** | Employee ID, work email | Medium |
+
+### Data Classification Levels
+
+```
+Data Classification Hierarchy:
+
+┌─────────────────────────────────────────────────────────────┐
+│  CRITICAL (L4)                                               │
+│  • SSN, Passport, Financial Account Numbers                  │
+│  • Health Records (PHI)                                      │
+│  • Biometric Data                                            │
+│  Action: Encrypt + Tokenize + Strict Access Control          │
+├─────────────────────────────────────────────────────────────┤
+│  SENSITIVE (L3)                                              │
+│  • Personal Contact Info                                     │
+│  • Government ID Numbers                                     │
+│  • Financial Transaction Details                             │
+│  Action: Encrypt + Access Logging                            │
+├─────────────────────────────────────────────────────────────┤
+│  INTERNAL (L2)                                               │
+│  • Employee Information                                      │
+│  • Internal Communications                                   │
+│  • Work History                                              │
+│  Action: Access Control + Audit Logs                         │
+├─────────────────────────────────────────────────────────────┤
+│  PUBLIC (L1)                                                 │
+│  • Published Information                                     │
+│  • Marketing Materials                                       │
+│  • Public Directory Listings                                 │
+│  Action: Standard Security                                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Regulatory Drivers
+
+| Regulation | PII Requirements | Penalties |
+|------------|------------------|-----------|
+| **GDPR** | Consent, right to deletion, data portability | Up to 4% global revenue |
+| **CCPA/CPRA** | Disclosure, opt-out, deletion rights | Up to $7,500 per violation |
+| **HIPAA** | PHI protection, minimum necessary, audit trails | Up to $1.5M per violation |
+| **PCI DSS** | Cardholder data protection | Fines + card brand penalties |
+| **SOX** | Financial data controls | Criminal penalties |
+
+## Microsoft Purview Integration
+
+### Purview Data Map for AI Data
+
+Microsoft Purview provides unified data governance across your AI Landing Zone:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                PURVIEW DATA GOVERNANCE                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│   │    Data     │  │  Sensitivity│  │   Policy    │         │
+│   │    Map      │  │   Labels    │  │  Enforcement│         │
+│   │             │  │             │  │             │         │
+│   │ • Scans     │  │ • Classify  │  │ • Auto-label│         │
+│   │ • Lineage   │  │ • Protect   │  │ • DLP rules │         │
+│   │ • Catalog   │  │ • Monitor   │  │ • Alerts    │         │
+│   └──────┬──────┘  └──────┬──────┘  └──────┬──────┘         │
+│          │                │                │                │
+│          └────────────────┼────────────────┘                │
+│                           │                                 │
+│                    ┌──────▼──────┐                          │
+│                    │  AI Landing │                          │
+│                    │    Zone     │                          │
+│                    │             │                          │
+│                    │ • APIM Logs │                          │
+│                    │ • Model I/O │                          │
+│                    │ • Vector DB │                          │
+│                    └─────────────┘                          │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Sensitivity Labels and Policies
+
+| Label | Description | Auto-Apply Conditions |
+|-------|-------------|----------------------|
+| **Highly Confidential** | Regulated PII (PHI, SSN) | Pattern match + context |
+| **Confidential** | Personal data, financial | Pattern detection |
+| **Internal** | Business data, employee info | Business context |
+| **Public** | Published information | None |
+
+```powershell
+# Example: Create sensitivity label for PII
+New-Label -Name "PII-HighlyConfidential" `
+  -DisplayName "Highly Confidential - PII" `
+  -Tooltip "Contains sensitive PII requiring maximum protection" `
+  -ContentType "File, Email" `
+  -EncryptionEnabled $true `
+  -EncryptionProtectionType "Template" `
+  -EncryptionRightsDefinitions "Owner:View,Edit,Print,Reply,ReplyAll,Forward,Extract"
+```
+
+### Data Loss Prevention (DLP)
+
+Purview DLP policies for AI workloads:
+
+```
+DLP Policy Configuration:
+
+Policy: AI-Gateway-PII-Protection
+├── Scope: 
+│   ├── APIM Request/Response Logs
+│   ├── AI Model Input/Output
+│   └── Vector Database Content
+├── Conditions:
+│   ├── Content contains: SSN, Credit Card, Passport
+│   └── Confidence level: High (75%+)
+├── Actions:
+│   ├── Block transmission
+│   ├── Encrypt at rest
+│   ├── Alert security team
+│   └── Log for audit
+└── Exceptions:
+    ├── Encrypted channels (TLS 1.3)
+    ├── Authorized AI training pipelines
+    └── Approved data processing agreements
+```
+
+### Insider Risk Management
+
+Purview Insider Risk Management detects potential data exfiltration:
+
+| Indicator | Detection Method | Response |
+|-----------|------------------|----------|
+| **Bulk Downloads** | Unusual volume of PII access | Alert + Block |
+| **Off-Hours Access** | Access outside business hours | Review Queue |
+| **Departing Employee** | PII access before resignation | Escalate |
+| **Priority Content** | Access to executive PII | Immediate Alert |
+
+## PII Detection Patterns
+
+### Native Model PII Detection
+
+Some AI models can detect PII in their responses:
+
+```xml
+<!-- APIM policy to request PII detection from AI model -->
+<policies>
+  <inbound>
+    <!-- Add PII detection parameter to request -->
+    <set-body>@{
+      JObject body = context.Request.Body.As<JObject>(preserveContent: true);
+      // Request model to identify PII in response
+      body["extra_body"] = new JObject(
+        new JProperty("pii_detection", true),
+        new JProperty("pii_categories", new JArray("email", "phone", "ssn", "address"))
+      );
+      return body.ToString();
+    }</set-body>
+  </inbound>
+</policies>
+```
+
+### Purview PII Classification
+
+Purview can automatically classify PII across your data estate:
+
+| PII Type | Detection Method | Confidence |
+|----------|------------------|------------|
+| **Social Security Number** | RegEx + Validation | 95%+ |
+| **Credit Card** | Luhn check + Pattern | 99%+ |
+| **Email Address** | Pattern matching | 90%+ |
+| **Phone Number** | Format validation | 85%+ |
+| **Address** | ML-based NER | 80%+ |
+| **Person Name** | ML-based NER | 75%+ |
+| **Date of Birth** | Context + Pattern | 70%+ |
+
+### Custom PII Patterns
+
+Define organization-specific PII patterns:
+
+```json
+{
+  "customPiiPatterns": [
+    {
+      "name": "Employee-ID",
+      "pattern": "EMP-[0-9]{6}",
+      "description": "Internal employee identifier",
+      "confidence": 90
+    },
+    {
+      "name": "Customer-Reference",
+      "pattern": "CUST-[A-Z]{2}-[0-9]{8}",
+      "description": "Customer reference number",
+      "confidence": 85
+    },
+    {
+      "name": "Project-Code",
+      "pattern": "PRJ-[0-9]{4}-[A-Z]{3}",
+      "description": "Internal project identifier",
+      "confidence": 80
+    }
+  ]
+}
+```
+
+### Multi-Language PII Detection
+
+Purview supports PII detection in multiple languages:
+
+```csharp
+// Multi-language PII detection
+public class MultiLanguagePiiDetector
+{
+    public async Task<PiiResult> DetectPiiAsync(
+        string content, 
+        string language)
+    {
+        var client = new TextAnalyticsClient(
+            endpoint, credential);
+        
+        var documents = new List<string> { content };
+        
+        // Detect PII entities
+        var response = await client.RecognizePiiEntitiesBatchAsync(
+            documents, 
+            language: language);
+        
+        return new PiiResult
+        {
+            Language = language,
+            Entities = response.Value[0].Entities.Select(e => 
+                new PiiEntity
+                {
+                    Text = e.Text,
+                    Category = e.Category.ToString(),
+                    Confidence = e.ConfidenceScore,
+                    Offset = e.Offset,
+                    Length = e.Length
+                }).ToList()
+        };
+    }
+}
+```
+
+## PII Handling Strategies
+
+### Redaction and Masking
+
+| Strategy | Example Input | Example Output | Use Case |
+|----------|---------------|----------------|----------|
+| **Full Redaction** | "John's SSN is 123-45-6789" | "John's SSN is [REDACTED]" | High-sensitivity PII |
+| **Partial Masking** | "john.doe@email.com" | "j***.***@email.com" | Email addresses |
+| **Token Replacement** | "123-45-6789" | "<SSN_001>" | Analytics, training |
+| **Hashing** | "john.doe@email.com" | "a1b2c3d4..." | Pseudonymization |
+
+```xml
+<!-- APIM policy for PII redaction -->
+<policies>
+  <outbound>
+    <set-body>@{
+      JObject response = context.Response.Body.As<JObject>(preserveContent: true);
+      string content = response.ToString();
+      
+      // Redact SSNs
+      content = Regex.Replace(content, @"\b\d{3}-\d{2}-\d{4}\b", "[SSN-REDACTED]");
+      
+      // Mask email addresses
+      content = Regex.Replace(content, 
+        @"\b([A-Za-z0-9._%+-])[^@]*@([A-Za-z0-9.-]+\.[A-Z|a-z]{2,})\b", 
+        "$1***@$2");
+      
+      // Mask phone numbers
+      content = Regex.Replace(content, 
+        @"\b\d{3}-\d{3}-\d{4}\b", 
+        "***-***-****");
+      
+      // Redact credit cards
+      content = Regex.Replace(content, 
+        @"\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b", 
+        "[CREDIT-CARD-REDACTED]");
+      
+      return content;
+    }</set-body>
+  </outbound>
+</policies>
+```
+
+### Tokenization Approaches
+
+```
+Tokenization Architecture:
+
+┌─────────────────────────────────────────────────────────────┐
+│                     TOKEN VAULT                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   Original Data              Token                           │
+│   ─────────────              ─────                           │
+│   john.doe@email.com    →    tok_abc123xyz                   │
+│   123-45-6789           →    tok_ssn_789def                  │
+│   555-123-4567          →    tok_phn_456ghi                  │
+│                                                              │
+│   Token Format: tok_<type>_<random>                          │
+│                                                              │
+│   Properties:                                                │
+│   • Non-reversible (no algorithm to derive original)         │
+│   • Format-preserving (same length, valid format)            │
+│   • Vault-secured (Key Vault encryption)                     │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+```csharp
+// Tokenization service
+public class TokenizationService
+{
+    private readonly ITokenVault _vault;
+    
+    public async Task<string> TokenizeAsync(
+        string originalValue, 
+        PiiType type)
+    {
+        // Generate unique token
+        var token = $"tok_{type.ToString().ToLower()}_{Guid.NewGuid().ToString("N")[..12]}";
+        
+        // Store mapping in vault
+        await _vault.StoreAsync(new TokenMapping
+        {
+            Token = token,
+            OriginalValue = await EncryptAsync(originalValue),
+            Type = type,
+            CreatedAt = DateTime.UtcNow
+        });
+        
+        return token;
+    }
+    
+    public async Task<string> DetokenizeAsync(string token)
+    {
+        var mapping = await _vault.RetrieveAsync(token);
+        if (mapping == null) return null;
+        
+        return await DecryptAsync(mapping.OriginalValue);
+    }
+}
+```
+
+### Synthetic Data Generation
+
+For AI training without real PII:
+
+```python
+# Synthetic PII generation for testing/training
+from faker import Faker
+import json
+
+fake = Faker()
+
+def generate_synthetic_pii_record():
+    return {
+        "name": fake.name(),
+        "ssn": fake.ssn(),
+        "email": fake.email(),
+        "phone": fake.phone_number(),
+        "address": fake.address(),
+        "dob": fake.date_of_birth(minimum_age=18, maximum_age=90).isoformat(),
+        "credit_card": fake.credit_card_number(),
+        "company": fake.company(),
+        "job_title": fake.job()
+    }
+
+# Generate training dataset
+synthetic_dataset = [generate_synthetic_pii_record() for _ in range(10000)]
+```
+
+### Data Minimization Patterns
+
+```
+Data Minimization Flow:
+
+Original Request           Minimized Request
+────────────────           ─────────────────
+"Hi, I'm John Doe, 
+ SSN 123-45-6789, 
+ email john@email.com.
+ I need help with..."
+         │
+         ▼
+    ┌────────────┐
+    │   Detect   │
+    │    PII     │
+    └────────────┘
+         │
+         ▼
+"Hi, I'm [PERSON], 
+ SSN [REDACTED], 
+ email [EMAIL].
+ I need help with..."
+```
+
+## Implementation Patterns
+
+### Pre-Processing Detection
+
+```xml
+<policies>
+  <inbound>
+    <!-- Extract request content -->
+    <set-variable name="request-content" value="@{
+      JObject body = context.Request.Body.As<JObject>(preserveContent: true);
+      return body?["messages"]?.Last?["content"]?.ToString() ?? "";
+    }" />
+    
+    <!-- Send to Text Analytics for PII detection -->
+    <send-request mode="new" response-variable-name="pii-detection" timeout="10">
+      <set-url>https://{{text-analytics-endpoint}}.cognitiveservices.azure.com/text/analytics/v3.1/entities/recognition/pii</set-url>
+      <set-method>POST</set-method>
+      <set-header name="Ocp-Apim-Subscription-Key">
+        <value>{{text-analytics-key}}</value>
+      </set-header>
+      <set-header name="Content-Type">
+        <value>application/json</value>
+      </set-header>
+      <set-body>@{
+        return new JObject(
+          new JProperty("documents", new JArray(
+            new JObject(
+              new JProperty("id", "1"),
+              new JProperty("text", context.Variables.GetValueOrDefault("request-content", "")),
+              new JProperty("language", "en")
+            )
+          ))
+        ).ToString();
+      }</set-body>
+    </send-request>
+    
+    <!-- Check for high-confidence PII -->
+    <set-variable name="pii-result" value="@(((IResponse)context.Variables["pii-detection"]).Body.As<JObject>())" />
+    
+    <choose>
+      <when condition="@{
+        var result = context.Variables.GetValueOrDefault<JObject>("pii-result", null);
+        if (result == null) return false;
+        var documents = result["documents"] as JArray;
+        if (documents == null || documents.Count == 0) return false;
+        var entities = documents[0]["entities"] as JArray;
+        if (entities == null) return false;
+        // Check for high-confidence PII
+        return entities.Any(e => 
+          (e["confidenceScore"]?.Value<double>() ?? 0) > 0.8 &&
+          new[] { "SocialSecurityNumber", "CreditCardNumber", "PassportNumber" }
+            .Contains(e["category"]?.ToString()));
+      }">
+        <return-response>
+          <set-status code="400" reason="PII Detected" />
+          <set-header name="Content-Type">
+            <value>application/json</value>
+          </set-header>
+          <set-body>{
+            "error": "Request contains sensitive PII",
+            "message": "Please remove personal identifiers before submitting.",
+            "code": "PII_DETECTED"
+          }</set-body>
+        </return-response>
+      </when>
+    </choose>
+  </inbound>
+</policies>
+```
+
+### Post-Processing Redaction
+
+```xml
+<policies>
+  <outbound>
+    <!-- Detect PII in AI response -->
+    <set-variable name="response-text" value="@{
+      JObject body = context.Response.Body.As<JObject>(preserveContent: true);
+      return body?["choices"]?.First?["message"]?.["content"]?.ToString() ?? "";
+    }" />
+    
+    <!-- Send to PII detection service -->
+    <send-request mode="new" response-variable-name="response-pii" timeout="10">
+      <set-url>https://{{text-analytics-endpoint}}.cognitiveservices.azure.com/text/analytics/v3.1/entities/recognition/pii</set-url>
+      <set-method>POST</set-method>
+      <set-header name="Ocp-Apim-Subscription-Key">
+        <value>{{text-analytics-key}}</value>
+      </set-header>
+      <set-body>@{
+        return new JObject(
+          new JProperty("documents", new JArray(
+            new JObject(
+              new JProperty("id", "1"),
+              new JProperty("text", context.Variables.GetValueOrDefault("response-text", "")),
+              new JProperty("language", "en")
+            )
+          ))
+        ).ToString();
+      }</set-body>
+    </send-request>
+    
+    <!-- Redact detected PII from response -->
+    <set-body>@{
+      JObject body = context.Response.Body.As<JObject>(preserveContent: true);
+      string content = body?["choices"]?.First?["message"]?.["content"]?.ToString() ?? "";
+      
+      var piiResult = ((IResponse)context.Variables["response-pii"]).Body.As<JObject>();
+      var documents = piiResult["documents"] as JArray;
+      
+      if (documents != null && documents.Count > 0)
+      {
+        var entities = documents[0]["entities"] as JArray;
+        if (entities != null)
+        {
+          // Sort by offset descending to avoid index shifting
+          var sortedEntities = entities
+            .OrderByDescending(e => e["offset"]?.Value<int>() ?? 0)
+            .ToList();
+          
+          foreach (var entity in sortedEntities)
+          {
+            int offset = entity["offset"]?.Value<int>() ?? 0;
+            int length = entity["length"]?.Value<int>() ?? 0;
+            string category = entity["category"]?.ToString() ?? "PII";
+            
+            if (offset >= 0 && length > 0 && offset + length <= content.Length)
+            {
+              content = content.Substring(0, offset) + 
+                       $"[{category}-REDACTED]" + 
+                       content.Substring(offset + length);
+            }
+          }
+        }
+      }
+      
+      body["choices"][0]["message"]["content"] = content;
+      return body.ToString();
+    }</set-body>
+  </outbound>
+</policies>
+```
+
+### Audit Trail Maintenance
+
+```xml
+<policies>
+  <outbound>
+    <!-- Log all PII detection events -->
+    <log-to-eventhub logger-id="pii-audit-logger">
+      @{
+        var piiResult = context.Variables.GetValueOrDefault<JObject>("pii-result", null);
+        var documents = piiResult?["documents"] as JArray;
+        var entities = documents?[0]?["entities"] as JArray;
+        
+        return new JObject(
+          new JProperty("timestamp", DateTime.UtcNow.ToString("o")),
+          new JProperty("type", "pii-detection"),
+          new JProperty("contractId", context.Variables.GetValueOrDefault("contract-id", "")),
+          new JProperty("userId", context.Variables.GetValueOrDefault("user-id", "")),
+          new JProperty("entitiesDetected", entities?.Count ?? 0),
+          new JProperty("entityTypes", entities?.Select(e => e["category"]?.ToString())?.ToList()),
+          new JProperty("action", "redacted"),
+          new JProperty("clientIp", context.Request.IpAddress)
+        ).ToString();
+      }
+    </log-to-eventhub>
+  </outbound>
+</policies>
+```
+
+### Data Subject Request Handling
+
+```csharp
+// Data Subject Access Request (DSAR) handler
+public class DataSubjectRequestHandler
+{
+    private readonly IVectorStore _vectorStore;
+    private readonly IAuditLogRepository _auditRepo;
+    
+    public async Task<DsarResult> ProcessAccessRequestAsync(
+        string dataSubjectId)
+    {
+        // Search all AI systems for subject's data
+        var vectorResults = await _vectorStore.SearchAsync(
+            filter: $"userId eq '{dataSubjectId}'");
+        
+        var auditLogs = await _auditRepo.QueryAsync(
+            x => x.UserId == dataSubjectId);
+        
+        return new DsarResult
+        {
+            SubjectId = dataSubjectId,
+            VectorStoreRecords = vectorResults,
+            AuditLogEntries = auditLogs,
+            GeneratedAt = DateTime.UtcNow
+        };
+    }
+    
+    public async Task<bool> ProcessDeletionRequestAsync(
+        string dataSubjectId)
+    {
+        // Delete from vector store
+        await _vectorStore.DeleteByUserIdAsync(dataSubjectId);
+        
+        // Anonymize audit logs (retain for compliance)
+        await _auditRepo.AnonymizeAsync(dataSubjectId);
+        
+        // Delete any cached conversations
+        await _cache.DeleteAsync($"conv:{dataSubjectId}");
+        
+        return true;
+    }
+}
+```
+
+## Architecture Patterns
+
+### PII Vault Pattern
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      PII VAULT ARCHITECTURE                  │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   AI Landing Zone                                            │
+│   ┌─────────────────────────────────────────────────────┐   │
+│   │              API Management (APIM)                   │   │
+│   │                                                      │   │
+│   │   Request ──▶ PII Detection ──▶ Tokenize ──▶ AI    │   │
+│   │                      │                    │          │   │
+│   │                      ▼                    ▼          │   │
+│   │              ┌─────────────┐      ┌─────────────┐   │   │
+│   │              │  Token Vault│      │   AI Model  │   │   │
+│   │              │  (Key Vault)│      │             │   │   │
+│   │              └─────────────┘      └─────────────┘   │   │
+│   │                      ▲                              │   │
+│   │   Response ◀── Detokenize ◀──────────────────────── │   │
+│   │                                                      │   │
+│   └─────────────────────────────────────────────────────┘   │
+│                                                              │
+│   Components:                                                │
+│   • Token Vault: Azure Key Vault with HSM-backed keys        │
+│   • Encryption: AES-256-GCM for PII at rest                  │
+│   • Audit: All token operations logged                       │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Data Segregation by Sensitivity
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                DATA SEGREGATION ARCHITECTURE                 │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   ┌───────────────┐  ┌───────────────┐  ┌───────────────┐   │
+│   │  Public Data  │  │ Internal Data │  │ Sensitive Data│   │
+│   │  (L1)         │  │  (L2)         │  │  (L3-L4)      │   │
+│   │               │  │               │  │               │   │
+│   │ • Marketing   │  │ • Employee    │  │ • PII         │   │
+│   │ • Docs        │  │ • Internal    │  │ • PHI         │   │
+│   │ • General KB  │  │   Comms       │  │ • Financial   │   │
+│   │               │  │               │  │               │   │
+│   └───────┬───────┘  └───────┬───────┘  └───────┬───────┘   │
+│           │                  │                  │            │
+│           └──────────────────┼──────────────────┘            │
+│                              │                               │
+│                              ▼                               │
+│                    ┌──────────────────┐                      │
+│                    │  AI Model Access │                      │
+│                    │                  │                      │
+│                    │  L1: All models  │                      │
+│                    │  L2: Internal    │                      │
+│                    │  L3-L4: Secure   │                      │
+│                    └──────────────────┘                      │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Encryption at Rest and in Transit
+
+| Layer | Encryption | Implementation |
+|-------|-----------|----------------|
+| **Transit** | TLS 1.3 | APIM SSL termination |
+| **Application** | mTLS | Service-to-service auth |
+| **Data at Rest** | AES-256-GCM | Storage Service Encryption |
+| **Backup** | AES-256 | Azure Backup encryption |
+| **Keys** | RSA-4096 | Azure Key Vault HSM |
+
+### Key Management with Azure Key Vault
+
+```bicep
+// Key Vault for PII protection keys
+resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' = {
+  name: keyVaultName
+  location: location
+  properties: {
+    sku: {
+      family: 'A'
+      name: 'premium' // HSM-backed keys
+    }
+    tenantId: subscription().tenantId
+    enabledForDiskEncryption: true
+    enabledForTemplateDeployment: true
+    enabledForDeployment: true
+    enableRbacAuthorization: true
+    enablePurgeProtection: true
+    softDeleteRetentionInDays: 90
+    networkAcls: {
+      defaultAction: 'Deny'
+      bypass: 'AzureServices'
+      virtualNetworkRules: [
+        {
+          id: subnetId
+        }
+      ]
+    }
+  }
+}
+
+// Key for PII data encryption
+resource piiEncryptionKey 'Microsoft.KeyVault/vaults/keys@2023-02-01' = {
+  parent: keyVault
+  name: 'pii-encryption-key'
+  properties: {
+    kty: 'RSA-HSM'
+    keySize: 4096
+    keyOps: [
+      'encrypt'
+      'decrypt'
+      'wrapKey'
+      'unwrapKey'
+    ]
+  }
+}
+```
+
+## Compliance Alignment
+
+### GDPR Data Protection
+
+| GDPR Article | Requirement | Implementation |
+|--------------|-------------|----------------|
+| **Art. 5** | Principles (lawfulness, purpose limitation) | Data minimization, purpose tagging |
+| **Art. 6** | Lawful basis | Consent management, legitimate interest |
+| **Art. 17** | Right to erasure | Data deletion workflows |
+| **Art. 20** | Data portability | Export in machine-readable format |
+| **Art. 25** | Privacy by design | Default PII protection |
+| **Art. 32** | Security of processing | Encryption, access controls |
+| **Art. 35** | DPIA | Risk assessment for high-risk processing |
+
+```
+GDPR Compliance Checklist:
+
+□ Data minimization implemented (collect only necessary PII)
+□ Consent tracking for AI training data
+□ Right to deletion workflows operational
+□ Data portability API available
+□ Privacy impact assessments documented
+□ DPO contact information published
+□ Breach notification procedures in place
+□ Cross-border transfer mechanisms (SCCs)
+```
+
+### HIPAA Safeguards
+
+| Safeguard | Requirement | AI Landing Zone Implementation |
+|-----------|-------------|-------------------------------|
+| **Administrative** | Security management, workforce training | Access policies, training logs |
+| **Physical** | Facility access, workstation security | Private endpoints, device compliance |
+| **Technical** | Access control, audit controls, integrity | RBAC, audit logging, encryption |
+| **Organizational** | Business associate agreements | Contractual controls |
+
+### PCI DSS Considerations
+
+For AI workloads handling payment data:
+
+```
+PCI DSS Scope Reduction:
+
+Before: AI system in PCI scope
+┌──────────┐    ┌──────────┐    ┌──────────┐
+│  Client  │───▶│   AI     │───▶│ Payment  │
+│          │    │  System  │    │ Gateway  │
+└──────────┘    └──────────┘    └──────────┘
+                     ↑
+                All in scope
+
+After: Tokenization reduces scope
+┌──────────┐    ┌──────────┐    ┌──────────┐
+│  Client  │───▶│Tokenizer │───▶│ Payment  │
+│          │    │ (In Scope)│   │ Gateway  │
+└──────────┘    └────┬─────┘    └──────────┘
+                     │
+                     ▼
+               ┌──────────┐
+               │    AI    │
+               │  System  │
+               │(Out of   │
+               │ Scope)   │
+               └──────────┘
+```
+
+### Cross-Border Data Transfer
+
+| Mechanism | Use Case | Implementation |
+|-----------|----------|----------------|
+| **Standard Contractual Clauses** | EU→Third countries | Azure Data Processing Agreement |
+| **Adequacy Decisions** | EU→Approved countries | Leverage Azure regions |
+| **Binding Corporate Rules** | Intra-group transfers | Enterprise agreements |
+| **Data Residency** | Strict localization | Region-specific deployments |
+
+```bicep
+// Data residency configuration
+resource aiServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
+  name: aiServicesName
+  location: 'westeurope' // EU data residency
+  sku: {
+    name: 'S0'
+  }
+  kind: 'OpenAI'
+  properties: {
+    customSubDomainName: aiServicesName
+    publicNetworkAccess: 'Disabled'
+    networkAcls: {
+      defaultAction: 'Deny'
+    }
+  }
+}
+```
+
+## Next Steps
+
+- Review [Content Safety](./content-safety) for content moderation
+- Explore [Security Compliance](./security-compliance) for broader security context
+- Learn about [Compliance Mapping](./compliance-mapping) for regulatory frameworks
+- See [Layer 4 Security Fabric](../architecture/layer-4-security-fabric) for comprehensive security overview
