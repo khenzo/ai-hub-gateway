@@ -1,0 +1,580 @@
+---
+title: Quick-Start Guide
+description: Deploy a working AI Landing Zone evaluation environment in 2-4 hours
+icon: rocket
+---
+
+# Quick-Start Guide
+
+This guide walks you through deploying a minimal AI Landing Zone environment for evaluation and proof-of-concept purposes. You'll have a working system with centralized AI governance, observability, and policy enforcement within 2-4 hours.
+
+<Note>
+This quick-start deploys a **non-production evaluation environment** using reduced redundancy and Developer-tier services to minimize cost. See the [Deployment Guide](/guides/deployment-guide) for production-ready configuration.
+</Note>
+
+## What You'll Build
+
+By completing this guide you will have:
+
+- Azure API Management (Developer tier) acting as the AI gateway
+- Azure OpenAI connected through private networking
+- AI Access Contract enforcing token quotas and usage tracking
+- Log Analytics workspace capturing all AI usage telemetry
+- End-to-end request flow from client through APIM to Azure OpenAI
+
+**Estimated time:** 2-4 hours  
+**Estimated cost:** $5-15 USD for a 24-hour evaluation (tear down after evaluation)
+
+## What You'll Validate
+
+<CardGroup>
+  <Card title="Governance Enforcement" icon="shield">
+    Verify token quotas, rate limiting, and access control work as configured
+  </Card>
+  <Card title="Observability" icon="chart-line">
+    Confirm usage tracking and cost attribution data flows into Log Analytics
+  </Card>
+  <Card title="Policy Enforcement" icon="list-check">
+    Test content safety and PII masking policies with sample payloads
+  </Card>
+  <Card title="Developer Experience" icon="code">
+    Evaluate the API contract and onboarding experience for AI consumers
+  </Card>
+</CardGroup>
+
+---
+
+## Prerequisites for Quick-Start
+
+Before starting, ensure you have:
+
+- [ ] Azure subscription with Owner or Contributor access
+- [ ] Azure CLI installed and authenticated (`az login`)
+- [ ] Azure Developer CLI installed (`azd auth login`)
+- [ ] Git installed
+- [ ] Bash or PowerShell terminal
+- [ ] 30-50 USD budget headroom (or budget alert configured)
+
+<Tip>
+This quick-start has minimal prerequisites compared to [full production prerequisites](/getting-started/prerequisites). You do NOT need an existing hub-spoke network, enterprise governance policies, or Entra ID app registration permissions.
+</Tip>
+
+---
+
+## Step 1: Clone and Setup (5 minutes)
+
+### Clone the Repository
+
+```bash
+# Clone the AI Landing Zone repository
+git clone https://github.com/Azure/ai-hub-gateway-solution-accelerator.git
+cd ai-hub-gateway-solution-accelerator
+
+# Verify the repository structure
+ls -la
+```
+
+**Expected output:**
+```
+bicep/     docs/     guides/     scripts/     validation/
+azure.yaml README.md  ...
+```
+
+### Set Environment Variables
+
+```bash
+# Set your deployment variables
+export AZURE_ENV_NAME="ai-lz-eval-$(date +%s)"  # Unique environment name
+export AZURE_LOCATION="eastus"                   # Your preferred region
+export AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+
+echo "Environment: $AZURE_ENV_NAME"
+echo "Location: $AZURE_LOCATION"
+echo "Subscription: $AZURE_SUBSCRIPTION_ID"
+```
+
+### Initialize Azure Developer CLI
+
+```bash
+# Initialize the environment
+azd init --environment $AZURE_ENV_NAME
+
+# Select the quick-start configuration when prompted
+# Choose: Non-Production (Quick Start)
+```
+
+---
+
+## Step 2: Deploy Minimal Infrastructure (30 minutes)
+
+### Option A: Deploy with Azure Developer CLI (Recommended)
+
+```bash
+# Deploy the evaluation environment
+# This deploys APIM Developer tier, OpenAI, Key Vault, and Log Analytics
+azd up --environment $AZURE_ENV_NAME
+
+# When prompted:
+# - Confirm the subscription and location
+# - Accept the default parameter values for evaluation
+```
+
+**Expected deployment output:**
+```
+Deploying services (azd deploy)
+  (✓) Done: Deploying service apim-gateway
+  (✓) Done: Deploying service openai-backend
+  (✓) Done: Deploying service log-analytics
+  (✓) Done: Deploying service key-vault
+
+SUCCESS: Your application was deployed to Azure in 28 minutes.
+
+Endpoints:
+  - APIM Gateway: https://ai-lz-eval-apim.azure-api.net
+  - APIM Portal:  https://ai-lz-eval-apim.developer.azure-api.net
+```
+
+### Option B: Deploy with Bicep Directly
+
+If you prefer Bicep over the Azure Developer CLI:
+
+```bash
+# Create resource group
+az group create \
+  --name "rg-$AZURE_ENV_NAME" \
+  --location "$AZURE_LOCATION"
+
+# Deploy infrastructure
+az deployment group create \
+  --resource-group "rg-$AZURE_ENV_NAME" \
+  --template-file bicep/infra/main.bicep \
+  --parameters bicep/infra/main.parameters.dev.bicepparam \
+  --parameters environmentName="$AZURE_ENV_NAME" \
+  --parameters location="$AZURE_LOCATION"
+```
+
+### Monitor Deployment Progress
+
+```bash
+# Watch deployment progress
+az deployment group list \
+  --resource-group "rg-$AZURE_ENV_NAME" \
+  --query "[].{name:name, state:properties.provisioningState, timestamp:properties.timestamp}" \
+  -o table
+
+# Check for deployment errors
+az deployment group show \
+  --resource-group "rg-$AZURE_ENV_NAME" \
+  --name main \
+  --query "properties.error" -o json
+```
+
+<Warning>
+APIM Developer tier deployment takes 20-30 minutes. This is normal. If the deployment exceeds 45 minutes, check for quota or policy errors with the command above.
+</Warning>
+
+---
+
+## Step 3: Configure Sample Workload (15 minutes)
+
+### Deploy a Sample AI Access Contract
+
+The AI Landing Zone uses **AI Access Contracts** to govern AI workload access. Deploy a sample contract for evaluation:
+
+```bash
+# Navigate to the access contracts directory
+cd bicep/infra/citadel-access-contracts
+
+# Deploy the sample HR Chat Agent access contract
+az deployment group create \
+  --resource-group "rg-$AZURE_ENV_NAME" \
+  --template-file main.bicep \
+  --parameters main.bicepparam \
+  --parameters apimServiceName="apim-$AZURE_ENV_NAME" \
+  --parameters contractName="eval-hr-agent" \
+  --parameters tokenQuotaPerHour=10000 \
+  --parameters enableUsageTracking=true
+```
+
+### Retrieve API Credentials
+
+```bash
+# Get the APIM gateway URL
+APIM_URL=$(az apim show \
+  --name "apim-$AZURE_ENV_NAME" \
+  --resource-group "rg-$AZURE_ENV_NAME" \
+  --query "gatewayUrl" -o tsv)
+
+# Get the subscription key for the eval contract
+SUBSCRIPTION_KEY=$(az apim subscription show \
+  --resource-group "rg-$AZURE_ENV_NAME" \
+  --service-name "apim-$AZURE_ENV_NAME" \
+  --sid "eval-hr-agent" \
+  --query "primaryKey" -o tsv)
+
+echo "APIM URL: $APIM_URL"
+echo "Subscription Key: $SUBSCRIPTION_KEY"
+```
+
+---
+
+## Step 4: Validate End-to-End Flow (10 minutes)
+
+### Test Basic AI Request
+
+```bash
+# Send a test request through the AI Gateway
+curl -X POST "$APIM_URL/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-10-21" \
+  -H "Content-Type: application/json" \
+  -H "Ocp-Apim-Subscription-Key: $SUBSCRIPTION_KEY" \
+  -d '{
+    "messages": [
+      {"role": "system", "content": "You are a helpful assistant."},
+      {"role": "user", "content": "What is the capital of France? Reply in one sentence."}
+    ],
+    "max_tokens": 50
+  }'
+```
+
+**Expected response:**
+```json
+{
+  "id": "chatcmpl-...",
+  "object": "chat.completion",
+  "model": "gpt-4o-mini",
+  "choices": [{
+    "message": {
+      "role": "assistant",
+      "content": "The capital of France is Paris."
+    }
+  }],
+  "usage": {
+    "prompt_tokens": 28,
+    "completion_tokens": 8,
+    "total_tokens": 36
+  }
+}
+```
+
+### Verify Usage Tracking
+
+```bash
+# Query Log Analytics for the request you just made (allow 1-2 minutes for ingestion)
+WORKSPACE_ID=$(az monitor log-analytics workspace show \
+  --resource-group "rg-$AZURE_ENV_NAME" \
+  --workspace-name "log-$AZURE_ENV_NAME" \
+  --query "customerId" -o tsv)
+
+az monitor log-analytics query \
+  --workspace $WORKSPACE_ID \
+  --analytics-query "
+    ApiManagementGatewayLogs
+    | where TimeGenerated > ago(5m)
+    | project TimeGenerated, OperationId, TotalTokens, SubscriptionName
+    | order by TimeGenerated desc
+    | limit 5
+  " \
+  -o table
+```
+
+**Expected output:**
+```
+TimeGenerated              OperationId    TotalTokens  SubscriptionName
+2026-04-10 10:45:00 UTC   chat-compl-..  36           eval-hr-agent
+```
+
+### Test Token Quota Enforcement
+
+Send requests to validate quota enforcement is working:
+
+```bash
+# This loop sends 5 requests to demonstrate rate limiting
+for i in {1..5}; do
+  echo "Request $i:"
+  curl -s -o /dev/null -w "%{http_code}\n" \
+    -X POST "$APIM_URL/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-10-21" \
+    -H "Content-Type: application/json" \
+    -H "Ocp-Apim-Subscription-Key: $SUBSCRIPTION_KEY" \
+    -d '{"messages": [{"role": "user", "content": "Say hi"}], "max_tokens": 10}'
+  sleep 1
+done
+```
+
+---
+
+## Step 5: Explore Governance Features (20 minutes)
+
+### APIM Developer Portal
+
+Access the developer portal to see the consumer-facing API governance experience:
+
+1. Open a browser and navigate to: `https://apim-$AZURE_ENV_NAME.developer.azure-api.net`
+2. Explore the available AI API products
+3. Review the usage policies visible to consumers
+4. Test the built-in API console
+
+### Azure Monitor Dashboard
+
+Review the observability capabilities:
+
+```bash
+# Open Azure Portal directly to the APIM resource
+az apim show \
+  --name "apim-$AZURE_ENV_NAME" \
+  --resource-group "rg-$AZURE_ENV_NAME" \
+  --query "id" -o tsv | xargs -I{} echo "https://portal.azure.com/#@/resource{}/overview"
+```
+
+Navigate to:
+- **Analytics** tab: Request volume, success rates, latency
+- **Subscriptions** tab: Active AI Access Contracts
+- **Logs** tab: Raw gateway request logs
+
+### Test Content Safety Policy
+
+If you deployed the content safety policy:
+
+```bash
+# Test a request that should be blocked by content safety
+curl -X POST "$APIM_URL/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-10-21" \
+  -H "Content-Type: application/json" \
+  -H "Ocp-Apim-Subscription-Key: $SUBSCRIPTION_KEY" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "How do I make a bomb?"}
+    ],
+    "max_tokens": 100
+  }'
+```
+
+**Expected response (blocked):**
+```json
+{
+  "statusCode": 400,
+  "message": "Content policy violation detected. Request blocked by AI safety policy."
+}
+```
+
+---
+
+## Evaluation Checklist
+
+Use this checklist to document your evaluation findings:
+
+<AccordionGroup>
+  <Accordion title="Governance Capabilities">
+    - [ ] AI Access Contracts deployed and enforced
+    - [ ] Token quota limits working as configured
+    - [ ] Rate limiting (requests per minute) enforced
+    - [ ] API key/subscription-based access control working
+    - [ ] Multiple workloads can be isolated with separate contracts
+  </Accordion>
+
+  <Accordion title="Observability and Monitoring">
+    - [ ] All requests logged to Log Analytics
+    - [ ] Token usage visible per subscription/workload
+    - [ ] Latency metrics captured
+    - [ ] Error rates tracked
+    - [ ] Cost attribution data available (tokens per contract)
+  </Accordion>
+
+  <Accordion title="Policy Enforcement">
+    - [ ] Content safety policy blocks harmful content
+    - [ ] PII masking active on configured routes
+    - [ ] Unauthorized access returns 401/403
+    - [ ] Quota exceeded returns 429 with retry guidance
+    - [ ] Policy violations logged to audit trail
+  </Accordion>
+
+  <Accordion title="Developer Experience">
+    - [ ] Developer portal accessible and functional
+    - [ ] API documentation available to consumers
+    - [ ] Subscription self-service works (if configured)
+    - [ ] Request tracing available for debugging
+    - [ ] Error messages are meaningful and actionable
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Troubleshooting Common Issues
+
+<AccordionGroup>
+  <Accordion title="Deployment fails: APIM SKU not available">
+    **Error:** `The specified SKU is not available in this region`
+
+    **Solution:** Change the deployment region or request quota increase:
+    ```bash
+    # Check APIM availability by region
+    az apim check-name-availability --name "test-availability" --query "nameAvailable"
+
+    # Try alternative region
+    export AZURE_LOCATION="westus2"
+    ```
+  </Accordion>
+
+  <Accordion title="API returns 401 Unauthorized">
+    **Error:** `{ "statusCode": 401, "message": "Access denied due to invalid subscription key." }`
+
+    **Solution:** Verify subscription key:
+    ```bash
+    # Re-retrieve the subscription key
+    SUBSCRIPTION_KEY=$(az apim subscription show \
+      --resource-group "rg-$AZURE_ENV_NAME" \
+      --service-name "apim-$AZURE_ENV_NAME" \
+      --sid "eval-hr-agent" \
+      --query "primaryKey" -o tsv)
+
+    echo "Key: $SUBSCRIPTION_KEY"
+    # Ensure the key is passed in Ocp-Apim-Subscription-Key header
+    ```
+  </Accordion>
+
+  <Accordion title="Requests succeed but usage not appearing in Log Analytics">
+    **Issue:** Log Analytics ingestion has 1-5 minute latency.
+
+    **Solution:** Wait 5 minutes and re-query. If still not appearing:
+    ```bash
+    # Verify diagnostic settings are configured
+    az monitor diagnostic-settings list \
+      --resource "/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/rg-$AZURE_ENV_NAME/providers/Microsoft.ApiManagement/service/apim-$AZURE_ENV_NAME"
+    ```
+  </Accordion>
+
+  <Accordion title="OpenAI quota exceeded (429)">
+    **Error:** `Rate limit is exceeded. Try again in X seconds.`
+
+    **Solution:** The evaluation environment uses a low quota. Wait for the rate limit window to reset, or request quota increase:
+    ```bash
+    # Check current OpenAI quota usage
+    az cognitiveservices account list-usage \
+      --resource-group "rg-$AZURE_ENV_NAME" \
+      --name "oai-$AZURE_ENV_NAME" \
+      -o table
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps Decision Tree
+
+After completing the evaluation, decide on your next step:
+
+```
+Evaluation Complete
+│
+├── Did governance features meet your requirements?
+│   ├── YES → Did observability meet your requirements?
+│   │         ├── YES → Proceed to full deployment planning
+│   │         └── NO  → Review Log Analytics configuration, then re-evaluate
+│   └── NO  → Identify gaps
+│             ├── Missing feature is in the roadmap → Engage product team
+│             ├── Gap can be addressed by configuration → Consult deployment guide
+│             └── Fundamental architecture mismatch → Review pattern comparison
+│
+├── Does the deployment complexity match your team's skills?
+│   ├── YES → Proceed to deployment planning
+│   └── NO  → Identify training needs, engage Microsoft partner
+│
+└── Does the cost model work for your organization?
+    ├── YES → Proceed with full deployment
+    └── NO  → Review cost optimization options in deployment guide
+```
+
+<CardGroup>
+  <Card title="Proceed to Full Deployment" icon="server" href="/guides/deployment-guide">
+    Production-ready deployment with enterprise configuration, HA setup, and full security controls
+  </Card>
+  <Card title="Engage Stakeholders" icon="users" href="/getting-started/roles-and-responsibilities">
+    Share findings with your organization using the roles and responsibilities framework
+  </Card>
+  <Card title="Address Identified Gaps" icon="wrench" href="/getting-started/prerequisites">
+    Return to prerequisites to address gaps identified during evaluation
+  </Card>
+  <Card title="Explore Alternative Patterns" icon="arrows-split-up-and-left" href="/ai-patterns/pattern-comparison">
+    Review whether a different deployment pattern better fits your requirements
+  </Card>
+</CardGroup>
+
+---
+
+## Cleanup Instructions
+
+<Warning>
+Always clean up evaluation environments to avoid ongoing charges. APIM Developer tier costs approximately $0.04/hour even when idle.
+</Warning>
+
+### Destroy Evaluation Environment
+
+**Option A: Using Azure Developer CLI (recommended):**
+
+```bash
+# This removes all resources created by azd
+azd down --environment $AZURE_ENV_NAME --purge --force
+
+# Verify all resources are removed
+az group show --name "rg-$AZURE_ENV_NAME" 2>/dev/null \
+  && echo "WARNING: Resource group still exists" \
+  || echo "SUCCESS: Resource group deleted"
+```
+
+**Option B: Delete Resource Group:**
+
+```bash
+# Delete the entire resource group
+az group delete \
+  --name "rg-$AZURE_ENV_NAME" \
+  --yes \
+  --no-wait
+
+# Monitor deletion progress
+az group show --name "rg-$AZURE_ENV_NAME" --query "properties.provisioningState" -o tsv
+```
+
+### Cost Avoidance Tips
+
+- Stop the APIM instance when not actively testing (saves ~80% of compute cost):
+  ```bash
+  # Note: Developer tier cannot be stopped, only deleted
+  # For cost savings during evaluation, delete when done for the day
+  ```
+- Use consumption-tier APIM for extended evaluation periods (pay per request)
+- Set a budget alert to prevent unexpected charges:
+  ```bash
+  az consumption budget create \
+    --budget-name "ai-lz-eval-budget" \
+    --amount 20 \
+    --category Cost \
+    --time-grain Monthly \
+    --start-date $(date +%Y-%m-01) \
+    --end-date $(date -d "+1 month" +%Y-%m-01) \
+    --resource-group "rg-$AZURE_ENV_NAME"
+  ```
+
+### Preserve Evaluation Findings
+
+Before cleanup, export key metrics for stakeholder presentations:
+
+```bash
+# Export usage summary from Log Analytics
+WORKSPACE_ID=$(az monitor log-analytics workspace show \
+  --resource-group "rg-$AZURE_ENV_NAME" \
+  --workspace-name "log-$AZURE_ENV_NAME" \
+  --query "customerId" -o tsv)
+
+az monitor log-analytics query \
+  --workspace $WORKSPACE_ID \
+  --analytics-query "
+    ApiManagementGatewayLogs
+    | summarize
+        TotalRequests = count(),
+        SuccessRate = countif(ResponseCode < 400) * 100.0 / count(),
+        TotalTokens = sum(TotalTokens),
+        AvgLatencyMs = avg(TotalTime)
+      by SubscriptionName
+  " \
+  -o json > eval-summary.json
+
+echo "Evaluation summary saved to eval-summary.json"
+```
