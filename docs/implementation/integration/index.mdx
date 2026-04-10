@@ -1,0 +1,115 @@
+---
+title: Integration Guides
+description: Integration patterns for connecting Citadel Governance Hub with external services and platforms
+icon: puzzle
+---
+
+# Integration Guides
+
+## Integration Philosophy
+
+The Citadel Governance Hub follows a **governance-first integration model** — Citadel serves as the central governance and control layer, while Microsoft Foundry provides the AI platform capabilities. This separation of concerns enables:
+
+- **Unified Governance**: Single pane of glass for AI compliance and monitoring
+- **Platform Flexibility**: Integrate with various AI services while maintaining consistent controls
+- **Audit & Compliance**: Centralized logging and policy enforcement across all AI workloads
+- **Operational Visibility**: End-to-end observability from gateway to model consumption
+
+## Available Integration Patterns
+
+<Cards>
+  <Card
+    title="Foundry Control Plane"
+    icon="shield"
+    href="/implementation/integration/foundry-control-plane"
+  >
+    Connect with Microsoft's Foundry Control Plane for AI observability, compliance monitoring, and governance enforcement across Layer 2 (AI Control Plane).
+  </Card>
+  
+  <Card
+    title="Model Catalog"
+    icon="book"
+    href="/ai-patterns/foundry-integration"
+  >
+    Reference AI models and deploy custom models through the Foundry Model Catalog with standardized governance controls.
+  </Card>
+  
+  <Card
+    title="Responsible AI"
+    icon="heart-handshake"
+    href="/governance/content-safety"
+  >
+    Implement content safety, bias detection, and responsible AI practices across your AI workloads.
+  </Card>
+</Cards>
+
+## Architecture Context
+
+Integrations operate across the [4-Layer Citadel Architecture](/architecture/four-layer-model):
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Integration Layer                        │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 4 (Security Fabric)    ← Purview, Defender, Content  │
+│  Layer 3 (Agent Identity)     ← Agent 365, Entra ID         │
+│  Layer 2 (AI Control Plane)   ← Foundry Control Plane       │
+│  Layer 1 (Governance Hub)     ← Citadel Gateway, APIM       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Integration Quick-Start Checklist
+
+Use this checklist when planning integrations:
+
+### Pre-Integration
+
+- [ ] Identify target integration pattern (Control Plane, Model Catalog, Responsible AI)
+- [ ] Review [Layer 2 architecture documentation](/architecture/layer-2-control-plane) for context
+- [ ] Verify Azure subscription prerequisites and permissions
+- [ ] Confirm network connectivity requirements (VPN, ExpressRoute, or public endpoints)
+- [ ] Document data residency and compliance requirements
+
+### Integration Planning
+
+- [ ] Define data flow: source → Citadel Gateway → Target Service
+- [ ] Identify required diagnostic settings and logging destinations
+- [ ] Plan observability metrics and alerting thresholds
+- [ ] Establish compliance policies and automated checks
+- [ ] Design error handling and fallback strategies
+
+### Post-Integration
+
+- [ ] Validate data flow end-to-end
+- [ ] Configure monitoring dashboards
+- [ ] Test compliance policy enforcement
+- [ ] Document operational runbooks
+- [ ] Schedule regular integration health reviews
+
+## Next Steps
+
+<Cards>
+  <Card
+    title="Foundry Control Plane"
+    icon="arrow-right"
+    href="/implementation/integration/foundry-control-plane"
+  >
+    Start with the comprehensive Foundry Control Plane integration guide
+  </Card>
+  
+  <Card
+    title="Architecture Overview"
+    icon="layers"
+    href="/architecture/four-layer-model"
+  >
+    Understand the Citadel 4-layer architecture
+  </Card>
+  
+  <Card
+    title="Validation Guide"
+    icon="check-circle"
+    href="/guides/validation-checklist"
+  >
+    Validate your integration with the comprehensive checklist
+  </Card>
+</Cards>
