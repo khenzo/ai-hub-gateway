@@ -1,0 +1,692 @@
+---
+title: "Content Safety Integration"
+description: "Azure AI Content Safety integration patterns for filtering, moderation, and responsible AI governance in enterprise AI Landing Zones"
+---
+
+# 🛡️ Content Safety Integration
+
+## Overview
+
+**Azure AI Content Safety** provides AI-powered content moderation capabilities that detect and filter harmful content across text and images. When integrated with Azure API Management in an AI Landing Zone, it becomes a critical Layer 4 (Security Fabric) component that enforces responsible AI policies at the gateway level.
+
+## What is Azure AI Content Safety
+
+Azure AI Content Safety is a content moderation service that uses machine learning models to analyze content for potential harm across multiple categories:
+
+| Category | Description | Use Cases |
+|----------|-------------|-----------|
+| **Hate** | Content expressing hatred or discrimination | Community platforms, social media |
+| **Sexual** | Sexually explicit or suggestive content | Customer service, public APIs |
+| **Violence** | Content depicting or encouraging violence | Gaming, content platforms |
+| **Self-Harm** | Content encouraging self-injury | Mental health, wellness apps |
+
+### Content Safety Capabilities
+
+```
+Content Safety Analysis Pipeline:
+
+┌─────────────────────────────────────────────────────────────┐
+│                   CONTENT SAFETY API                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌───────────────┐   ┌───────────────┐   ┌───────────────┐  │
+│  │    INPUT      │   │    ANALYSIS   │   │    OUTPUT     │  │
+│  │  (Text/Image) │──▶│  (ML Models)  │──▶│  (Severity)   │  │
+│  └───────────────┘   └───────────────┘   └───────────────┘  │
+│         │                    │                    │          │
+│         │              ┌─────┴─────┐              │          │
+│         │              │           │              │          │
+│         │         Categories   Blocklists         │          │
+│         │         (4 types)    (Custom)           │          │
+│         │              │           │              │          │
+│         └──────────────┴───────────┴──────────────┘          │
+│                                                              │
+│  Severity Levels: 0 (Safe) → 1 (Low) → 2 (Medium) → 3 (High)│
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Severity Levels and Thresholds
+
+Content Safety returns severity scores from 0 to 3:
+
+| Level | Score | Action | Example |
+|-------|-------|--------|---------|
+| **Safe** | 0 | Allow | Normal conversation |
+| **Low** | 1 | Log/Flag | Borderline content |
+| **Medium** | 2 | Review/Block | Potentially harmful |
+| **High** | 3 | Block | Clearly harmful |
+
+## Integration Architecture
+
+### Content Safety as Layer 4 Component
+
+Content Safety integrates with the AI Landing Zone at multiple layers:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      LAYER 1: GOVERNANCE HUB                     │
+│                    (Azure API Management)                        │
+│                                                                  │
+│   ┌────────────────────────────────────────────────────────┐    │
+│   │              CONTENT SAFETY INTEGRATION                 │    │
+│   │                                                         │    │
+│   │   ┌────────────┐    ┌────────────┐    ┌────────────┐   │    │
+│   │   │  Request   │───▶│  Content   │───▶│  Backend   │   │    │
+│   │   │  Received  │    │  Check     │    │  Service   │   │    │
+│   │   └────────────┘    └─────┬──────┘    └────────────┘   │    │
+│   │                           │                           │    │
+│   │                    ┌──────▼──────┐                      │    │
+│   │                    │   LAYER 4   │                      │    │
+│   │                    │   SECURITY  │                      │    │
+│   │                    │   FABRIC    │                      │    │
+│   │                    │             │                      │    │
+│   │                    │  Content    │                      │    │
+│   │                    │  Safety API │                      │    │
+│   │                    └─────────────┘                      │    │
+│   │                                                         │    │
+│   └────────────────────────────────────────────────────────┘    │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Request/Response Interception Patterns
+
+Content Safety can be applied at different stages:
+
+| Stage | Pattern | Use Case |
+|-------|---------|----------|
+| **Pre-processing** | Check user input before AI processing | Prevent harmful prompts |
+| **Post-processing** | Check AI response before delivery | Filter AI-generated content |
+| **Both** | Check both request and response | Maximum safety coverage |
+
+### Async vs Sync Moderation
+
+| Mode | Latency | Use Case | Implementation |
+|------|---------|----------|----------------|
+| **Synchronous** | 50-200ms | Real-time APIs, chat | APIM policy blocking |
+| **Asynchronous** | Background | Batch processing, logging | Queue-based analysis |
+
+## Implementation Patterns
+
+### APIM Policy Integration
+
+#### Basic Content Safety Check
+
+```xml
+<policies>
+  <inbound>
+    <!-- Extract prompt from OpenAI request -->
+    <set-variable name="prompt" value="@{
+      JObject body = context.Request.Body.As<JObject>(preserveContent: true);
+      return body?["messages"]?.Last?["content"]?.ToString() ?? "";
+    }" />
+    
+    <!-- Send to Content Safety API -->
+    <send-request mode="new" response-variable-name="safety-check" timeout="5">
+      <set-url>https://{{content-safety-name}}.cognitiveservices.azure.com/contentsafety/text:analyze?api-version=2023-10-01</set-url>
+      <set-method>POST</set-method>
+      <set-header name="Ocp-Apim-Subscription-Key">
+        <value>{{content-safety-key}}</value>
+      </set-header>
+      <set-header name="Content-Type">
+        <value>application/json</value>
+      </set-header>
+      <set-body>@{
+        return new JObject(
+          new JProperty("text", context.Variables.GetValueOrDefault("prompt", "")),
+          new JProperty("categories", new JArray("Hate", "Sexual", "Violence", "SelfHarm")),
+          new JProperty("blocklistNames", new JArray()),
+          new JProperty("haltOnBlocklistHit", true)
+        ).ToString();
+      }</set-body>
+    </send-request>
+    
+    <!-- Check safety results -->
+    <set-variable name="safety-result" value="@(((IResponse)context.Variables["safety-check"]).Body.As<JObject>())" />
+    
+    <choose>
+      <when condition="@{
+        var result = context.Variables.GetValueOrDefault<JObject>("safety-result", null);
+        if (result == null) return false;
+        var categories = result["categoriesAnalysis"] as JArray;
+        if (categories == null) return false;
+        foreach (var cat in categories) {
+          var severity = cat["severity"]?.Value<int>() ?? 0;
+          if (severity >= 2) return true; // Medium or High
+        }
+        return false;
+      }">
+        <return-response>
+          <set-status code="400" reason="Content Safety Violation" />
+          <set-header name="Content-Type">
+            <value>application/json</value>
+          </set-header>
+          <set-body>{
+            "error": "Content violates safety policy",
+            "violation": "@(context.Variables.GetValueOrDefault<JObject>("safety-result", null)?["categoriesAnalysis"]?.ToString())"
+          }</set-body>
+        </return-response>
+      </when>
+    </choose>
+  </inbound>
+</policies>
+```
+
+#### Advanced Content Safety with Custom Categories
+
+```xml
+<policies>
+  <inbound>
+    <!-- Check content with custom thresholds -->
+    <send-request mode="new" response-variable-name="safety-check" timeout="5">
+      <set-url>https://{{content-safety-name}}.cognitiveservices.azure.com/contentsafety/text:analyze?api-version=2023-10-01</set-url>
+      <set-method>POST</set-method>
+      <set-header name="Ocp-Apim-Subscription-Key">
+        <value>{{content-safety-key}}</value>
+      </set-header>
+      <set-header name="Content-Type">
+        <value>application/json</value>
+      </set-header>
+      <set-body>@{
+        return new JObject(
+          new JProperty("text", context.Variables.GetValueOrDefault("prompt", "")),
+          new JProperty("categories", new JArray("Hate", "Sexual", "Violence", "SelfHarm")),
+          new JProperty("blocklistNames", new JArray("profanity-list", "pii-patterns")),
+          new JProperty("haltOnBlocklistHit", true),
+          new JProperty("outputType", "FourSeverityLevels")
+        ).ToString();
+      }</set-body>
+    </send-request>
+    
+    <set-variable name="safety-result" value="@(((IResponse)context.Variables["safety-check"]).Body.As<JObject>())" />
+    
+    <!-- Log all safety checks for audit -->
+    <log-to-eventhub logger-id="content-safety-logger">
+      @{
+        return new JObject(
+          new JProperty("timestamp", DateTime.UtcNow.ToString("o")),
+          new JProperty("type", "content-safety-check"),
+          new JProperty("contractId", context.Variables.GetValueOrDefault("contract-id", "")),
+          new JProperty("result", context.Variables.GetValueOrDefault<JObject>("safety-result", null)?.ToString()),
+          new JProperty("action", "pre-processing")
+        ).ToString();
+      }
+    </log-to-eventhub>
+    
+    <!-- Block on Medium or High severity -->
+    <choose>
+      <when condition="@{
+        var result = context.Variables.GetValueOrDefault<JObject>("safety-result", null);
+        if (result == null) return true; // Fail safe
+        
+        var categories = result["categoriesAnalysis"] as JArray;
+        if (categories == null) return true;
+        
+        foreach (var cat in categories) {
+          var category = cat["category"]?.ToString();
+          var severity = cat["severity"]?.Value<int>() ?? 0;
+          
+          // Different thresholds per category
+          if (category == "SelfHarm" && severity >= 1) return true; // Strict for self-harm
+          if (category == "Violence" && severity >= 2) return true; // Medium+ for violence
+          if (category == "Hate" && severity >= 2) return true;
+          if (category == "Sexual" && severity >= 2) return true;
+        }
+        return false;
+      }">
+        <return-response>
+          <set-status code="400" reason="Content Safety Violation" />
+          <set-header name="Content-Type">
+            <value>application/json</value>
+          </set-header>
+          <set-body>{
+            "error": "Content violates safety policy",
+            "code": "CONTENT_SAFETY_VIOLATION",
+            "message": "The submitted content has been flagged by our safety system. Please review and modify your request."
+          }</set-body>
+        </return-response>
+      </when>
+    </choose>
+  </inbound>
+</policies>
+```
+
+### Post-Processing Response Filtering
+
+```xml
+<policies>
+  <outbound>
+    <!-- Check AI response for safety -->
+    <set-variable name="response-content" value="@{
+      JObject body = context.Response.Body.As<JObject>(preserveContent: true);
+      return body?["choices"]?.First?["message"]?.["content"]?.ToString() ?? "";
+    }" />
+    
+    <!-- Send to Content Safety -->
+    <send-request mode="new" response-variable-name="response-safety" timeout="5">
+      <set-url>https://{{content-safety-name}}.cognitiveservices.azure.com/contentsafety/text:analyze?api-version=2023-10-01</set-url>
+      <set-method>POST</set-method>
+      <set-header name="Ocp-Apim-Subscription-Key">
+        <value>{{content-safety-key}}</value>
+      </set-header>
+      <set-header name="Content-Type">
+        <value>application/json</value>
+      </set-header>
+      <set-body>@{
+        return new JObject(
+          new JProperty("text", context.Variables.GetValueOrDefault("response-content", "")),
+          new JProperty("categories", new JArray("Hate", "Sexual", "Violence", "SelfHarm"))
+        ).ToString();
+      }</set-body>
+    </send-request>
+    
+    <!-- Mask harmful content in response -->
+    <choose>
+      <when condition="@{
+        var result = ((IResponse)context.Variables["response-safety"]).Body.As<JObject>();
+        var categories = result["categoriesAnalysis"] as JArray;
+        if (categories == null) return false;
+        foreach (var cat in categories) {
+          if (cat["severity"]?.Value<int>() ?? 0 >= 2) return true;
+        }
+        return false;
+      }">
+        <set-body>@{
+          JObject body = context.Response.Body.As<JObject>(preserveContent: true);
+          body["choices"][0]["message"]["content"] = "[Content filtered by safety policy]";
+          return body.ToString();
+        }</set-body>
+      </when>
+    </choose>
+  </outbound>
+</policies>
+```
+
+## Configuration Examples
+
+### Content Safety Resource Deployment (Bicep)
+
+```bicep
+param location string = resourceGroup().location
+param contentSafetyName string
+param tags object = {}
+
+resource contentSafety 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
+  name: contentSafetyName
+  location: location
+  sku: {
+    name: 'S0'
+  }
+  kind: 'ContentSafety'
+  properties: {
+    publicNetworkAccess: 'Disabled'
+    networkAcls: {
+      defaultAction: 'Deny'
+      ipRules: []
+      virtualNetworkRules: [
+        {
+          id: subnetId
+          ignoreMissingVnetServiceEndpoint: false
+        }
+      ]
+    }
+  }
+  tags: tags
+}
+
+// Private endpoint for secure access
+resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-05-01' = {
+  name: '${contentSafetyName}-pe'
+  location: location
+  properties: {
+    subnet: {
+      id: subnetId
+    }
+    privateLinkServiceConnections: [
+      {
+        name: '${contentSafetyName}-plsc'
+        properties: {
+          privateLinkServiceId: contentSafety.id
+          groupIds: ['account']
+        }
+      }
+    ]
+  }
+}
+
+// Store keys in Key Vault
+module keyVaultSecret './keyvault-secret.bicep' = {
+  name: 'content-safety-key'
+  params: {
+    keyVaultName: keyVaultName
+    secretName: 'content-safety-key'
+    secretValue: contentSafety.listKeys().key1
+  }
+}
+```
+
+### Terraform Configuration
+
+```hcl
+resource "azurerm_cognitive_account" "content_safety" {
+  name                = var.content_safety_name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  kind                = "ContentSafety"
+  sku_name            = "S0"
+
+  public_network_access_enabled = false
+
+  network_acls {
+    default_action = "Deny"
+    
+    virtual_network_rules {
+      subnet_id = var.subnet_id
+    }
+  }
+
+  tags = var.tags
+}
+
+# Private endpoint
+resource "azurerm_private_endpoint" "content_safety" {
+  name                = "${var.content_safety_name}-pe"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.subnet_id
+
+  private_service_connection {
+    name                           = "${var.content_safety_name}-plsc"
+    private_connection_resource_id = azurerm_cognitive_account.content_safety.id
+    is_manual_connection           = false
+    subresource_names              = ["account"]
+  }
+}
+
+# Store key in Key Vault
+resource "azurerm_key_vault_secret" "content_safety_key" {
+  name         = "content-safety-key"
+  value        = azurerm_cognitive_account.content_safety.primary_access_key
+  key_vault_id = var.key_vault_id
+}
+```
+
+### API Integration Code Sample
+
+```csharp
+using Azure;
+using Azure.AI.ContentSafety;
+
+public class ContentSafetyService
+{
+    private readonly ContentSafetyClient _client;
+    
+    public ContentSafetyService(string endpoint, string key)
+    {
+        _client = new ContentSafetyClient(
+            new Uri(endpoint), 
+            new AzureKeyCredential(key));
+    }
+    
+    public async Task<SafetyResult> AnalyzeTextAsync(string text)
+    {
+        var request = new AnalyzeTextOptions(text);
+        
+        // Analyze all categories
+        request.Categories.Add(TextCategory.Hate);
+        request.Categories.Add(TextCategory.Sexual);
+        request.Categories.Add(TextCategory.Violence);
+        request.Categories.Add(TextCategory.SelfHarm);
+        
+        var response = await _client.AnalyzeTextAsync(request);
+        
+        return new SafetyResult
+        {
+            IsSafe = response.Value.CategoriesAnalysis.All(
+                c => c.Severity < 2),
+            Categories = response.Value.CategoriesAnalysis.Select(
+                c => new CategoryResult
+                {
+                    Category = c.Category.ToString(),
+                    Severity = c.Severity ?? 0
+                }).ToList()
+        };
+    }
+}
+```
+
+### Multi-Language Support
+
+Content Safety supports content in multiple languages:
+
+| Language | Code | Support Level |
+|----------|------|---------------|
+| English | en | Full |
+| Spanish | es | Full |
+| French | fr | Full |
+| German | de | Full |
+| Chinese | zh | Full |
+| Japanese | ja | Full |
+| Portuguese | pt | Full |
+| Italian | it | Full |
+| Arabic | ar | Partial |
+| Hindi | hi | Partial |
+
+```xml
+<!-- Language-aware content check -->
+<set-body>@{
+  return new JObject(
+    new JProperty("text", context.Variables.GetValueOrDefault("prompt", "")),
+    new JProperty("categories", new JArray("Hate", "Sexual", "Violence", "SelfHarm")),
+    new JProperty("language", context.Request.Headers.GetValueOrDefault("Accept-Language", "en").Split(',')[0])
+  ).ToString();
+}</set-body>
+```
+
+## Policy Enforcement
+
+### Block vs Flag Decisions
+
+| Action | Threshold | Use Case | Implementation |
+|--------|-----------|----------|----------------|
+| **Block** | Severity ≥ 2 | Production APIs, strict compliance | Return 400 error |
+| **Flag** | Severity ≥ 1 | Logging, review queues | Log and allow |
+| **Allow** | Severity = 0 | All safe content | Pass through |
+
+### Custom Business Logic
+
+```xml
+<policies>
+  <inbound>
+    <choose>
+      <!-- Healthcare: Extra strict on self-harm -->
+      <when condition="@(context.Variables.GetValueOrDefault("contract-industry", "") == "healthcare")">
+        <set-variable name="self-harm-threshold" value="1" />
+      </when>
+      <!-- Gaming: Standard thresholds -->
+      <when condition="@(context.Variables.GetValueOrDefault("contract-industry", "") == "gaming")">
+        <set-variable name="self-harm-threshold" value="2" />
+      </when>
+      <!-- Default: Balanced approach -->
+      <otherwise>
+        <set-variable name="self-harm-threshold" value="2" />
+      </otherwise>
+    </choose>
+  </inbound>
+</policies>
+```
+
+### Audit Logging for Flagged Content
+
+```xml
+<policies>
+  <inbound>
+    <!-- After safety check -->
+    <choose>
+      <when condition="@{
+        var result = context.Variables.GetValueOrDefault<JObject>("safety-result", null);
+        if (result == null) return false;
+        var categories = result["categoriesAnalysis"] as JArray;
+        if (categories == null) return false;
+        return categories.Any(c => c["severity"]?.Value<int>() ?? 0 >= 1);
+      }">
+        <log-to-eventhub logger-id="flagged-content-logger">
+          @{
+            return new JObject(
+              new JProperty("timestamp", DateTime.UtcNow.ToString("o")),
+              new JProperty("type", "flagged-content"),
+              new JProperty("contractId", context.Variables.GetValueOrDefault("contract-id", "")),
+              new JProperty("userId", context.Variables.GetValueOrDefault("user-id", "")),
+              new JProperty("safetyResult", context.Variables.GetValueOrDefault<JObject>("safety-result", null)?.ToString()),
+              new JProperty("action", "flagged-for-review"),
+              new JProperty("clientIp", context.Request.IpAddress)
+            ).ToString();
+          }
+        </log-to-eventhub>
+      </when>
+    </choose>
+  </inbound>
+</policies>
+```
+
+## Performance Considerations
+
+### Latency Impact
+
+| Configuration | Typical Latency | Impact |
+|---------------|-----------------|--------|
+| Simple text check | 50-100ms | Minimal |
+| Text + blocklists | 100-150ms | Low |
+| Image analysis | 500-2000ms | Significant |
+| Multiple calls | Additive | Consider batching |
+
+### Batching Strategies
+
+```csharp
+// Batch multiple content checks
+public async Task<BatchResult> AnalyzeBatchAsync(List<string> texts)
+{
+    var tasks = texts.Select(async text =>
+    {
+        var result = await AnalyzeTextAsync(text);
+        return new { Text = text, Result = result };
+    });
+    
+    var results = await Task.WhenAll(tasks);
+    return new BatchResult { Results = results.ToList() };
+}
+```
+
+### Caching Recommendations
+
+```xml
+<policies>
+  <inbound>
+    <!-- Cache safety results for repeated content -->
+    <cache-lookup-value key="safety-@((context.Variables.GetValueOrDefault("prompt", "")).GetHashCode())" 
+                        variable-name="cached-safety" 
+                        default-value="null" />
+    
+    <choose>
+      <when condition="@(context.Variables.GetValueOrDefault("cached-safety", null) == null)">
+        <!-- Perform safety check -->
+        <send-request mode="new" response-variable-name="safety-check" timeout="5">
+          <!-- ... API call ... -->
+        </send-request>
+        
+        <!-- Cache result for 5 minutes -->
+        <cache-store-value key="safety-@((context.Variables.GetValueOrDefault("prompt", "")).GetHashCode())" 
+                           value="@(((IResponse)context.Variables["safety-check"]).Body.As<JObject>().ToString())"
+                           duration="300" />
+      </when>
+    </choose>
+  </inbound>
+</policies>
+```
+
+## Best Practices
+
+### Threshold Tuning
+
+1. **Start Conservative**: Begin with severity ≥ 2 blocking
+2. **Monitor False Positives**: Track blocked requests and user complaints
+3. **Industry-Specific**: Adjust thresholds based on use case
+4. **Gradual Relaxation**: Slowly lower thresholds as confidence increases
+
+### False Positive Handling
+
+| Strategy | Implementation |
+|----------|----------------|
+| **Appeal Process** | Allow users to request manual review |
+| **Allow Lists** | Maintain lists of approved terms/phrases |
+| **Context Awareness** | Consider conversation context in decisions |
+| **Feedback Loop** | Report false positives to improve models |
+
+### Human Review Workflows
+
+```
+Flagged Content Review Process:
+
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│   Content    │───▶│   Flagged    │───▶│   Review     │───▶│   Decision   │
+│   Flagged    │    │   Queue      │    │   Team       │    │   Made       │
+└──────────────┘    └──────────────┘    └──────────────┘    └──────────────┘
+                                                           │
+                              ┌────────────────────────────┼────────────────────────────┐
+                              │                            │                            │
+                              ▼                            ▼                            ▼
+                        ┌──────────┐                ┌──────────┐                ┌──────────┐
+                        │  Allow   │                │  Block   │                │  Escalate│
+                        │  List    │                │  List    │                │          │
+                        └──────────┘                └──────────┘                └──────────┘
+```
+
+### Content Safety Studio Usage
+
+The **Content Safety Studio** provides a web-based interface for:
+
+| Feature | Purpose |
+|---------|---------|
+| **Interactive Testing** | Test content against policies |
+| **Threshold Tuning** | Adjust severity thresholds visually |
+| **Blocklist Management** | Create and manage custom blocklists |
+| **Analytics Dashboard** | View moderation statistics |
+| **Feedback Integration** | Submit false positives for model improvement |
+
+## Integration with Layer 4 Security Fabric
+
+Content Safety works alongside other Layer 4 components:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    LAYER 4: SECURITY FABRIC                  │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│   │  Content    │  │  Microsoft  │  │  Microsoft  │         │
+│   │  Safety     │  │  Defender   │  │  Purview    │         │
+│   │  (Content)  │  │  (Threats)  │  │  (Data)     │         │
+│   └──────┬──────┘  └──────┬──────┘  └──────┬──────┘         │
+│          │                │                │                │
+│          └────────────────┼────────────────┘                │
+│                           │                                 │
+│                    ┌──────▼──────┐                          │
+│                    │   Unified   │                          │
+│                    │   Response  │                          │
+│                    └─────────────┘                          │
+│                                                              │
+│   Integration Points:                                        │
+│   • Defender: Threat context for jailbreak detection         │
+│   • Purview: PII detection alongside content safety          │
+│   • Entra: User context for safety decisions                 │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Next Steps
+
+- Review [PII Protection](./pii-protection) for data governance
+- Explore [Security Compliance](./security-compliance) for broader security context
+- Learn about [Policy Enforcement](./policy-enforcement) for APIM configuration
+- See [Layer 4 Security Fabric](../architecture/layer-4-security-fabric) for comprehensive security overview
