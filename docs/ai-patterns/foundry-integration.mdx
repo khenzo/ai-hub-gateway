@@ -1,0 +1,430 @@
+---
+title: Foundry Control Plane Integration
+subtitle: Integrating Azure AI Foundry with the AI Landing Zone architecture
+description: Documentation of Foundry Control Plane integration patterns for the AI Landing Zone, including hub-spoke deployment, governance, and observability
+tags: ['Azure AI Foundry', 'Control Plane', 'Integration', 'Observability']
+icon: cloud
+---
+
+# Foundry Control Plane Integration
+
+This document describes how to integrate **Azure AI Foundry** with the AI Landing Zone architecture, covering the Control Plane capabilities, deployment patterns, and integration with the central governance hub.
+
+<Info>
+Azure AI Foundry provides a unified platform for building, deploying, and managing AI applications. The Control Plane adds enterprise-grade observability, compliance, and governance capabilities.
+</Info>
+
+## Foundry Control Plane Overview
+
+The Foundry Control Plane serves as the **Layer 2** observability and compliance brain in the [4-layer architecture](/architecture/layers/layer2-control-plane), providing:
+
+| Capability | Function | Value |
+|------------|----------|-------|
+| **Controls** | Define and enforce AI evaluations | Automated compliance checks |
+| **Observability** | Agent execution traces, performance monitoring | End-to-end visibility |
+| **Security** | Zero trust architecture, AI red teaming | Proactive threat detection |
+| **Fleet Operations** | Track and manage agent lifecycle | Centralized agent management |
+
+### Core Capabilities
+
+<CardGroup>
+  <Card title="Centralized AI Resource Management" icon="server">
+    Manage models, agents, and tools across the organization from a single control plane
+  </Card>
+  <Card title="Model Catalog" icon="database">
+    Curated catalog of foundation models with versioning and deployment management
+  </Card>
+  <Card title="Agent Runtime" icon="robot">
+    Orchestration and execution environment for AI agents with built-in governance
+  </Card>
+  <Card title="Observability" icon="eye">
+    End-to-end tracing, monitoring, and compliance tracking for all AI operations
+  </Card>
+</CardGroup>
+
+## Integration Architecture
+
+### High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    ENTERPRISE AZURE ENVIRONMENT                              │
+│                                                                              │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │                CENTRAL GOVERNANCE HUB (CGH)                           │   │
+│  │  ┌─────────────────┐  ┌───────────────┐  ┌───────────────────────┐   │   │
+│  │  │  API Management │  │  API Center   │  │  Observability Stack  │   │   │
+│  │  │  (AI Gateway)   │  │  (Registry)   │  │  App Insights/Logs    │   │   │
+│  │  └────────┬────────┘  └───────────────┘  └───────────┬───────────┘   │   │
+│  │           │                                          │               │   │
+│  │           │         ┌────────────────────┐          │               │   │
+│  │           │         │  Content Safety    │          │               │   │
+│  │           │         │  (Policy Enforce)  │          │               │   │
+│  │           │         └────────────────────┘          │               │   │
+│  └───────────┼─────────────────────────────────────────┼───────────────┘   │
+│              │                                         │                   │
+│              │    ┌────────────────────────────────────┘                   │
+│              │    │  Telemetry & Audit Logs                                 │
+│              │    ▼                                                        │
+│              │  ┌─────────────────────────────────────────────────────┐    │
+│              └──┤              FOUNDRY CONTROL PLANE                   │    │
+│                 │                                                      │    │
+│                 │  ┌──────────────┐  ┌──────────────┐  ┌────────────┐ │    │
+│                 │  │   Controls   │  │Observability │  │   Fleet    │ │    │
+│                 │  │              │  │              │  │Operations  │ │    │
+│                 │  │ • Evaluations│  │ • Traces     │  │ • Agents   │ │    │
+│                 │  │ • Policies   │  │ • Metrics    │  │ • Models   │ │    │
+│                 │  │ • Compliance │  │ • Alerts     │  │ • Projects │ │    │
+│                 │  └──────────────┘  └──────────────┘  └────────────┘ │    │
+│                 └─────────────────────────────────────────────────────┘    │
+│                                    │                                        │
+│              ┌─────────────────────┼─────────────────────┐                  │
+│              │                     │                     │                  │
+│  ┌───────────▼───┐       ┌─────────▼────┐      ┌─────────▼────┐             │
+│  │ Foundry Hub   │       │ Foundry Hub  │      │ Foundry Hub  │             │
+│  │ (Governance)  │       │ (AI Project) │      │ (AI Project) │             │
+│  │               │       │   Spoke 1    │      │   Spoke 2    │             │
+│  │ • Model Catalog│      │              │      │              │             │
+│  │ • Central AI  │       │ • AI Apps    │      │ • AI Apps    │             │
+│  │ • Shared Svcs │       │ • Agents     │      │ • Agents     │             │
+│  └───────────────┘       └──────────────┘      └──────────────┘             │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### APIM to Foundry Request Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     REQUEST FLOW: APIM → FOUNDRY                         │
+│                                                                          │
+│  Agent/Client    CGH Gateway       Foundry Control     Foundry Hub      │
+│       │              │                  Plane              │            │
+│       │              │                     │                 │            │
+│       │ 1. Request   │                     │                 │            │
+│       │─────────────▶│                     │                 │            │
+│       │              │                     │                 │            │
+│       │         2. Auth & Policy          │                 │            │
+│       │              │                     │                 │            │
+│       │              │ 3. Route            │                 │            │
+│       │              │────────────────────▶│                 │            │
+│       │              │                     │                 │            │
+│       │              │              4. Validate & Track      │            │
+│       │              │                     │                 │            │
+│       │              │                     │ 5. Forward      │            │
+│       │              │                     │────────────────▶│            │
+│       │              │                     │                 │            │
+│       │              │              6. Model Execution       │            │
+│       │              │                     │◀────────────────│            │
+│       │              │                     │                 │            │
+│       │              │              7. Compliance Check      │            │
+│       │              │                     │                 │            │
+│       │              │ 8. Response & Log   │                 │            │
+│       │              │◀────────────────────│                 │            │
+│       │              │                     │                 │            │
+│       │ 9. Response  │                     │                 │            │
+│       │◀─────────────│                     │                 │            │
+│       │              │                     │                 │            │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+## Hub-Spoke Integration Patterns
+
+### Pattern 1: Foundry Hub in Governance Spoke
+
+Deploy the Foundry Hub as part of the Central Governance Hub:
+
+```
+Central Governance Hub (CGH)
+├── Azure API Management (AI Gateway)
+├── API Center (AI Registry)
+├── Azure AI Foundry Hub
+│   ├── Model Catalog (shared across organization)
+│   ├── Central AI Services (content safety, etc.)
+│   └── Shared Connections (Azure OpenAI, etc.)
+└── Observability Stack
+    ├── Application Insights
+    └── Log Analytics
+```
+
+**Benefits:**
+- Centralized model management
+- Shared AI services reduce costs
+- Unified governance and observability
+- Simplified network architecture
+
+### Pattern 2: Foundry Hub in Dedicated Spoke
+
+Deploy Foundry Hub in its own spoke for organizational separation:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              CENTRAL GOVERNANCE HUB                          │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  Azure API Management (routes to Foundry Hub)       │   │
+│  └─────────────────────────────────────────────────────┘   │
+└───────────────────────────┬─────────────────────────────────┘
+                            │ VNet Peering
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│              FOUNDRY HUB SPOKE                               │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │              Azure AI Foundry Hub                    │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │   │
+│  │  │ Model       │  │ Content     │  │ Connections │  │   │
+│  │  │ Catalog     │  │ Safety      │  │ (AOAI, etc) │  │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  │   │
+│  └─────────────────────────────────────────────────────┘   │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+              ┌─────────────┼─────────────┐
+              │             │             │
+┌─────────────▼───┐ ┌───────▼────┐ ┌──────▼────┐
+│ AI Project      │ │ AI Project │ │ AI Project│
+│ Spoke 1         │ │ Spoke 2    │ │ Spoke 3   │
+└─────────────────┘ └────────────┘ └───────────┘
+```
+
+**Benefits:**
+- Clear separation of concerns
+- Independent scaling of Foundry Hub
+- Network isolation for sensitive AI workloads
+- Flexibility for multi-region deployments
+
+### Pattern 3: Distributed Foundry Hubs
+
+Multiple Foundry Hubs for different business units or regions:
+
+```
+                        CGH Gateway
+                            │
+           ┌────────────────┼────────────────┐
+           │                │                │
+    ┌──────▼──────┐  ┌──────▼──────┐  ┌──────▼──────┐
+    │ Foundry Hub │  │ Foundry Hub │  │ Foundry Hub │
+    │  (Americas) │  │   (EMEA)    │  │   (APAC)    │
+    └──────┬──────┘  └──────┬──────┘  └──────┬──────┘
+           │                │                │
+     ┌─────┴─────┐    ┌─────┴─────┐    ┌─────┴─────┐
+     │           │    │           │    │           │
+┌────▼───┐ ┌────▼───┐ ┌────▼───┐ ┌────▼───┐ ┌────▼───┐
+│Spoke   │ │Spoke   │ │Spoke   │ │Spoke   │ │Spoke   │
+│(Fin)   │ │Spoke   │ │Spoke   │ │Spoke   │ │Spoke   │
+└────────┘ └────────┘ └────────┘ └────────┘ └────────┘
+```
+
+**Benefits:**
+- Data residency compliance
+- Regional performance optimization
+- Business unit autonomy
+- Disaster recovery across regions
+
+## Authentication and Authorization Flow
+
+### Identity Integration
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     AUTHENTICATION FLOW                          │
+│                                                                  │
+│  1. Agent requests token from Entra ID                           │
+│                                                                  │
+│       Agent ──▶ Entra ID ──▶ Token (JWT)                        │
+│                                                                  │
+│  2. Request to APIM with token                                   │
+│                                                                  │
+│       Agent ──▶ APIM Gateway ──▶ Validate JWT                   │
+│                     │                                           │
+│                     ▼                                           │
+│              Check permissions                                  │
+│              Rate limiting                                      │
+│              Content safety                                     │
+│                     │                                           │
+│  3. Forward to Foundry with context                              │
+│                     │                                           │
+│                     ▼                                           │
+│       APIM ──▶ Foundry Control Plane ──▶ Foundry Hub           │
+│                                                                  │
+│  4. Foundry validates with Entra ID                              │
+│                                                                  │
+│       Foundry ──▶ Entra ID ──▶ Validate + Get permissions       │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Authorization Models
+
+| Model | Use Case | Implementation |
+|-------|----------|----------------|
+| **RBAC** | Role-based access (admin, developer, user) | Entra ID groups → APIM subscriptions |
+| **ABAC** | Attribute-based (department, project, clearance) | Custom claims in JWT |
+| **Policy-based** | Dynamic based on request context | APIM policies evaluating claims |
+
+## Observability Integration
+
+### Telemetry Pipeline
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      OBSERVABILITY PIPELINE                              │
+│                                                                          │
+│  Sources                     Collection              Analysis            │
+│  ─────────────────────────────────────────────────────────────────────   │
+│                                                                          │
+│  ┌──────────┐              ┌──────────────┐         ┌──────────────┐    │
+│  │   APIM   │─────────────▶│  App Insights│────────▶│   Dashboards │    │
+│  │  Logs    │              │              │         │              │    │
+│  └──────────┘              └──────────────┘         └──────────────┘    │
+│       │                          │                     │                │
+│       │                          │                     │                │
+│  ┌────▼──────┐              ┌────▼───────┐         ┌───▼──────────┐    │
+│  │  Foundry  │─────────────▶│   Logs     │────────▶│   Alerts     │    │
+│  │  Traces   │              │ Analytics  │         │              │    │
+│  └───────────┘              └────────────┘         └──────────────┘    │
+│       │                          │                     │                │
+│       │                          │                     │                │
+│  ┌────▼──────┐              ┌────▼───────┐         ┌───▼──────────┐    │
+│  │  Agent    │─────────────▶│  Custom    │────────▶│   Cost       │    │
+│  │  Metrics  │              │  Tables    │         │   Attribution│    │
+│  └───────────┘              └────────────┘         └──────────────┘    │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Key Metrics to Track
+
+| Category | Metric | Source | Purpose |
+|----------|--------|--------|---------|
+| **Performance** | Request latency | APIM, Foundry | SLA monitoring |
+| **Performance** | Token throughput | APIM | Capacity planning |
+| **Usage** | Requests per tenant | APIM | Chargeback |
+| **Usage** | Model invocations | Foundry | Usage patterns |
+| **Cost** | Token consumption | APIM + Foundry | Budget tracking |
+| **Cost** | Cost per project | Custom calculation | Showback |
+| **Security** | Blocked requests | APIM policies | Threat detection |
+| **Security** | Content safety hits | Content Safety | Compliance |
+
+## Cost Allocation and Chargeback
+
+### Cost Attribution Model
+
+```
+Cost Attribution Flow:
+=====================
+
+1. APIM captures cost metadata
+   └── Headers: x-cost-center, x-project-id, x-team-id
+
+2. Logs flow to Log Analytics
+   └── Custom tables: AICostAllocation_CL
+
+3. Foundry provides usage data
+   └── Token counts, model usage, storage
+
+4. KQL queries calculate costs
+   └── Combine APIM logs + Foundry usage
+
+5. Export to billing system
+   └── Per-project, per-team cost allocation
+```
+
+### Sample KQL Query
+
+```kusto
+// Cost attribution by project
+AICostLogs_CL
+| where TimeGenerated > ago(30d)
+| extend 
+    ProjectId = tostring(parse_json(properties).projectId),
+    TeamId = tostring(parse_json(properties).teamId),
+    TokenCount = toint(parse_json(properties).tokenCount)
+| summarize 
+    TotalTokens = sum(TokenCount),
+    EstimatedCost = sum(TokenCount) * 0.00001 // Per-token rate
+    by ProjectId, TeamId, bin(TimeGenerated, 1d)
+| order by TimeGenerated desc
+```
+
+## Migration Path from Standalone Foundry
+
+For organizations already using Azure AI Foundry, here's the migration path:
+
+### Phase 1: Assessment (Week 1-2)
+
+1. **Inventory existing resources**
+   - Document current Foundry projects
+   - Map access patterns and users
+   - Identify integration points
+
+2. **Plan integration**
+   - Design hub-spoke topology
+   - Plan network connectivity
+   - Design policy framework
+
+### Phase 2: CGH Deployment (Week 3-4)
+
+1. Deploy Central Governance Hub
+2. Configure APIM gateway
+3. Set up observability stack
+4. Establish VNet peering
+
+### Phase 3: Integration (Week 5-6)
+
+1. Connect Foundry Hub to CGH
+2. Migrate projects to spokes
+3. Implement policies
+4. Configure authentication
+
+### Phase 4: Migration (Week 7-8)
+
+1. Migrate workloads incrementally
+2. Update application connections
+3. Validate governance enforcement
+4. Decommission standalone access
+
+## Best Practices
+
+### Network Security
+
+- Use private endpoints for all Foundry connections
+- Implement NSGs on all subnets
+- Enable Azure Firewall for traffic inspection
+- Use service endpoints where available
+
+### Governance
+
+- Start with permissive policies, tighten gradually
+- Implement tiered access (dev/staging/prod)
+- Use policy inheritance from ALZ
+- Regular policy audits
+
+### Operations
+
+- Monitor token consumption proactively
+- Set up cost alerts at 50%, 75%, 90%
+- Regular backup of model configurations
+- Document runbooks for common issues
+
+## Related Documentation
+
+<CardGroup>
+  <Card title="APIM Reference Architecture" href="/ai-patterns/apim-reference" icon="server">
+    Understand the APIM-based AI Landing Zone pattern
+  </Card>
+  <Card title="Layer 2: Control Plane" href="/architecture/layers/layer2-control-plane" icon="layer-group">
+    Deep dive into the Control Plane layer
+  </Card>
+  <Card title="Pattern Comparison" href="/ai-patterns/pattern-comparison" icon="scale-balanced">
+    Compare with Foundry-only deployment
+  </Card>
+  <Card title="Hub-Spoke Overview" href="/architecture/hub-spoke-overview" icon="network-wired">
+    Understand hub-spoke networking fundamentals
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+1. Review the [pattern comparison](/ai-patterns/pattern-comparison) to understand when to use Foundry-only vs APIM-based
+2. Plan your [network topology](/architecture/network-topology)
+3. Set up [monitoring and observability](/guides/monitoring-setup)
+4. Review [security best practices](/security/best-practices)
