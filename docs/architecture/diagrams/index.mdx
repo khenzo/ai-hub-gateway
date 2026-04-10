@@ -1,0 +1,435 @@
+---
+title: Architecture Diagrams
+description: Visual representations of the Citadel AI Landing Zone architecture
+---
+
+# Architecture Diagrams
+
+This gallery provides comprehensive visual documentation of the Citadel AI Landing Zone architecture, including 4-layer design, networking patterns, deployment options, and data flows.
+
+---
+
+## 1. Citadel 4-Layer Architecture
+
+### Overview
+
+The Foundry Citadel Platform follows a **4-layer architecture** that provides end-to-end AI governance through separation of concerns with unified oversight.
+
+![4-Layer Architecture](/assets/citadel-governance-hub-v1.png)
+
+**Layer Relationships:**
+
+| Layer | Name | Responsibility | Key Components |
+|-------|------|----------------|----------------|
+| 🔷 **Layer 1** | **Governance Hub** | Runtime enforcement | Azure API Management, API Center, Content Safety, Language Service |
+| 🔶 **Layer 2** | **AI Control Plane** | Observability & compliance | Microsoft Foundry Control Plane, AI Evaluations, Fleet Operations |
+| 🟢 **Layer 3** | **Agent Identity (Agent 365)** | Agent identity & lifecycle | Microsoft Entra ID, Shadow Agent Detection, Access Packages |
+| 🛡️ **Layer 4** | **Security Fabric** | Unified protection | Microsoft Defender, Purview, Entra ID |
+
+**Interactions:**
+
+- **Layer 1 → Layer 2**: Governance Hub emits telemetry and audit logs to Control Plane
+- **Layer 2 → Layer 1**: Control Plane provides policy definitions and evaluation results
+- **Layer 1 ↔ Layer 3**: Gateway validates agent identities at runtime
+- **Layer 4 → All Layers**: Security Fabric provides threat intelligence and protection across all layers
+
+---
+
+## 2. Hub-Spoke Topology
+
+### 2.1 High-Level Topology
+
+The hub-spoke architecture provides centralized governance while enabling distributed AI development.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Azure Landing Zone                    │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │         Citadel Governance Hub (CGH)             │    │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────┐  │    │
+│  │  │   API Mgmt  │  │  API Center │  │Content  │  │    │
+│  │  │   (Gateway) │  │  (Registry) │  │ Safety  │  │    │
+│  │  └──────┬──────┘  └─────────────┘  └─────────┘  │    │
+│  │         │                                        │    │
+│  │  ┌─────────────┐  ┌─────────────┐               │    │
+│  │  │Log Analytics│  │  Event Hub  │               │    │
+│  │  │   Cosmos DB │  │   Logic App │               │    │
+│  │  └─────────────┘  └─────────────┘               │    │
+│  └─────────┬───────────────────────────────────────┘    │
+│            │                                             │
+│            │ VNet Peering                                 │
+│            ▼                                             │
+│  ┌─────────────────┐    ┌─────────────────┐              │
+│  │   CAS Spoke 1   │    │   CAS Spoke 2   │              │
+│  │ (Business Unit) │    │ (Business Unit) │              │
+│  │ ┌─────────────┐ │    │ ┌─────────────┐ │              │
+│  │ │AI Foundry   │ │    │ │AI Foundry   │ │              │
+│  │ │Container App│ │    │ │Container App│ │              │
+│  │ └─────────────┘ │    │ └─────────────┘ │              │
+│  └─────────────────┘    └─────────────────┘              │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Key Benefits:**
+
+- **Centralized governance**: All AI traffic flows through hub for policy enforcement
+- **Network isolation**: Spokes are isolated but connected via peering
+- **Cost attribution**: Clear boundaries for chargeback per business unit
+- **Scalability**: Add spokes without impacting hub operations
+
+### 2.2 Hub-Spoke Network Flow
+
+**CGH Hub Network:**
+
+| Subnet | Purpose | Services |
+|--------|---------|----------|
+| `GatewaySubnet` | VPN/ExpressRoute Gateway | VPN Gateway, ER Gateway |
+| `AzureFirewallSubnet` | Central firewall | Azure Firewall |
+| `CGHSubnet` | Core services | APIM, API Center, Content Safety |
+| `MonitoringSubnet` | Observability | Log Analytics, Application Insights |
+
+**CAS Spoke Networks:**
+
+| Subnet | Purpose | Services |
+|--------|---------|----------|
+| `ComputeSubnet` | Agent workloads | AI Foundry, Container Apps, AKS |
+| `DataSubnet` | Data services | Cosmos DB, Storage Account, AI Search |
+| `IntegrationSubnet` | Service integration | Service Bus, Event Grid |
+
+**Connectivity Patterns:**
+
+- Hub to Spoke: VNet peering with gateway transit
+- Spoke to Internet: Forced tunneling through hub firewall
+- Spoke to Spoke: Via hub (no direct peering)
+- On-premises: Via hub VPN/ExpressRoute gateway
+
+---
+
+## 3. Deployment Architecture
+
+### 3.1 Part of Hub Network Pattern
+
+In this pattern, the Citadel Governance Hub is deployed **within the existing hub VNet** of your Azure Landing Zone.
+
+```
+┌────────────────────────────────────────────────────────┐
+│                  Hub Virtual Network                   │
+│                                                        │
+│   ┌─────────────────┐    ┌─────────────────────────┐  │
+│   │  Existing Hub   │    │  Citadel Governance Hub │  │
+│   │   Services      │    │        (CGH)            │  │
+│   │ ┌───────────┐   │    │  ┌─────────────────┐    │  │
+│   │ │Firewall   │   │    │  │  API Management │    │  │
+│   │ │VPN GW     │   │    │  │  API Center     │    │  │
+│   │ │DNS        │   │    │  │  Content Safety │    │  │
+│   │ └───────────┘   │    │  └─────────────────┘    │  │
+│   └────────┬────────┘    └───────────┬─────────────┘  │
+│            │                         │                │
+│            └──────────┬──────────────┘                │
+│                       │                               │
+│              ┌────────┴────────┐                      │
+│              │   Shared NSGs   │                      │
+│              │   Route Tables  │                      │
+│              └─────────────────┘                      │
+└────────────────────────────────────────────────────────┘
+                              │
+                              │ VNet Peering
+                              ▼
+                    ┌──────────────────────┐
+                    │   Spoke Networks     │
+                    │ (Agent Workloads)    │
+                    └──────────────────────┘
+```
+
+**When to Use:**
+
+- Existing hub has capacity
+- Simplified network management
+- Lower latency between hub services
+- Smaller scale deployments (< 50 spokes)
+
+### 3.2 Part of Spoke Network Pattern
+
+In this pattern, the Citadel Governance Hub is deployed in a **dedicated spoke VNet** that connects to the hub VNet via peering.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  Hub Virtual Network                    │
+│                                                         │
+│   ┌──────────────┐    ┌──────────────┐                 │
+│   │   Firewall   │    │   VPN GW     │                 │
+│   │   DNS Zones  │    │   Route Table│                 │
+│   └──────────────┘    └──────────────┘                 │
+└─────────┬───────────────────────────────────────────────┘
+          │
+          │ VNet Peering
+          ▼
+┌─────────────────────────────────────────────────────────┐
+│              Citadel Governance Hub VNet                │
+│                                                         │
+│   ┌───────────────────────────────────────────────┐    │
+│   │          Citadel Governance Hub               │    │
+│   │  ┌─────────────┐  ┌─────────────────────┐     │    │
+│   │  │ API Mgmt    │  │   Monitoring Stack  │     │    │
+│   │  │ API Center  │  │ ┌─────┐ ┌─────────┐ │     │    │
+│   │  │ Content Sfy │  │ │Cosmos│ │Log A    │ │     │    │
+│   │  └─────────────┘  │ │EventH│ │App Ins  │ │     │    │
+│   │                   │ └─────┘ └─────────┘ │     │    │
+│   │                   └─────────────────────┘     │    │
+│   └───────────────────────────────────────────────┘    │
+└─────────────────┬───────────────────────────────────────┘
+                  │
+                  │ VNet Peering (via Hub)
+                  ▼
+┌─────────────────────────────────────────────────────────┐
+│                 Agent Spoke Networks                    │
+│                                                         │
+│   ┌──────────────┐    ┌──────────────┐                 │
+│   │   CAS Spoke  │    │   CAS Spoke  │                 │
+│   │     (BU1)    │    │     (BU2)    │                 │
+│   └──────────────┘    └──────────────┘                 │
+└─────────────────────────────────────────────────────────┘
+```
+
+**When to Use:**
+
+- Large-scale deployments (100+ spokes)
+- Strong separation of concerns required
+- Hub capacity constraints
+- Multi-region deployments
+
+---
+
+## 4. Integration Architecture
+
+### 4.1 Azure Landing Zone Integration
+
+Citadel extends Azure Landing Zones by providing AI-specific capabilities while leveraging shared services.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              Enterprise Azure Landing Zone              │
+│                                                         │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │         Platform Landing Zone (Shared)            │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌──────────┐  │  │
+│  │  │   Entra ID  │  │   Hub VNet  │  │  Monitor │  │  │
+│  │  │   (Identity)│  │  (Network)  │  │   Stack  │  │  │
+│  │  └─────────────┘  └─────────────┘  └──────────┘  │  │
+│  └──────────────────────────────────────────────────┘  │
+│                                                         │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │      AI Application Landing Zone (Citadel)        │  │
+│  │  ┌─────────────────────────────────────────────┐  │  │
+│  │  │      Citadel Governance Hub (CGH)            │  │  │
+│  │  │  ┌──────────┐ ┌──────────┐ ┌──────────────┐ │  │  │
+│  │  │  │  APIM    │ │ API Ctr  │ │ Content Sfty │ │  │  │
+│  │  │  │  (AI GW) │ │(Registry)│ │   (Safety)   │ │  │  │
+│  │  │  └──────────┘ └──────────┘ └──────────────┘ │  │  │
+│  │  └─────────────────────────────────────────────┘  │  │
+│  │                                                      │  │
+│  │  ┌─────────────────┐  ┌─────────────────┐         │  │
+│  │  │   CAS Spoke 1   │  │   CAS Spoke 2   │         │  │
+│  │  │ (AI Workloads)  │  │ (AI Workloads)  │         │  │
+│  │  └─────────────────┘  └─────────────────┘         │  │
+│  └──────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Integration Points:**
+
+| Shared Service | Integration Type | Citadel Usage |
+|----------------|------------------|---------------|
+| Entra ID | Identity | Agent authentication, RBAC, Managed Identities |
+| Hub VNet | Network | VNet peering, private connectivity |
+| Log Analytics | Monitoring | Centralized logging, audit trails |
+| Azure Policy | Governance | Policy inheritance, compliance enforcement |
+| Private DNS | Network | Cross-VNet name resolution |
+
+### 4.2 Service-to-Service Communication
+
+**Internal Communication Flow:**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              Citadel Governance Hub                     │
+│                                                         │
+│   Request Flow:                                         │
+│   ┌─────────┐    ┌─────────────┐    ┌─────────────┐    │
+│   │  Agent  │───▶│  APIM (AI   │───▶│  Backend    │    │
+│   │  Spoke  │    │  Gateway)   │    │  (LLM/Tool) │    │
+│   └─────────┘    └──────┬──────┘    └─────────────┘    │
+│                         │                               │
+│                         ▼                               │
+│                  ┌─────────────┐                        │
+│                  │ Policy Enf. │                        │
+│                  │ Rate Limit  │                        │
+│                  │ Content Sfy │                        │
+│                  └─────────────┘                        │
+│                                                         │
+│   Observability Flow:                                   │
+│   ┌─────────┐    ┌─────────────┐    ┌─────────────┐    │
+│   │  APIM   │───▶│  Event Hub  │───▶│ Logic App   │    │
+│   │  Logs   │    │ (Streaming) │    │ (Transform) │    │
+│   └─────────┘    └─────────────┘    └──────┬──────┘    │
+│                                            │            │
+│                                            ▼            │
+│                                     ┌─────────────┐     │
+│                                     │  Cosmos DB  │     │
+│                                     │ Log Analytics     │
+│                                     └─────────────┘     │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 5. Data Flow Diagrams
+
+### 5.1 AI Request/Response Flow
+
+```
+┌────────────┐     ┌─────────────┐     ┌──────────────┐     ┌────────────┐
+│   Agent    │     │   APIM AI   │     │   Content    │     │  Backend   │
+│  (Spoke)   │────▶│   Gateway   │────▶│   Safety     │────▶│   LLM      │
+└────────────┘     └─────────────┘     └──────────────┘     └────────────┘
+      │                   │                   │                   │
+      │                   │                   │                   │
+      │ 1. Request        │ 2. Authenticate   │ 3. Safety Check   │ 4. Process
+      │    (Prompt)       │    Authorize      │    Filter         │    Generate
+      │                   │                   │                   │
+      │                   │                   │                   │
+      │ 8. Response       │ 7. Transform      │ 6. Safety Check   │ 5. Return
+      │    (Answer)       │    Return         │    Filter         │    Response
+      │                   │                   │                   │
+
+Step-by-Step:
+─────────────
+1. Agent sends AI request with prompt and context
+2. APIM validates identity, checks rate limits, applies routing rules
+3. Content Safety scans prompt for harmful content
+4. Backend LLM processes the request and generates response
+5. LLM returns generated response to gateway
+6. Content Safety scans response for harmful content
+7. APIM transforms response, adds headers, logs telemetry
+8. Response returned to agent with governance metadata
+```
+
+**Key Flow Points:**
+
+| Step | Component | Action |
+|------|-----------|--------|
+| 1 | Agent | Sends request via gateway endpoint |
+| 2 | APIM | JWT validation, rate limiting, routing |
+| 3 | Content Safety | Prompt shield, content filtering |
+| 4 | Backend | LLM inference, tool execution |
+| 5-8 | Reverse flow | Response processing and return |
+
+### 5.2 Governance Telemetry Flow
+
+```
+┌────────────┐     ┌─────────────┐     ┌──────────────┐     ┌────────────┐
+│   APIM     │     │   Event     │     │    Logic     │     │  Storage   │
+│  Gateway   │────▶│    Hub      │────▶│    App       │────▶│  (Cosmos/  │
+│            │     │             │     │              │     │   Logs)    │
+└────────────┘     └─────────────┘     └──────────────┘     └────────────┘
+      │                   │                   │                   │
+      │ 1. Emit           │ 2. Stream         │ 3. Process        │ 4. Store
+      │    Logs           │    Events         │    Transform      │    Index
+      │                   │                   │                   │
+      ▼                   ▼                   ▼                   ▼
+┌────────────┐     ┌─────────────┐     ┌──────────────┐     ┌────────────┐
+│  Request   │     │  Real-time  │     │  Enrichment  │     │ Analytics  │
+│  Metrics   │     │  Pipeline   │     │  Tagging     │     │ Dashboards │
+│  Tokens    │     │  Buffer     │     │  Routing     │     │ Alerts     │
+└────────────┘     └─────────────┘     └──────────────┘     └────────────┘
+```
+
+**Telemetry Data Captured:**
+
+| Data Type | Source | Destination | Purpose |
+|-----------|--------|-------------|---------|
+| Request logs | APIM | Log Analytics | Audit trail, debugging |
+| Token usage | APIM | Cosmos DB | Cost attribution, quotas |
+| Latency metrics | APIM | Application Insights | Performance monitoring |
+| Safety events | Content Safety | Log Analytics | Compliance reporting |
+| Policy violations | APIM | Log Analytics | Security analysis |
+
+### 5.3 Observability Data Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          Observability Stack                            │
+│                                                                         │
+│   Sources                    Ingestion              Visualization       │
+│   ───────                    ────────               ────────────        │
+│                                                                         │
+│   ┌──────────┐              ┌──────────────┐       ┌──────────────┐    │
+│   │   APIM   │─────────────▶│  Log Analytics│──────▶│   Workbooks  │    │
+│   │  Gateway │              │   Workspace   │       │ (Dashboards) │    │
+│   └──────────┘              └──────────────┘       └──────────────┘    │
+│                                  │                                      │
+│   ┌──────────┐                   │              ┌──────────────┐       │
+│   │  Agent   │───────────────────┼─────────────▶│    Alerts    │       │
+│   │ Workloads│                   │              │  (Action Gr) │       │
+│   └──────────┘                   │              └──────────────┘       │
+│                                  │                                      │
+│   ┌──────────┐              ┌────┴─────────┐    ┌──────────────┐      │
+│   │  Content │─────────────▶│  Event Hub   │───▶│  Logic Apps  │      │
+│   │  Safety  │              │ (Streaming)  │    │ (Processing) │      │
+│   └──────────┘              └──────────────┘    └──────────────┘      │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Component Legend
+
+### Core Icons
+
+| Icon | Component | Description |
+|------|-----------|-------------|
+| 🚪 | Azure API Management | Unified AI Gateway for all AI traffic |
+| 📘 | API Center | Universal AI Registry for discovery |
+| 🛡️ | Content Safety | AI content filtering and prompt shield |
+| 💳 | Language Service | PII detection and text analytics |
+| 🔍 | AI Foundry | AI development platform and control plane |
+| 📊 | Log Analytics | Centralized logging and query |
+| 📈 | Application Insights | Application performance monitoring |
+| 📨 | Event Hub | Real-time data streaming |
+| 🗄️ | Cosmos DB | NoSQL database for usage data |
+| ⚡ | Logic App | Workflow automation and processing |
+| 🔐 | Managed Identity | Zero-credential authentication |
+| 🌐 | Virtual Network | Network isolation and connectivity |
+
+### Network Symbols
+
+| Symbol | Meaning |
+|--------|---------|
+| ───▶ | Data flow direction |
+| ┌─┐ │ └─┘ | Network/subnet boundaries |
+| ○───○ | VNet peering connection |
+
+---
+
+## Related Documentation
+
+- [Architecture Overview](/architecture/overview) - High-level architecture concepts
+- [ADR-001: APIM Gateway Pattern](/architecture/decisions/adr-001-apim-gateway-pattern) - Why we chose APIM
+- [ADR-002: Hub-Spoke Networking](/architecture/decisions/adr-002-hub-spoke-networking) - Networking decision
+- [ADR-003: Landing Zone Integration](/architecture/decisions/adr-003-landing-zone-integration) - ALZ integration approach
+- [Azure Landing Zones Integration](/architecture/integration/azure-landing-zones) - Detailed integration guide
+- [Integration Patterns](/architecture/integration/patterns) - Common integration scenarios
+
+---
+
+## Diagram Assets
+
+High-resolution versions of these diagrams are available in the repository:
+
+- `/assets/citadel-governance-hub-v1.png` - 4-Layer Architecture
+- `/assets/network-topology.png` - Hub-Spoke Network Diagram
+- `/assets/deployment-patterns.png` - Deployment Architecture
+- `/assets/data-flows.png` - Data Flow Diagrams
+
+For updates or contributions to these diagrams, please refer to the [Contributing Guide](/contributing).
