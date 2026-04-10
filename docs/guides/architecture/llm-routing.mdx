@@ -1,0 +1,483 @@
+---
+title: "LLM Routing"
+description: "Intelligent request routing and load balancing for LLM backends through Azure API Management"
+---
+
+# LLM Routing
+
+## Overview
+
+The AI Citadel Governance Hub provides intelligent, model-based routing to LLM backends through Azure API Management (APIM). This guide explains how requests are routed to different backend/backend pools when using either the **Universal LLM API** or **Azure OpenAI API**.
+
+## Supported APIs
+
+The following APIs are configured out-of-the-box for handling LLM requests:
+
+| API | Path | Use Case |
+|-----|------|----------|
+| **Universal LLM API** | `/models/*` | **RECOMMENDED** OpenAI-compatible inference endpoints that supports various models |
+| **Azure OpenAI API** | `/openai/deployments/{deployment-id}/*` | Azure OpenAI SDK compatibility |
+
+Both APIs share the same underlying routing infrastructure and policy fragments.
+
+## Approach
+
+The routing relies on APIM Policy Fragments to implement dynamic routing logic without modifying the main API policies.
+
+Using policy fragments allows to keep the routing logic modular and reusable across multiple APIs.
+
+The fragments are:
+- `set-llm-requested-model`: Extracts the requested model from the request
+- `set-backend-pools`: Loads backend pool configurations that include supported models by which backends
+- `set-target-backend-pool`: Matches the requested model to a backend pool
+- `set-backend-authorization`: Configures appropriate authentication for the target backend
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Client Request                                    │
+│   POST /models/chat/completions  OR  POST /openai/deployments/gpt-4o/...    │
+└────────────────────────────────────┬────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        APIM Gateway (Inbound)                               │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 1. Authentication (Entra ID / API Key)                                │  │
+│  │ 2. Extract Model (from body or deployment-id path)                    │  │
+│  │ 3. Load Backend Pools Configuration                                   │  │
+│  │ 4. Match Model → Backend Pool                                         │  │
+│  │ 5. Validate RBAC (allowed pools check)                                │  │
+│  │ 6. Set Authorization (Managed Identity)                               │  │
+│  │ 7. Route to Backend Pool                                              │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+└────────────────────────────────────┬────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌────────────────────────────────────────────────────────────────────────────┐
+│                         Backend Pool Selection                             │
+│                                                                            │
+│   ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐        │
+│   │  gpt-4o-pool    │    │ deepseek-r1-pool│    │ Direct Backend  │        │
+│   │  ┌───────────┐  │    │  ┌───────────┐  │    │                 │        │
+│   │  │ Backend 1 │  │    │  │ Backend 1 │  │    │  Single backend │        │
+│   │  │(P:1,W:100)│  │    │  │(P:1,W:100)│  │    │  for unique     │        │
+│   │  └───────────┘  │    │  └───────────┘  │    │  models         │        │
+│   │  ┌───────────┐  │    │  ┌───────────┐  │    └─────────────────┘        │
+│   │  │ Backend 2 │  │    │  │ Backend 2 │  │                               │
+│   │  │ (P:2,W:50)│  │    │  │ (P:2,W:50)│  │                               │
+│   │  └───────────┘  │    │  └───────────┘  │                               │
+│   └─────────────────┘    └─────────────────┘                               │
+└────────────────────────────────────┬───────────────────────────────────────┘
+                                     │
+                                     ▼
+┌────────────────────────────────────────────────────────────────────────────┐
+│                          LLM Backend Targets                               │
+│                                                                            │
+│   ┌─────────────┐      ┌─────────────┐      ┌─────────────┐                │
+│   │   Foundry   │      │ Azure OpenAI│      │  External   │                │
+│   │  Endpoint   │      │  Endpoint   │      │  Provider   │                │
+│   └─────────────┘      └─────────────┘      └─────────────┘                │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Routing Flow Details
+
+### Step 1: Model Extraction
+
+The `set-llm-requested-model` policy fragment extracts the model from the request:
+
+| Source | Pattern | Example |
+|--------|---------|---------|
+| **GET Request** | Any GET operation | Returns `"non-llm-request"` (skips model extraction) |
+| **Request Body** | `{"model": "gpt-4o", ...}` | Universal LLM API |
+| **URL Path** | `/deployments/{deployment-id}/...` | Azure OpenAI API |
+
+Purpose: Extracts the requested model from either Azure OpenAI endpoint or inference endpoint
+
+**Supported Patterns:**
+1. **GET Requests**: Returns `"non-llm-request"` to skip model-based routing (used for operations like listing available models)
+2. Azure OpenAI: Model from deployment-id path parameter (/deployments/{deployment-id}/chat/completions)
+3. Inference Endpoint: Model from request body JSON ({"model": "model-name", ...})
+
+**Output Variable:**
+- requestedModel: The extracted model name, `"non-llm-request"` for GET operations, or empty string if not found
+
+### Step 2: Backend Pool Configuration
+
+The `set-backend-pools` policy fragment loads the backend pool configuration:
+
+**Backend Pool Structure:**
+```json
+{
+  "pools": [
+    {
+      "id": "pool-gpt-4o",
+      "name": "GPT-4o Pool",
+      "description": "Pool for GPT-4o model",
+      "models": ["gpt-4o"],
+      "backends": [
+        {
+          "id": "foundry-eastus-1",
+          "priority": 1,
+          "weight": 100
+        },
+        {
+          "id": "foundry-westus-1",
+          "priority": 2,
+          "weight": 50
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Pool Properties:**
+- `id`: Unique identifier for the pool
+- `name`: Human-readable name
+- `models`: Array of model names supported by this pool
+- `backends`: Array of backend configurations
+
+### Step 3: Target Backend Selection
+
+The `set-target-backend-pool` policy fragment matches the requested model to a backend pool:
+
+**Matching Logic:**
+1. Find pool where `requestedModel` is in `pool.models`
+2. Select backends based on priority and weight
+3. Set `<set-backend>` policy with selected pool
+
+**Load Balancing:**
+- **Priority**: Lower number = higher priority (1 is highest)
+- **Weight**: Distribution percentage within same priority level
+
+Example with priority and weight:
+```
+Backend 1: Priority=1, Weight=100 (Primary - 100% traffic)
+Backend 2: Priority=2, Weight=100 (Secondary - only if Backend 1 fails)
+Backend 3: Priority=1, Weight=50  (Shares traffic with Backend 1)
+```
+
+### Step 4: Backend Authorization
+
+The `set-backend-authorization` policy fragment configures authentication:
+
+**Supported Auth Schemes:**
+
+| Scheme | Description | Use Case |
+|--------|-------------|----------|
+| **Managed Identity** | Uses APIM's managed identity | Azure services (Foundry, OpenAI) |
+| **API Key** | Uses subscription key header | External providers |
+| **Bearer Token** | Uses OAuth token | Custom backends |
+
+**Managed Identity Flow:**
+```xml
+<authentication-managed-identity
+  resource="https://cognitiveservices.azure.com/"
+  output-token-variable-name="msi-access-token" />
+<set-header name="Authorization">
+  <value>@("Bearer " + (string)context.Variables["msi-access-token"])</value>
+</set-header>
+```
+
+## Backend Pool Configuration
+
+### Creating Backend Pools
+
+Backend pools are defined during LLM onboarding:
+
+```bicep
+param llmBackendConfig = [
+  {
+    backendId: 'foundry-eastus-1'
+    supportedModels: [
+      { name: 'gpt-4o', priority: 1, weight: 100 }
+      { name: 'gpt-4o-mini', priority: 1, weight: 100 }
+    ]
+  }
+  {
+    backendId: 'foundry-westus-1'
+    supportedModels: [
+      { name: 'gpt-4o', priority: 2, weight: 100 }
+      { name: 'gpt-4o-mini', priority: 2, weight: 100 }
+    ]
+  }
+]
+```
+
+### Priority and Weight Explained
+
+<AccordionGroup>
+  <Accordion title="Priority-Based Failover">
+Priority determines which backends are tried first:
+
+```
+Priority 1: Primary backends (receive all traffic)
+Priority 2: Secondary backends (only if Priority 1 fails)
+Priority 3: Tertiary backends (only if Priority 2 fails)
+```
+
+Use case: Geographic failover
+- Priority 1: Local region (e.g., East US)
+- Priority 2: Secondary region (e.g., West US)
+  </Accordion>
+  <Accordion title="Weight-Based Distribution">
+Weight determines traffic distribution within same priority:
+
+```
+Backend A: Priority=1, Weight=75 (75% of traffic)
+Backend B: Priority=1, Weight=25 (25% of traffic)
+```
+
+Use case: Capacity-based distribution
+- Backend A: Higher capacity instance (75%)
+- Backend B: Lower capacity instance (25%)
+  </Accordion>
+  <Accordion title="Combined Priority + Weight">
+Combining both for sophisticated routing:
+
+```
+Region 1 (Priority=1):
+  - Backend 1A: Weight=60 (60% of Region 1 traffic)
+  - Backend 1B: Weight=40 (40% of Region 1 traffic)
+
+Region 2 (Priority=2):
+  - Backend 2A: Weight=100 (100% of failover traffic)
+```
+
+If all Region 1 backends fail, traffic shifts to Region 2.
+  </Accordion>
+</AccordionGroup>
+
+## Circuit Breaker Pattern
+
+Each backend includes circuit breaker configuration for resilience:
+
+```json
+{
+  "circuitBreaker": {
+    "rules": [
+      {
+        "failureCondition": {
+          "count": 5,
+          "interval": "00:01:00",
+          "statusCodeRanges": [
+            { "min": 429, "max": 429 },
+            { "min": 500, "max": 599 }
+          ]
+        },
+        "acceptRetryAfter": true
+      }
+    ]
+  }
+}
+```
+
+**Circuit Breaker Behavior:**
+- Opens after 5 failures in 1 minute
+- Respects `Retry-After` header from backend
+- Prevents cascading failures
+- Automatic recovery after cooldown period
+
+## Model-to-Pool Mapping
+
+### Single Model, Multiple Backends
+
+Best for high-availability scenarios:
+
+```json
+{
+  "pool": "gpt-4o-pool",
+  "models": ["gpt-4o"],
+  "backends": [
+    { "id": "foundry-eastus", "priority": 1, "weight": 50 },
+    { "id": "foundry-westus", "priority": 1, "weight": 50 }
+  ]
+}
+```
+
+### Multiple Models, Shared Backends
+
+Efficient for multi-model access:
+
+```json
+{
+  "pool": "openai-pool",
+  "models": ["gpt-4o", "gpt-4o-mini", "text-embedding-3-large"],
+  "backends": [
+    { "id": "foundry-eastus", "priority": 1, "weight": 100 }
+  ]
+}
+```
+
+### Model-Specific Pools
+
+Isolated pools for specific use cases:
+
+```json
+{
+  "pool": "embeddings-pool",
+  "models": ["text-embedding-3-large"],
+  "backends": [
+    { "id": "embedding-backend-1", "priority": 1, "weight": 100 }
+  ]
+}
+```
+
+## Routing Examples
+
+### Example 1: Chat Completion Request
+
+```http
+POST /models/chat/completions
+Content-Type: application/json
+Authorization: Bearer {token}
+
+{
+  "model": "gpt-4o",
+  "messages": [
+    {"role": "user", "content": "Hello!"}
+  ]
+}
+```
+
+**Routing Flow:**
+1. Extract model: `gpt-4o`
+2. Find pool supporting `gpt-4o`: `gpt-4o-pool`
+3. Select backend based on priority/weight
+4. Route to selected backend
+
+### Example 2: Azure OpenAI SDK Request
+
+```http
+POST /openai/deployments/gpt-4o/chat/completions?api-version=2024-02-01
+Content-Type: application/json
+api-key: {subscription-key}
+
+{
+  "messages": [
+    {"role": "user", "content": "Hello!"}
+  ]
+}
+```
+
+**Routing Flow:**
+1. Extract model from path: `gpt-4o`
+2. Map deployment-id to model name
+3. Route to appropriate pool
+
+### Example 3: Model Listing Request
+
+```http
+GET /models
+Authorization: Bearer {token}
+```
+
+**Routing Flow:**
+1. Detect GET request
+2. Return `"non-llm-request"`
+3. Route to default backend for metadata queries
+
+## Monitoring and Observability
+
+### Routing Metrics
+
+The following metrics are captured for each routing decision:
+
+| Metric | Description | Dimensions |
+|--------|-------------|------------|
+| `routing_decision` | Routing outcome | model, pool, backend |
+| `backend_health` | Backend availability | backend_id, status |
+| `circuit_breaker_state` | Circuit breaker status | backend_id, state |
+| `routing_latency` | Time to make routing decision | model, pool |
+
+### Logging
+
+Routing decisions are logged to Application Insights:
+
+```json
+{
+  "event": "routing_decision",
+  "requested_model": "gpt-4o",
+  "selected_pool": "gpt-4o-pool",
+  "selected_backend": "foundry-eastus-1",
+  "priority": 1,
+  "weight": 100,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+## Troubleshooting
+
+### Common Routing Issues
+
+<AccordionGroup>
+  <Accordion title="Model Not Found (404)">
+**Symptom:** Request returns 404 with "Model not found"
+
+**Causes:**
+- Model name mismatch in request vs. pool configuration
+- Pool doesn't support requested model
+- Backend offline
+
+**Solutions:**
+1. Verify model name in request matches pool config
+2. Check backend pool assignments
+3. Validate backend health status
+  </Accordion>
+  <Accordion title="All Backends Unhealthy">
+**Symptom:** Requests fail with 503 or timeout
+
+**Causes:**
+- All backends in pool are unhealthy
+- Circuit breakers are open
+- Network connectivity issues
+
+**Solutions:**
+1. Check backend health in APIM
+2. Review Application Insights for errors
+3. Verify network connectivity to backends
+4. Check circuit breaker status
+  </Accordion>
+  <Accordion title="Unexpected Backend Selection">
+**Symptom:** Traffic not distributed as expected
+
+**Causes:**
+- Priority/weight misconfiguration
+- Backend health affecting selection
+- Sticky sessions enabled
+
+**Solutions:**
+1. Review pool configuration
+2. Check backend health metrics
+3. Verify no session affinity policies
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+1. **Use descriptive pool names**: `gpt-4o-production-pool` vs `pool-1`
+2. **Set appropriate priorities**: Primary=1, DR=2, Test=3
+3. **Monitor backend health**: Set up alerts for unhealthy backends
+4. **Test failover scenarios**: Regularly verify DR backends work
+5. **Document model mappings**: Keep model-to-pool mappings documented
+6. **Use weights for capacity**: Higher capacity = higher weight
+7. **Enable circuit breakers**: Protect against cascading failures
+
+---
+
+## Related Guides
+
+<CardGroup cols={3}>
+  <Card title="LLM Backend Onboarding" icon="plug" href="/guides/features/llm-backend-onboarding">
+    Add new AI models and endpoints
+  </Card>
+  <Card title="Network Architecture" icon="network-wired" href="/guides/architecture/networking">
+    Hub-spoke topology patterns
+  </Card>
+  <Card title="Full Deployment" icon="server" href="/guides/deployment/full-deployment">
+    Production deployment guide
+  </Card>
+</CardGroup>
