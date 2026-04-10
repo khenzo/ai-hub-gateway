@@ -7,7 +7,7 @@ This roadmap guides the creation of a comprehensive documentation hub for implem
 ## Phases
 
 - [x] **Phase 1: Documentation Foundation** - Set up Mintlify structure and user journey framework (3/3 complete)
-- [ ] **Phase 2: Core Architecture** - Document Citadel Governance Hub and networking patterns  
+- [~] **Phase 2: Core Architecture** - Document Citadel Governance Hub and networking patterns (1/3 complete)  
 - [ ] **Phase 3: AI Landing Zone Patterns** - Document APIM reference architecture and governance
 - [ ] **Phase 4: Implementation Guides** - Create getting started and deployment guides
 - [ ] **Phase 5: Integration & Validation** - Document Foundry integration, business value, and testing
@@ -35,6 +35,7 @@ Plans:
 **Goal**: Document the foundational Citadel Governance Hub 4-layer architecture and hub-spoke networking patterns
 **Depends on**: Phase 1
 **Requirements**: REQ-02, REQ-06
+**Status**: In Progress (1/3 plans complete)
 **Success Criteria** (what must be TRUE):
   1. Citadel 4-layer model is documented with clear explanations of each layer
   2. Hub-spoke networking topology diagrams and patterns are documented
@@ -43,7 +44,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: Document Citadel Governance Hub 4-layer architecture
+- [x] 02-01: Document Citadel Governance Hub 4-layer architecture
 - [ ] 02-02: Document hub-spoke networking patterns and topology
 - [ ] 02-03: Create architecture diagrams and decision documentation
 
