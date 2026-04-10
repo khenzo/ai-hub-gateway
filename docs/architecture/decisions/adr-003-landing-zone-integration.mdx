@@ -1,0 +1,535 @@
+---
+title: "ADR-003: Azure Landing Zone Integration"
+description: Architecture Decision Record for integrating Citadel with Azure Landing Zones
+status: accepted
+date: 2026-04-10
+author: Citadel Architecture Team
+---
+
+# ADR-003: Azure Landing Zone Integration
+
+## Status
+
+**Accepted**
+
+## Context
+
+Organizations adopting the Citadel AI Landing Zone typically have existing Azure environments with established governance, networking, and operations. Most enterprises have invested in **Azure Landing Zones (ALZ)** - a prescriptive architecture that provides a solid foundation for cloud adoption including identity, networking, management, and security.
+
+The key question is: **How should Citadel integrate with existing Azure Landing Zones?**
+
+### Azure Landing Zone Background
+
+Azure Landing Zones provide:
+
+- **Platform Landing Zones** - Shared services (identity, networking, management)
+- **Application Landing Zones** - Workload-specific environments with delegated governance
+- **Centralized Governance** - Azure Policy, RBAC, tagging strategy
+- **Enterprise Security** - Defense in depth, Zero Trust architecture
+
+### Requirements
+
+Citadel must:
+
+1. **Leverage existing investments** - Don't duplicate shared infrastructure
+2. **Follow enterprise governance** - Comply with organizational policies
+3. **Enable gradual adoption** - Integrate without disrupting existing workloads
+4. **Maintain security standards** - Meet or exceed ALZ security posture
+5. **Support both greenfield and brownfield** - Work with new or existing ALZ
+
+### Alternative Approaches Considered
+
+#### Alternative 1: Standalone Deployment
+
+**Description:** Deploy Citadel as a completely independent environment with no connection to existing ALZ.
+
+```
+┌──────────────────────┐    ┌──────────────────────┐
+│   Existing ALZ       │    │   Citadel (Standalone)│
+│                      │    │                      │
+│  - Hub VNet          │    │  - Own Hub VNet      │
+│  - Entra ID          │    │  - Own Identity      │
+│  - Log Analytics     │    │  - Own Monitoring    │
+│  - Policies          │    │  - Own Policies      │
+└──────────────────────┘    └──────────────────────┘
+           No Connection
+```
+
+**Pros:**
+- Complete isolation
+- No dependencies on existing infrastructure
+- Full control over all configurations
+
+**Cons:**
+- Duplicate infrastructure (costly)
+- Security gaps (no shared threat intelligence)
+- Operational complexity (separate monitoring)
+- Identity silos (separate Entra ID or trusts needed)
+- Violates ALZ governance model
+
+**Verdict:** ❌ **Rejected** - Creates infrastructure silos
+
+#### Alternative 2: Replace ALZ
+
+**Description:** Use Citadel as the new landing zone, replacing or superseding existing ALZ investments.
+
+```
+┌─────────────────────────────────────────────┐
+│           New Architecture                   │
+│                                              │
+│   ┌─────────────────────────────────────┐   │
+│   │         Citadel Platform             │   │
+│   │  (Replaces existing ALZ)             │   │
+│   │                                      │   │
+│   │  - AI-focused governance             │   │
+│   │  - New network topology              │   │
+│   │  - Replaced monitoring               │   │
+│   └─────────────────────────────────────┘   │
+└─────────────────────────────────────────────────┘
+```
+
+**Pros:**
+- Unified platform
+- Purpose-built for AI
+- Single governance model
+
+**Cons:**
+- Highly disruptive migration
+- Loses existing ALZ investments
+- Requires rebuilding all workloads
+- Not feasible for most enterprises
+- Multi-year transformation effort
+
+**Verdict:** ❌ **Rejected** - Too disruptive, not practical
+
+#### Alternative 3: Fully Separate AI Environment
+
+**Description:** Maintain complete separation between AI workloads (Citadel) and existing workloads (ALZ).
+
+```
+┌──────────────────────┐    ┌──────────────────────┐
+│   Existing ALZ       │    │   Citadel AI Zone    │
+│                      │    │                      │
+│  (Current Workloads) │    │  (AI Workloads Only) │
+│                      │    │                      │
+└──────────────────────┘    └──────────────────────┘
+        Limited Integration (VPN if needed)
+```
+
+**Pros:**
+- Clear separation of concerns
+- AI-specific governance
+- Isolated blast radius
+
+**Cons:**
+- Operational complexity (two environments to manage)
+- Limited integration between AI and existing apps
+- Duplicate shared services
+- Harder to leverage existing data
+- Inconsistent user experience
+
+**Verdict:** ❌ **Rejected** - Creates operational silos
+
+#### Alternative 4: Supplemental AI Landing Zone (Selected)
+
+**Description:** Design Citadel as a supplemental AI landing zone that extends existing ALZ, integrating with shared services while adding AI-specific capabilities.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Enterprise Azure Environment                    │
+│                                                              │
+│   ┌─────────────────────────────────────────────────────┐   │
+│   │         Platform Landing Zone (Shared)               │   │
+│   │                                                      │   │
+│   │  ┌─────────────┐  ┌─────────────┐  ┌──────────┐    │   │
+│   │  │  Entra ID   │  │   Hub VNet  │  │  Monitor │    │   │
+│   │  │  (Identity) │  │  (Network)  │  │   Stack  │    │   │
+│   │  └─────────────┘  └─────────────┘  └──────────┘    │   │
+│   └────────────────────────┬────────────────────────────┘   │
+│                            │                                │
+│                            │ Integration                    │
+│                            ▼                                │
+│   ┌─────────────────────────────────────────────────────┐   │
+│   │      AI Application Landing Zone (Citadel)          │   │
+│   │              (Supplemental ALZ)                      │   │
+│   │                                                      │   │
+│   │  ┌─────────────────────────────────────────────┐    │   │
+│   │  │    Citadel Governance Hub (CGH)              │    │   │
+│   │  │  - AI Gateway (APIM)                         │    │   │
+│   │  │  - AI Registry (API Center)                  │    │   │
+│   │  │  - AI Content Safety                         │    │   │
+│   │  └─────────────────────────────────────────────┘    │   │
+│   │                                                      │   │
+│   │  ┌─────────────────┐  ┌─────────────────┐          │   │
+│   │  │  CAS Spoke 1    │  │  CAS Spoke 2    │          │   │
+│   │  │ (AI Workloads)  │  │ (AI Workloads)  │          │   │
+│   │  └─────────────────┘  └─────────────────┘          │   │
+│   └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Pros:**
+- Reuses existing ALZ investments
+- Follows CAF guidance for application landing zones
+- Consistent with enterprise governance
+- Accelerates deployment
+- Maintains security standards
+- Enables gradual adoption
+
+**Cons:**
+- Dependency on ALZ implementation quality
+- Requires coordination with platform teams
+- Must comply with existing policies
+
+**Verdict:** ✅ **Accepted** - Best fit for enterprise adoption
+
+## Decision
+
+We will design **Citadel as a supplemental AI landing zone** that extends Azure Landing Zones, following the Cloud Adoption Framework guidance for application landing zones.
+
+### Rationale
+
+#### 1. Reuse Existing ALZ Investments
+
+Citadel leverages shared infrastructure from the platform landing zone:
+
+| Shared Service | Provided By | Used By Citadel For |
+|----------------|-------------|---------------------|
+| **Entra ID** | Platform LZ | Agent authentication, RBAC, Managed Identities |
+| **Hub VNet** | Platform LZ | VNet peering, private connectivity, hybrid networking |
+| **Log Analytics** | Platform LZ | Centralized logging, audit trails, monitoring |
+| **Azure Policy** | Platform LZ | Policy inheritance, compliance enforcement |
+| **Private DNS** | Platform LZ | Cross-VNet name resolution |
+| **Azure Firewall** | Platform LZ | Central traffic inspection |
+
+This approach:
+- **Reduces costs** - No duplicate infrastructure
+- **Accelerates deployment** - Shared services already provisioned
+- **Ensures consistency** - Uses enterprise standards
+- **Simplifies operations** - Single monitoring and management
+
+#### 2. Follows CAF Guidance for Application Landing Zones
+
+Microsoft's Cloud Adoption Framework explicitly supports this pattern:
+
+> "Application landing zones are subscriptions deployed with consistent platform resources that serve as the foundation for hosting AI applications and agents. They can be integrated with platform landing zones or deployed independently based on organizational requirements."
+
+**Citadel as Application Landing Zone:**
+
+```
+Azure Landing Zone Architecture:
+================================
+
+Platform Landing Zone (Shared Foundation)
+├── Identity (Entra ID)
+├── Network (Hub VNet, Firewall, DNS)
+├── Management (Monitoring, Backup, Update)
+└── Governance (Policy, RBAC, Tags)
+         │
+         │ Provides shared services
+         │
+         ▼
+Application Landing Zones (Workloads)
+├── Traditional App LZ (existing)
+├── Data/Analytics LZ (existing)
+└── AI Landing Zone (Citadel) ← NEW
+    ├── CGH (Governance Hub)
+    └── CAS (Agent Spokes)
+```
+
+This alignment ensures:
+- **Architectural consistency** - Follows established patterns
+- **Governance compliance** - Inherits platform policies
+- **Operational familiarity** - Teams understand the model
+- **Tooling support** - Works with ALZ deployment tools
+
+#### 3. Consistent with ALZ Governance Model
+
+Citadel respects and extends ALZ governance:
+
+**Policy Inheritance:**
+
+```
+Platform Policies (ALZ)
+├── Network Security
+│   ├── NSG required on all subnets
+│   └── Private endpoints required
+├── Data Protection
+│   ├── Encryption at rest required
+│   └── Encryption in transit required
+└── Logging & Monitoring
+    ├── Diagnostic settings required
+    └── Log retention policies
+
+Application Policies (Citadel)
+├── AI-Specific Policies
+│   ├── Content safety required
+│   ├── PII detection enabled
+│   └── Token quotas enforced
+└── Inherits all Platform Policies
+```
+
+**RBAC Delegation:**
+
+| Scope | Role | Permissions |
+|-------|------|-------------|
+| Platform LZ | Platform Admin | Full control over shared services |
+| CGH | Citadel Admin | Manage AI gateway, policies, registry |
+| CAS | Workload Owner | Deploy AI apps within guardrails |
+
+#### 4. Accelerates Deployment via Shared Infrastructure
+
+Deployment timeline comparison:
+
+| Phase | Standalone | Supplemental (Selected) |
+|-------|------------|-------------------------|
+| Identity Setup | 2-3 weeks | 2-3 days (reuse Entra ID) |
+| Network Setup | 3-4 weeks | 1 week (reuse hub VNet) |
+| Monitoring Setup | 1-2 weeks | 2-3 days (reuse Log Analytics) |
+| CGH Deployment | 1 week | 1 week |
+| **Total** | **7-10 weeks** | **3-4 weeks** |
+
+**Time savings: 50-60% faster time-to-value**
+
+#### 5. Maintains Enterprise Security Standards
+
+Citadel inherits ALZ security posture:
+
+```
+Defense in Depth (Shared):
+==========================
+
+Layer 1: Identity (Entra ID)
+├── Conditional Access
+├── MFA requirements
+└── Privileged Identity Management
+
+Layer 2: Network (Hub VNet)
+├── Azure Firewall
+├── NSGs
+├── DDoS Protection
+└── Private Endpoints
+
+Layer 3: Data (Platform Standards)
+├── Encryption at rest (CMK)
+├── Encryption in transit (TLS 1.2+)
+└── Private Link
+
+Layer 4: AI-Specific (Citadel Addition)
+├── Content Safety
+├── PII Detection
+├── Token Rate Limiting
+└── Audit Logging
+```
+
+#### 6. Enables Gradual Adoption
+
+The supplemental approach supports phased adoption:
+
+```
+Adoption Phases:
+================
+
+Phase 1: Foundation (Weeks 1-4)
+├── Deploy CGH integrated with existing ALZ
+├── Configure basic policies
+└── Onboard pilot team
+
+Phase 2: Expansion (Weeks 5-12)
+├── Add CAS spokes for additional teams
+├── Refine policies based on feedback
+└── Scale to production workloads
+
+Phase 3: Optimization (Ongoing)
+├── Fine-tune governance policies
+├── Integrate with additional ALZ services
+└── Expand to other regions
+
+No disruption to existing workloads!
+```
+
+### Integration Points
+
+#### 1. Shared Hub VNet and Network Infrastructure
+
+**VNet Peering:**
+
+```
+Existing Hub VNet (ALZ)
+├── Gateway Subnet (VPN/ER)
+├── Firewall Subnet
+└── Shared Services Subnet
+         │
+         │ Peering
+         ▼
+    CGH VNet or CGH Subnet
+    ├── APIM Subnet
+    ├── Monitoring Subnet
+    └── Services Subnet
+```
+
+**Network Requirements:**
+- VNet peering between hub and CGH
+- Gateway transit for hybrid connectivity
+- Firewall rules for traffic inspection
+- Private DNS zone integration
+
+#### 2. Centralized Log Analytics and Monitoring
+
+**Monitoring Integration:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Shared Log Analytics Workspace                  │
+│                     (Platform LZ)                            │
+│                                                              │
+│  Logs from CGH:                                              │
+│  ├── APIM Gateway Logs      ──▶ Application Insights        │
+│  ├── Usage Telemetry        ──▶ Custom Tables               │
+│  ├── Security Events        ──▶ Security Center             │
+│  └── Audit Trails           ──▶ Compliance Workbooks        │
+│                                                              │
+│  Existing dashboards and queries can include Citadel data   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Benefits:**
+- Single pane of glass for monitoring
+- Existing alerting infrastructure applies
+- Unified audit trail
+- Cost optimization via shared workspace
+
+#### 3. Enterprise Entra ID for Identity
+
+**Identity Integration:**
+
+```
+Entra ID (Enterprise Identity)
+├── Users & Groups
+│   └── Existing enterprise groups
+├── Applications
+│   ├── Existing enterprise apps
+│   └── Citadel AI Apps (NEW)
+├── Managed Identities
+│   └── Citadel Service Identities (NEW)
+└── Access Packages
+    └── Citadel Access Packages (NEW)
+```
+
+**Integration Points:**
+- JWT validation at APIM gateway
+- RBAC via Entra ID groups
+- Managed identities for service authentication
+- Conditional Access policies apply automatically
+
+#### 4. Azure Policy for Governance
+
+**Policy Integration:**
+
+```
+Policy Hierarchy:
+=================
+
+Management Group (Enterprise)
+├── ALZ Built-in Policies
+│   ├── Require NSG on subnet
+│   ├── Require private endpoint
+│   └── Require diagnostic settings
+└── Custom Enterprise Policies
+
+Subscription (Citadel)
+├── Inherits all above
+└── AI-Specific Policy Initiatives
+    ├── Citadel Content Safety Required
+    ├── Citadel PII Detection Enabled
+    └── Citadel Token Quotas Enforced
+```
+
+#### 5. Shared DNS Infrastructure
+
+**Private DNS Integration:**
+
+```
+Hub Private DNS Zones (ALZ)
+├── privatelink.azure-api.net
+├── privatelink.monitor.azure.com
+├── privatelink.cosmos.azure.com
+└── [Other Azure services]
+         │
+         │ Linked to CGH VNet
+         ▼
+    CGH Services use shared zones
+```
+
+**Benefits:**
+- Consistent name resolution
+- No DNS zone sprawl
+- Centralized DNS management
+- Cross-VNet resolution works seamlessly
+
+### Deployment Patterns
+
+#### Pattern A: Greenfield (New ALZ)
+
+**When to use:** New Azure environment, no existing ALZ
+
+**Approach:**
+1. Deploy ALZ foundation (identity, network, management)
+2. Deploy Citadel CGH as first application landing zone
+3. Iterate on policies and governance
+4. Add CAS spokes for teams
+
+#### Pattern B: Brownfield (Existing ALZ)
+
+**When to use:** Existing ALZ with workloads
+
+**Approach:**
+1. Assess existing ALZ configuration
+2. Plan CGH integration (hub vs spoke deployment)
+3. Configure integration points
+4. Deploy CGH in parallel
+5. Migrate AI workloads gradually
+
+#### Pattern C: Hybrid
+
+**When to use:** Partial ALZ, different maturity levels
+
+**Approach:**
+1. Use available shared services
+2. Deploy missing components as needed
+3. Plan future ALZ alignment
+4. Maintain governance consistency
+
+## Consequences
+
+### Positive Consequences
+
+1. **Faster Time to Value** - 50-60% faster deployment via shared infrastructure
+2. **Leverages Existing Governance** - Consistent with enterprise architecture
+3. **Operational Efficiency** - Shared monitoring and management
+4. **Security Consistency** - Maintains enterprise security posture
+5. **Gradual Adoption** - No disruption to existing workloads
+
+### Trade-offs
+
+1. **Dependency on ALZ Quality** - Citadel inherits ALZ implementation strengths/weaknesses
+   - **Mitigation:** Assess ALZ maturity before deployment, plan remediation
+
+2. **Coordination Required** - Platform team involvement needed
+   - **Mitigation:** Early engagement, clear RACI matrix, shared documentation
+
+## Related Decisions
+
+- [ADR-001: APIM Gateway Pattern](./adr-001-apim-gateway-pattern) - Core CGH component
+- [ADR-002: Hub-Spoke Networking](./adr-002-hub-spoke-networking) - Network topology
+
+## References
+
+- [Azure Landing Zone Documentation](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/)
+- [Application Landing Zones](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/#platform-landing-zones-vs-application-landing-zones)
+- [CAF AI Scenario](https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/)
+- [ALZ Design Areas](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-areas/)
+
+## Notes
+
+This decision ensures Citadel integrates seamlessly with enterprise Azure environments while adding AI-specific governance capabilities. The supplemental landing zone approach is Microsoft's recommended pattern for specialized workloads like AI.
