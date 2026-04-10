@@ -1,0 +1,456 @@
+---
+title: "ADR-002: Hub-Spoke Networking"
+description: Architecture Decision Record for hub-spoke network topology
+status: accepted
+date: 2026-04-10
+author: Citadel Architecture Team
+---
+
+# ADR-002: Hub-Spoke Networking
+
+## Status
+
+**Accepted**
+
+## Context
+
+Deploying AI at enterprise scale requires a networking architecture that balances:
+
+1. **Centralized Governance** - Unified policy enforcement and observability
+2. **Distributed Development** - Teams need autonomy to build and deploy AI solutions
+3. **Network Security** - Isolation between workloads, controlled connectivity
+4. **Scalability** - Support growth from 10 to 10,000+ AI agents
+5. **Cost Management** - Clear attribution and shared infrastructure efficiency
+
+The Citadel Governance Hub must serve as a central control plane while supporting multiple business units and use cases across the organization.
+
+### Requirements
+
+We need a network architecture that provides:
+
+- **Centralized services** - AI gateway, monitoring, shared AI services
+- **Workload isolation** - Business units separated but connected
+- **Controlled connectivity** - Spokes can reach hub, limited spoke-to-spoke
+- **Scalability** - Add new spokes without reconfiguring existing infrastructure
+- **Security** - Defense in depth, traffic inspection, audit trails
+- **Cost attribution** - Clear boundaries for chargeback
+
+### Alternative Approaches Considered
+
+We evaluated five network topologies:
+
+#### Alternative 1: Flat Network (Single VNet)
+
+**Description:** Deploy all AI workloads in a single, large Virtual Network with subnets for different teams.
+
+```
+┌─────────────────────────────────────────────┐
+│         Single Virtual Network               │
+│                                              │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
+│  │ Subnet 1 │  │ Subnet 2 │  │ Subnet 3 │   │
+│  │  (CGH)   │  │  (BU1)   │  │  (BU2)   │   │
+│  └──────────┘  └──────────┘  └──────────┘   │
+│                                              │
+│  Shared: NSGs, Route Tables, DNS             │
+└─────────────────────────────────────────────┘
+```
+
+**Pros:**
+- Simplest configuration
+- Lowest latency (no peering overhead)
+- Easy service discovery
+
+**Cons:**
+- No network-level isolation between teams
+- Large blast radius (security incident affects all)
+- Difficult cost attribution
+- NSG complexity at scale (100+ rules)
+- Limited scalability (subscription limits)
+
+**Verdict:** ❌ **Rejected** - No isolation, doesn't scale
+
+#### Alternative 2: Mesh Topology
+
+**Description:** Every Virtual Network peers directly with every other Virtual Network.
+
+```
+         ┌──────┐
+         │ CGH  │
+         └──┬───┘
+            │
+    ┌───────┼───────┐
+    │       │       │
+┌───┴───┐   │   ┌───┴───┐
+│ BU1   │◄──┼──►│ BU2   │
+└───┬───┘   │   └───┬───┘
+    │       │       │
+    └───────┼───────┘
+            │
+        ┌───┴───┐
+        │ BU3   │
+        └───────┘
+```
+
+**Pros:**
+- Direct connectivity between any workloads
+- Flexible routing
+- No hub bottleneck
+
+**Cons:**
+- Complexity grows exponentially (n(n-1)/2 peerings)
+- Difficult traffic inspection and governance
+- No central enforcement point
+- Complex route management
+- Hard to audit and monitor
+
+**Verdict:** ❌ **Rejected** - Too complex, no central governance
+
+#### Alternative 3: Fully Isolated Networks
+
+**Description:** Each business unit gets a completely isolated VNet with no connectivity to others or central hub.
+
+```
+┌──────────┐    ┌──────────┐    ┌──────────┐
+│   CGH    │    │   BU1    │    │   BU2    │
+│   VNet   │    │   VNet   │    │   VNet   │
+│          │    │          │    │          │
+│(Standalone)│  │(Standalone)│  │(Standalone)│
+└──────────┘    └──────────┘    └──────────┘
+   No connections between networks
+```
+
+**Pros:**
+- Maximum isolation
+- Simple security model
+- No shared infrastructure dependencies
+
+**Cons:**
+- No centralized governance
+- Duplicate infrastructure in each VNet
+- No shared AI services or registry
+- Manual configuration everywhere
+- Violates core Citadel value proposition
+
+**Verdict:** ❌ **Rejected** - Defeats purpose of unified governance
+
+#### Alternative 4: Single VNet with NSG Isolation
+
+**Description:** Use Network Security Groups (NSGs) to isolate workloads within a single large VNet.
+
+**Pros:**
+- Simpler than peering
+- Existing Azure Landing Zone pattern
+- Familiar to network teams
+
+**Cons:**
+- NSG rules become unmanageable at scale
+- No traffic inspection between subnets
+- Limited network-layer controls
+- Difficult to audit and troubleshoot
+- Doesn't provide true isolation
+
+**Verdict:** ❌ **Rejected** - Doesn't provide adequate isolation
+
+#### Alternative 5: Hub-Spoke Topology (Selected)
+
+**Description:** Central hub VNet (CGH) connects to multiple spoke VNets (CAS) via VNet peering. Traffic between spokes flows through hub.
+
+```
+           ┌─────────────────────────────────┐
+           │    Citadel Governance Hub       │
+           │         (Hub VNet)              │
+           │                                  │
+           │  ┌─────────┐  ┌─────────────┐   │
+           │  │  APIM   │  │  Monitoring │   │
+           │  │ Gateway │  │   Stack     │   │
+           │  └────┬────┘  └─────────────┘   │
+           │       │                        │
+           │  ┌────┴────────────────────┐   │
+           │  │    Azure Firewall        │   │
+           │  │  (Traffic Inspection)    │   │
+           │  └────┬────────────────────┘   │
+           └───────┼────────────────────────┘
+                   │
+       ┌───────────┼───────────┐
+       │           │           │
+   ┌───┴───┐   ┌───┴───┐   ┌───┴───┐
+   │ CAS   │   │ CAS   │   │ CAS   │
+   │ BU1   │   │ BU2   │   │ BU3   │
+   │(Spoke)│   │(Spoke)│   │(Spoke)│
+   └───────┘   └───────┘   └───────┘
+```
+
+**Pros:**
+- Centralized governance at hub
+- Clear isolation between spokes
+- Scalable (add spokes independently)
+- Traffic inspection and logging at hub
+- Cost attribution per spoke
+- Aligns with Azure Landing Zone
+
+**Cons:**
+- VNet peering complexity
+- Hub becomes potential bottleneck
+- Additional latency (minimal with peering)
+
+**Verdict:** ✅ **Accepted** - Best balance of governance and isolation
+
+## Decision
+
+We will implement a **hub-spoke network topology** with the Citadel Governance Hub (CGH) as the hub and Citadel Agent Spokes (CAS) as spokes.
+
+### Rationale
+
+#### 1. Separation of Concerns with Unified Oversight
+
+The hub-spoke model embodies Citadel's core architectural principle:
+
+| Aspect | Hub (CGH) | Spokes (CAS) |
+|--------|-----------|--------------|
+| **Responsibility** | Governance, security, observability | AI development, business logic |
+| **Teams** | Platform/DevOps | Application developers |
+| **Scale** | Few deployments (1-3 per env) | Many deployments (10-1000+) |
+| **Change Rate** | Stable, controlled | Rapid, iterative |
+| **Services** | Shared infrastructure | Workload-specific resources |
+
+This separation allows:
+- Platform teams to focus on governance infrastructure
+- Application teams to focus on AI innovation
+- Clear ownership boundaries
+- Independent scaling and updates
+
+#### 2. Proven Azure Landing Zone Pattern
+
+Hub-spoke is the recommended topology for Azure Landing Zones:
+
+- **Microsoft CAF Alignment** - Follows Cloud Adoption Framework guidance
+- **Enterprise Adoption** - Used by thousands of organizations
+- **Well-Architected** - Validated for reliability, security, and performance
+- **Tooling Support** - Native support in Azure Portal, CLI, Bicep, Terraform
+
+This ensures Citadel integrates seamlessly with existing enterprise architectures.
+
+#### 3. Network Isolation with Connectivity
+
+VNet peering provides the right balance:
+
+```
+Hub-Spoke Connectivity:
+=======================
+
+Spoke → Hub: ✅ Allowed (reach shared services)
+Hub → Spoke: ✅ Allowed (management, monitoring)
+Spoke → Spoke: ❌ Blocked (via hub firewall)
+Spoke → Internet: ✅ Via hub (forced tunneling)
+On-Prem → Spoke: ✅ Via hub (ExpressRoute/VPN)
+```
+
+**Traffic Flow:**
+
+1. **Agent → Gateway** (Spoke → Hub): AI requests route to CGH for governance
+2. **Gateway → Backend** (Hub → Internet/Private): Forward to LLM endpoints
+3. **Response Path** (Hub → Spoke): Return through hub for logging
+4. **Cross-Spoke** (Spoke → Hub → Spoke): Via hub firewall if needed
+
+#### 4. Centralized Security Enforcement
+
+All traffic passes through the hub, enabling:
+
+- **Azure Firewall** - Central traffic inspection
+- **NSG Flow Logs** - Network traffic audit trails
+- **DDoS Protection** - Standard protection at hub
+- **Private DNS** - Centralized name resolution
+- **Private Endpoints** - Secure access to PaaS services
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Hub VNet                                │
+│                                                              │
+│   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
+│   │   Gateway   │───▶│   Firewall  │───▶│   Backend   │     │
+│   │   Subnet    │    │   Subnet    │    │   Services  │     │
+│   └─────────────┘    └─────────────┘    └─────────────┘     │
+│                          │                                   │
+│                          ▼                                   │
+│                   ┌─────────────┐                            │
+│                   │   Logging   │                            │
+│                   │   Storage   │                            │
+│                   └─────────────┘                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 5. Scalability from 10 to 10,000 Agents
+
+The hub-spoke model scales efficiently:
+
+| Scale | Hubs | Spokes | Peering Count |
+|-------|------|--------|---------------|
+| Small | 1 | 10 | 10 |
+| Medium | 2 (prod/non-prod) | 50 | 100 |
+| Large | 3 (prod/staging/dev) | 500 | 1,500 |
+| Enterprise | 5+ (regional) | 10,000+ | 50,000+ |
+
+**Scaling Considerations:**
+- Hub can support 500+ spokes per region
+- Multiple hubs for global deployments
+- Gateway Transit allows spokes to share VPN/ER
+- No reconfiguration needed when adding spokes
+
+#### 6. Cost Attribution and Chargeback
+
+Clear cost boundaries enable chargeback:
+
+| Resource | Location | Attribution |
+|----------|----------|-------------|
+| CGH Infrastructure | Hub | Platform/shared cost |
+| AI Gateway Usage | Hub | By spoke (via subscription keys) |
+| Agent Workloads | Spoke | Business unit cost |
+| Data Storage | Spoke | Business unit cost |
+| Network Transfer | Hub | Platform/shared cost |
+
+#### 7. Deployment Patterns
+
+We support two hub-spoke deployment patterns:
+
+**Pattern A: CGH in Hub VNet**
+```
+Existing Hub VNet (ALZ)
+├── Gateway Subnet
+├── Firewall Subnet
+├── CGH Subnet (NEW) ← CGH deployed here
+└── Shared Services
+```
+- Simpler, lower latency
+- For: < 50 spokes, existing hub with capacity
+
+**Pattern B: CGH in Dedicated Spoke**
+```
+Hub VNet (ALZ) ←──Peering──► CGH VNet (Dedicated)
+├── Firewall              ├── APIM Subnet
+├── VPN Gateway           ├── Monitoring Subnet
+└── Shared Services       └── CGH Services
+```
+- Better separation of concerns
+- For: > 100 spokes, large-scale deployments
+
+### Implementation Details
+
+#### VNet Peering Configuration
+
+```bicep
+// Hub to Spoke peering
+resource hubToSpoke 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-09-01' = {
+  name: '${hubVnetName}/peering-to-${spokeVnetName}'
+  properties: {
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: true    // Hub shares gateway
+    useRemoteGateways: false
+    remoteVirtualNetwork: {
+      id: spokeVnet.id
+    }
+  }
+}
+
+// Spoke to Hub peering
+resource spokeToHub 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-09-01' = {
+  name: '${spokeVnetName}/peering-to-${hubVnetName}'
+  properties: {
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: false
+    allowGatewayTransit: false
+    useRemoteGateways: true      // Spoke uses hub gateway
+    remoteVirtualNetwork: {
+      id: hubVnet.id
+    }
+  }
+}
+```
+
+#### Subnet Design
+
+**Hub VNet Subnets:**
+
+| Subnet | Size | Purpose |
+|--------|------|---------|
+| GatewaySubnet | /27 | VPN/ExpressRoute gateways |
+| AzureFirewallSubnet | /26 | Azure Firewall |
+| CGHSubnet | /24 | Core CGH services (APIM, etc.) |
+| MonitoringSubnet | /24 | Log Analytics, Application Insights |
+
+**Spoke VNet Subnets:**
+
+| Subnet | Size | Purpose |
+|--------|------|---------|
+| ComputeSubnet | /22 | AI workloads, Container Apps, AKS |
+| DataSubnet | /24 | Cosmos DB, Storage, AI Search |
+| IntegrationSubnet | /24 | Service Bus, Event Grid |
+| PrivateEndpointSubnet | /24 | Private endpoints for PaaS |
+
+#### Private Connectivity
+
+All services use private endpoints:
+
+```
+Spoke Workload ──▶ Private Endpoint ──▶ CGH Services (via peering)
+     │                                       │
+     │                                       │
+     └────────── Private DNS ────────────────┘
+              (Hub-managed zones)
+```
+
+## Consequences
+
+### Positive Consequences
+
+1. **Clear Governance Boundary** - Hub provides single enforcement point
+2. **Scalable Architecture** - Add spokes without impacting existing infrastructure
+3. **Secure by Default** - Network isolation with controlled connectivity
+4. **Enterprise Alignment** - Matches Azure Landing Zone patterns
+5. **Cost Clarity** - Per-spoke attribution and shared infrastructure efficiency
+6. **Operational Simplicity** - Centralized monitoring and management
+
+### Trade-offs
+
+1. **VNet Peering Complexity** - Managing peering relationships at scale
+   - **Mitigation:** Infrastructure-as-code (Bicep/Terraform), automation
+
+2. **Network Latency** - Additional hop through hub
+   - **Mitigation:** Peering latency is minimal (< 2ms), regional deployments
+
+3. **Hub Bottleneck** - Central point that could become overloaded
+   - **Mitigation:** Auto-scaling, multiple hubs for large deployments
+
+### Validation Checklist
+
+Before deploying hub-spoke topology:
+
+- [ ] IP address space planned and documented
+- [ ] Hub capacity assessed (existing vs new VNet)
+- [ ] VNet peering limits reviewed (500 per VNet)
+- [ ] Firewall rules planned for traffic inspection
+- [ ] Private DNS zones configured
+- [ ] Gateway transit requirements defined
+- [ ] Cost allocation model established
+
+## Related Decisions
+
+- [ADR-001: APIM Gateway Pattern](./adr-001-apim-gateway-pattern) - What services run in hub
+- [ADR-003: Landing Zone Integration](./adr-003-landing-zone-integration) - Integration with ALZ
+
+## References
+
+- [Azure Hub-Spoke Topology](https://learn.microsoft.com/azure/architecture/reference-architectures/hybrid-networking/hub-spoke)
+- [Azure Landing Zone Networking](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-best-practices/virtual-network-connectivity)
+- [VNet Peering Overview](https://learn.microsoft.com/azure/virtual-network/virtual-network-peering-overview)
+- [Private Link Documentation](https://learn.microsoft.com/azure/private-link/)
+
+## Notes
+
+This decision aligns with Microsoft's enterprise architecture recommendations and has been validated through:
+- Customer deployments at scale
+- Azure Landing Zone reference implementations
+- Well-Architected Framework reviews
+
+The hub-spoke topology is the foundation for all Citadel deployments, regardless of scale.
