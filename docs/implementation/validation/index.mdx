@@ -1,0 +1,226 @@
+---
+title: Validation Guides
+description: Comprehensive validation procedures for pre-deployment, post-deployment, and ongoing operations of AI Landing Zones
+description: testing, validation
+---
+
+# Validation Guides
+
+Validation ensures your AI Landing Zone deployment meets functional, security, and performance requirements before and after going live. This section provides systematic validation procedures that should be integrated into your deployment workflow.
+
+## Why Validation Matters
+
+<Note>
+Validation is not a one-time event—it is a continuous process that should be performed before production deployment, after configuration changes, during monthly health checks, and before audit reviews.
+</Note>
+
+### The Cost of Skipping Validation
+
+| Risk | Consequence | Detection Point |
+|------|-------------|-----------------|
+| Network misconfiguration | Data leakage through public endpoints | Pre-deployment |
+| Missing RBAC permissions | Unauthorized access | Post-deployment |
+| APIM policy errors | Gateway failures under load | Load testing |
+| Monitoring gaps | Undetected production issues | Operational validation |
+
+### Validation as Governance
+
+Validation is a core governance activity that provides:
+
+- **Confidence** — Know your deployment is correct before go-live
+- **Compliance** — Document adherence to security and architecture standards
+- **Audit Trail** — Maintain records for regulatory reviews
+- **Baseline** — Establish performance and configuration benchmarks
+
+## Validation Types
+
+<CardGroup cols={2}>
+  <Card
+    title="Pre-Deployment Checklist"
+    icon="clipboard-check"
+    href="/implementation/validation/pre-deployment-checklist"
+  >
+    Validate prerequisites, configuration, and readiness before deploying infrastructure
+  </Card>
+  
+  <Card
+    title="Post-Deployment Validation"
+    icon="check-circle"
+    href="/implementation/validation/post-deployment-validation"
+  >
+    Smoke tests, connectivity checks, and functional verification after deployment
+  </Card>
+  
+  <Card
+    title="Troubleshooting Guide"
+    icon="wrench"
+    href="/implementation/validation/troubleshooting"
+  >
+    Diagnostic procedures and resolution steps for common issues
+  </Card>
+  
+  <Card
+    title="Performance Testing"
+    icon="gauge-high"
+    href="/implementation/validation/post-deployment-validation#performance-baseline"
+  >
+    Establish performance baselines and validate capacity under load
+  </Card>
+</CardGroup>
+
+## When to Validate
+
+### Required Validation Points
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Validation Schedule                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Pre-Deployment          Post-Deployment         Ongoing       │
+│  ├─ Prerequisites        ├─ Smoke Tests          ├─ Weekly     │
+│  ├─ Configuration        ├─ Connectivity         ├─ Monthly    │
+│  ├─ Security             ├─ Functionality        ├─ Quarterly  │
+│  └─ Network              ├─ Performance          └─ Pre-Audit  │
+│                          └─ Documentation                       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Validation Triggers
+
+| Trigger | Validation Focus | Owner |
+|---------|-----------------|-------|
+| **Before production deployment** | Full pre-deployment checklist | Platform Engineer |
+| **After configuration changes** | Smoke tests + affected components | DevOps Engineer |
+| **Monthly health checks** | Connectivity, performance, security | Operations |
+| **Before audit reviews** | Documentation, access reviews, compliance | Security |
+| **After incidents** | Root cause area + regression tests | SRE |
+| **Quarterly DR drills** | Failover procedures, backup restoration | Operations |
+
+## Validation Workflow
+
+### Standard Validation Process
+
+```
+1. PLAN
+   └─ Identify validation scope based on changes
+   └─ Prepare validation environment (test accounts, tools)
+   └─ Notify stakeholders of validation window
+
+2. EXECUTE
+   └─ Run pre-deployment checklist (if applicable)
+   └─ Deploy changes through approved pipeline
+   └─ Run post-deployment validation
+   └─ Document results and deviations
+
+3. VERIFY
+   └─ Compare results against success criteria
+   └─ Review deviations with stakeholders
+   └─ Obtain sign-off from required roles
+
+4. DOCUMENT
+   └─ Update as-built documentation
+   └─ Record baseline metrics
+   └─ Archive validation results
+```
+
+### Validation Roles and Responsibilities
+
+| Role | Validation Activities |
+|------|----------------------|
+| **Platform Engineer** | Infrastructure validation, smoke tests |
+| **Network Engineer** | Connectivity, DNS, NSG validation |
+| **Security Architect** | Security controls, RBAC, secrets management |
+| **Operations** | Monitoring, alerting, operational readiness |
+| **AI Platform Lead** | AI workload functionality, access contracts |
+
+## Validation Standards
+
+### Success Criteria
+
+All validation steps must meet these minimum standards:
+
+- **Network** — Private endpoints functional, no public exposure
+- **Security** — All controls operational, no critical findings
+- **Functionality** — Core APIs respond correctly
+- **Performance** — Latency within SLA, no errors under load
+- **Monitoring** — Logs flowing, alerts functional
+- **Documentation** — As-built docs reflect actual state
+
+### Validation Record Keeping
+
+Maintain validation records for:
+
+- **Audit compliance** — 7-year retention for security validation
+- **Change tracking** — Link validation results to change tickets
+- **Trend analysis** — Track performance and security metrics over time
+- **Knowledge base** — Document lessons learned and workarounds
+
+## Integration with Deployment
+
+### CI/CD Pipeline Integration
+
+Validation should be automated where possible:
+
+```yaml
+# Example pipeline stage
+- stage: Validate
+  jobs:
+  - job: PreDeployment
+    steps:
+    - script: az bicep build --file main.bicep
+    - script: ./scripts/validate-prerequisites.sh
+    
+  - job: PostDeployment
+    dependsOn: Deploy
+    steps:
+    - script: ./scripts/smoke-tests.sh
+    - script: ./scripts/security-scan.sh
+    - script: ./scripts/performance-baseline.sh
+```
+
+### Manual Validation Scenarios
+
+Some validations require manual review:
+
+- Security architecture review
+- Performance benchmarking
+- Failover testing
+- Documentation review
+
+## Common Validation Issues
+
+| Issue | Cause | Resolution |
+|-------|-------|------------|
+| DNS resolution fails | Private DNS zone not linked | Link zone to VNet |
+| APIM unreachable | NSG blocking port 3443 | Add service tag rule |
+| No logs in Log Analytics | Diagnostic settings missing | Enable diagnostics |
+| Auth failures | Token validation policy error | Check JWT policy |
+| High latency | Cross-region traffic | Deploy in same region |
+
+## Next Steps
+
+Start your validation journey:
+
+<CardGroup cols={2}>
+  <Card
+    title="Run Pre-Deployment Checklist"
+    icon="clipboard-list"
+    href="/implementation/validation/pre-deployment-checklist"
+  >
+    Validate prerequisites before deploying your AI Landing Zone
+  </Card>
+  
+  <Card
+    title="View Deployment Guide"
+    icon="server"
+    href="/guides/deployment-guide"
+  >
+    Return to deployment procedures before validation
+  </Card>
+</CardGroup>
+
+---
+
+**Validation is continuous.** Plan to re-run validation checks monthly and before any production changes to maintain confidence in your AI infrastructure.
