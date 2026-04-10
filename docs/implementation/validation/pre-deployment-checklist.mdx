@@ -1,0 +1,587 @@
+---
+title: Pre-Deployment Checklist
+description: Comprehensive checklist to validate readiness before deploying AI Landing Zone infrastructure
+description: checklist, pre-deployment, validation
+---
+
+# Pre-Deployment Checklist
+
+Complete this checklist before deploying AI Landing Zone infrastructure to catch configuration errors, permission issues, and resource constraints early in the deployment process.
+
+<Note>
+This checklist should be completed after architecture design and before running any deployment commands. Allow 2-4 hours for thorough validation.
+</Note>
+
+---
+
+## Prerequisites Verification
+
+### Azure Subscription and Permissions
+
+| Check | Command / Action | Expected Result | Status | Notes |
+|-------|-----------------|-----------------|--------|-------|
+| **1.1** Subscription active and healthy | `az account show --query "{name:name, state:state}"` | `state: "Enabled"` | [ ] | |
+| **1.2** Sufficient quota for APIM Premium | `az vm list-usage --location <region> --query "[?name.value=='standardADSPFamily']"` | limit ≥ required units | [ ] | |
+| **1.3** Cost estimation reviewed | Azure Portal: Cost Management + Pricing Calculator | Budget approved | [ ] | |
+| **1.4** Subscription owner or equivalent access | `az role assignment list --query "[?roleDefinitionName=='Owner']"` | Your account listed | [ ] | |
+
+#### Required Azure RBAC Roles
+
+Verify the deploying identity has these roles:
+
+```bash
+# Check your current roles at subscription scope
+DEPLOYER_ID=$(az ad signed-in-user show --query "id" -o tsv)
+sub_id=$(az account show --query "id" -o tsv)
+
+echo "Current role assignments:"
+az role assignment list \
+  --assignee "$DEPLOYER_ID" \
+  --scope "/subscriptions/$sub_id" \
+  --query "[].{role:roleDefinitionName, scope:scope}" \
+  --output table
+```
+
+**Required minimum roles:**
+
+| Role | Purpose | Scope |
+|------|---------|-------|
+| **Contributor** | Deploy and manage resources | Resource Group or Subscription |
+| **User Access Administrator** | Create role assignments | Resource Group or Subscription |
+| **Network Contributor** | Manage VNets, NSGs, route tables | Resource Group |
+
+**Command to grant missing roles:**
+
+```bash
+RG_ID=$(az group show --name <resource-group> --query "id" -o tsv)
+
+# Grant Contributor
+az role assignment create \
+  --assignee "$DEPLOYER_ID" \
+  --role "Contributor" \
+  --scope "$RG_ID"
+
+# Grant User Access Administrator
+az role assignment create \
+  --assignee "$DEPLOYER_ID" \
+  --role "User Access Administrator" \
+  --scope "$RG_ID"
+```
+
+### Resource Provider Registration
+
+| Check | Command | Expected Result | Status |
+|-------|---------|-----------------|--------|
+| **1.5** Microsoft.ApiManagement registered | `az provider show --namespace Microsoft.ApiManagement --query "registrationState"` | `"Registered"` | [ ] |
+| **1.6** Microsoft.CognitiveServices registered | `az provider show --namespace Microsoft.CognitiveServices --query "registrationState"` | `"Registered"` | [ ] |
+| **1.7** Microsoft.Network registered | `az provider show --namespace Microsoft.Network --query "registrationState"` | `"Registered"` | [ ] |
+| **1.8** Microsoft.KeyVault registered | `az provider show --namespace Microsoft.KeyVault --query "registrationState"` | `"Registered"` | [ ] |
+| **1.9** Microsoft.OperationalInsights registered | `az provider show --namespace Microsoft.OperationalInsights --query "registrationState"` | `"Registered"` | [ ] |
+| **1.10** Microsoft.MachineLearningServices registered | `az provider show --namespace Microsoft.MachineLearningServices --query "registrationState"` | `"Registered"` | [ ] |
+
+**Script to register all providers:**
+
+```bash
+#!/bin/bash
+# register-providers.sh
+
+providers=(
+  "Microsoft.ApiManagement"
+  "Microsoft.CognitiveServices"
+  "Microsoft.MachineLearningServices"
+  "Microsoft.KeyVault"
+  "Microsoft.Network"
+  "Microsoft.OperationalInsights"
+  "Microsoft.Insights"
+  "Microsoft.Authorization"
+  "Microsoft.Storage"
+)
+
+for provider in "${providers[@]}"; do
+  echo "Registering $provider..."
+  az provider register --namespace "$provider" --wait
+  state=$(az provider show --namespace "$provider" --query "registrationState" -o tsv)
+  echo "  Status: $state"
+done
+```
+
+### Network Prerequisites
+
+| Check | Command / Action | Expected Result | Status | Notes |
+|-------|-----------------|-----------------|--------|-------|
+| **1.11** VNet address space planned | Document: `10.0.0.0/16` (hub) | No overlap with existing | [ ] | |
+| **1.12** Spoke VNets planned | Document spoke CIDRs | No overlap with hub or each other | [ ] | |
+| **1.13** Subnet sizing validated | Hub: `/24` for APIM | Sufficient IPs for APIM + PEs | [ ] | |
+| **1.14** DNS configuration planned | Private DNS zones documented | Zones: openai, vault, api | [ ] | |
+| **1.15** ExpressRoute/VPN requirements identified | Network architecture review complete | Connectivity path documented | [ ] | |
+
+**Network planning validation:**
+
+```bash
+# Check for VNet overlaps with existing networks
+az network vnet list --query "[].{name:name, cidr:addressSpace.addressPrefixes[0], rg:resourceGroup}"
+
+# Verify planned CIDR doesn't overlap
+check_cidr_overlap() {
+    local cidr1="$1"
+    local cidr2="$2"
+    # Use online calculator or ipcalc tool
+    echo "Check: $cidr1 vs $cidr2"
+}
+```
+
+### Service Principal and Identity Setup
+
+| Check | Action | Expected Result | Status |
+|-------|--------|-----------------|--------|
+| **1.16** Deployment service principal created (optional) | Azure Portal: App registrations | SP exists with client secret | [ ] |
+| **1.17** APIM managed identity planned | Bicep: `identity: { type: 'SystemAssigned' }` | System-assigned identity enabled | [ ] |
+| **1.18** Key Vault access policies planned | Document: which identities need access | Access model defined | [ ] |
+
+---
+
+## Configuration Review
+
+### Parameter Files Validation
+
+| Check | Action | Expected Result | Status | Notes |
+|-------|--------|-----------------|--------|-------|
+| **2.1** All required parameters defined | Review Bicep parameters file | No missing required params | [ ] | |
+| **2.2** Environment naming consistent | `production`, `staging`, `dev` | Lowercase, no spaces | [ ] | |
+| **2.3** Region selected and validated | Check service availability | All services available in region | [ ] | |
+| **2.4** APIM SKU appropriate for workload | Premium for prod, Developer for dev | SKU matches requirements | [ ] | |
+| **2.5** Capacity units planned | 1-10 units based on load | Sufficient for expected traffic | [ ] | |
+
+**Parameter validation commands:**
+
+```bash
+# Validate Bicep template syntax
+az bicep build --file main.bicep
+
+# Validate parameters against parameter schema
+az deployment group validate \
+  --resource-group <resource-group> \
+  --template-file main.bicep \
+  --parameters @parameters.json
+```
+
+### Naming Conventions
+
+| Check | Standard | Example | Status |
+|-------|----------|---------|--------|
+| **2.6** Resource group naming | `rg-citadel-<component>-<env>` | `rg-citadel-hub-prod` | [ ] |
+| **2.7** APIM naming | `apim-citadel-<env>` | `apim-citadel-prod` | [ ] |
+| **2.8** VNet naming | `vnet-<hub|spoke>-<env>` | `vnet-hub-prod` | [ ] |
+| **2.9** Key Vault naming | `kv-citadel-<env>-<unique>` | `kv-citadel-prod-001` | [ ] |
+| **2.10** Storage naming | `stcitadel<env><unique>` | `stcitadelprod001` | [ ] |
+
+**Naming validation script:**
+
+```bash
+#!/bin/bash
+# validate-naming.sh
+
+ENV="$1"
+UNIQUE_SUFFIX="$2"
+
+validate_name() {
+    local name="$1"
+    local max_length="$2"
+    
+    if [ ${#name} -gt $max_length ]; then
+        echo "❌ FAIL: '$name' exceeds $max_length characters"
+        return 1
+    fi
+    
+    if [[ ! "$name" =~ ^[a-z0-9-]+$ ]]; then
+        echo "❌ FAIL: '$name' contains invalid characters (only lowercase, numbers, hyphens)"
+        return 1
+    fi
+    
+    echo "✅ PASS: '$name'"
+}
+
+echo "Validating resource names for environment: $ENV"
+echo ""
+
+validate_name "rg-citadel-hub-$ENV" 90
+validate_name "apim-citadel-$ENV" 50
+validate_name "kv-citadel-$ENV-$UNIQUE_SUFFIX" 24
+validate_name "vnet-hub-$ENV" 64
+```
+
+### Region Selection
+
+| Check | Action | Expected Result | Status |
+|-------|--------|-----------------|--------|
+| **2.11** APIM Premium available in region | [Azure Products by Region](https://azure.microsoft.com/regions/services/) | Premium SKU available | [ ] |
+| **2.12** Azure OpenAI available in region | [OpenAI Service regions](https://learn.microsoft.com/azure/ai-services/openai/concepts/models) | Required models available | [ ] |
+| **2.13** AI Foundry available in region | Portal: Create Machine Learning | Workspace creation available | [ ] |
+| **2.14** Data residency requirements met | Compliance review | Data stays in required geography | [ ] |
+
+**Region availability check:**
+
+```bash
+# Check APIM Premium availability
+az apim list-skus --location eastus --query "[?name=='Premium']"
+
+# Check OpenAI availability
+az cognitiveservices account list-skus \
+  --kind OpenAI \
+  --location eastus \
+  --query "[].{name:sku.name, tier:sku.tier}"
+```
+
+### Capacity Planning
+
+| Check | Action | Expected Result | Status |
+|-------|--------|-----------------|--------|
+| **2.15** Request volume estimated | Peak requests/second documented | Capacity units calculated | [ ] |
+| **2.16** Token consumption estimated | Tokens/day or month estimated | Cost forecast complete | [ ] |
+| **2.17** Concurrent connections estimated | Simultaneous connections | APIM capacity sufficient | [ ] |
+| **2.18** Growth headroom planned | 20-30% buffer over current needs | Future scaling accounted for | [ ] |
+
+---
+
+## Security Checklist
+
+### Private Endpoints Configuration
+
+| Check | Requirement | Status | Notes |
+|-------|-------------|--------|-------|
+| **3.1** | Azure OpenAI uses private endpoint | [ ] | No public network access |
+| **3.2** | Key Vault uses private endpoint | [ ] | Access limited to VNet |
+| **3.3** | AI Foundry uses private endpoint (if deployed) | [ ] | Workspace access restricted |
+| **3.4** | Storage accounts use private endpoints | [ ] | Blob/queue/table private access |
+| **3.5** | Private DNS zones configured for all endpoints | [ ] | Zones linked to hub VNet |
+
+**Private endpoint validation:**
+
+```bash
+# Check if private endpoints are properly configured
+az network private-endpoint list \
+  --resource-group <resource-group> \
+  --query "[].{name:name, resource:privateLinkServiceConnections[0].privateLinkServiceId, state:provisioningState}"
+```
+
+### NSG Rules Review
+
+| Check | Rule | Status | Notes |
+|-------|------|--------|-------|
+| **3.6** | APIM management port 3443 allows `ApiManagement` tag | [ ] | Required for platform management |
+| **3.7** | APIM gateway port 443 allows client traffic | [ ] | From spoke VNets or client IPs |
+| **3.8** | Outbound HTTPS (443) allowed to `*` | [ ] | For backend connectivity |
+| **3.9** | No overly permissive rules (0.0.0.0/0) | [ ] | Use service tags and specific IPs |
+| **3.10** | NSG flow logs enabled | [ ] | For audit and troubleshooting |
+
+**NSG validation commands:**
+
+```bash
+# Review NSG rules
+az network nsg rule list \
+  --nsg-name <nsg-name> \
+  --resource-group <resource-group> \
+  --query "[].{name:name, priority:priority, direction:direction, access:access, src:sourceAddressPrefix, dst:destinationPortRange}"
+
+# Check for overly permissive rules
+az network nsg rule list \
+  --nsg-name <nsg-name> \
+  --resource-group <resource-group> \
+  --query "[?sourceAddressPrefix=='*' || sourceAddressPrefix=='0.0.0.0/0']"
+```
+
+### Key Vault Access Policies
+
+| Check | Requirement | Status | Notes |
+|-------|-------------|--------|-------|
+| **3.11** | RBAC authorization model selected | [ ] | RBAC preferred over access policies |
+| **3.12** | APIM managed identity has `Key Vault Secrets User` role | [ ] | Minimum required permissions |
+| **3.13** | Deployment identity has `Key Vault Administrator` role | [ ] | For secret management |
+| **3.14** | Soft-delete enabled | [ ] | Recovery protection |
+| **3.15** | Purge protection enabled | [ ] | For production |
+
+**Key Vault security validation:**
+
+```bash
+# Check Key Vault configuration
+az keyvault show \
+  --name <keyvault-name> \
+  --query "{sku:properties.sku.name, softDelete:properties.enableSoftDelete, purgeProtection:properties.enablePurgeProtection, rbac:properties.enableRbacAuthorization}"
+
+# Check role assignments
+az role assignment list \
+  --scope $(az keyvault show --name <keyvault-name> --query "id" -o tsv) \
+  --query "[].{principal:principalName, role:roleDefinitionName}"
+```
+
+### Managed Identities
+
+| Check | Requirement | Status | Notes |
+|-------|-------------|--------|-------|
+| **3.16** | APIM system-assigned identity enabled | [ ] | For Key Vault and backend access |
+| **3.17** | Identity has access to Key Vault secrets | [ ] | Role assignment configured |
+| **3.18** | Identity has access to Azure OpenAI | [ ] | Cognitive Services User role |
+| **3.19** | Identity documented in access inventory | [ ] | For ongoing governance |
+
+### Diagnostic Settings
+
+| Check | Requirement | Status | Notes |
+|-------|-------------|--------|-------|
+| **3.20** | APIM diagnostic settings configured | [ ] | GatewayLogs to Log Analytics |
+| **3.21** | Azure OpenAI diagnostic settings enabled | [ ] | Audit and request logging |
+| **3.22** | Key Vault diagnostic settings enabled | [ ] | Audit event logging |
+| **3.23** | Log retention period defined | [ ] | 30-90 days operational, 7 years audit |
+
+---
+
+## Network Checklist
+
+### VNet and Subnet Configuration
+
+| Check | Validation | Status | Notes |
+|-------|-----------|--------|-------|
+| **4.1** | VNet CIDR doesn't overlap with existing networks | [ ] | Document all peered VNets |
+| **4.2** | Subnet sizing adequate for APIM + private endpoints | [ ] | /24 minimum for APIM subnet |
+| **4.3** | Subnet delegation configured if required | [ ] | For services requiring delegation |
+| **4.4** | Service endpoints enabled where beneficial | [ ] | For Storage, Key Vault |
+
+**Network overlap check:**
+
+```bash
+# List all VNets in subscription
+az network vnet list \
+  --query "[].{name:name, cidr:addressSpace.addressPrefixes[0], rg:resourceGroup}"
+
+# Check peering connections
+az network vnet peering list \
+  --resource-group <resource-group> \
+  --vnet-name <vnet-name> \
+  --query "[].{name:name, remote:remoteVirtualNetwork.id, state:peeringState}"
+```
+
+### Route Tables
+
+| Check | Validation | Status | Notes |
+|-------|-----------|--------|-------|
+| **4.5** | Route table associated with APIM subnet | [ ] | Required for VNet integration |
+| **4.6** | `0.0.0.0/0` route configured correctly | [ ] | Internet or NVA as appropriate |
+| **4.7** | APIM management route bypasses firewall | [ ] | Critical for platform operations |
+| **4.8** | BGP propagation settings correct | [ ] | For hybrid connectivity |
+
+**Route table validation:**
+
+```bash
+# Check route table configuration
+az network route-table route list \
+  --resource-group <resource-group> \
+  --route-table-name <route-table-name> \
+  --query "[].{name:name, prefix:addressPrefix, nextHop:nextHopType, nextHopIp:nextHopIpAddress}"
+```
+
+### DNS Resolution
+
+| Check | Validation | Status | Notes |
+|-------|-----------|--------|-------|
+| **4.9** | Private DNS zones created for all services | [ ] | openai, vault, azure-api |
+| **4.10** | DNS zones linked to hub VNet | [ ] | Registration not required |
+| **4.11** | DNS forwarder configured for hybrid (if needed) | [ ] | For on-premises resolution |
+| **4.12** | Conditional forwarding planned | [ ] | For custom domains |
+
+**DNS validation:**
+
+```bash
+# Check private DNS zone links
+az network private-dns link vnet list \
+  --resource-group <resource-group> \
+  --zone-name "privatelink.openai.azure.com" \
+  --query "[].{vnet:virtualNetwork.id, state:provisioningState}"
+```
+
+---
+
+## Governance Checklist
+
+### Resource Tags
+
+| Check | Requirement | Status | Notes |
+|-------|-------------|--------|-------|
+| **5.1** | Mandatory tags defined | [ ] | Environment, Owner, CostCenter |
+| **5.2** | Tagging policy configured | [ ] | Azure Policy enforcement |
+| **5.3** | Tag values validated | [ ] | No special characters, consistent format |
+
+**Required tags:**
+
+| Tag | Example | Purpose |
+|-----|---------|---------|
+| `Environment` | `Production`, `Staging`, `Development` | Cost allocation |
+| `Owner` | `platform-team@company.com` | Accountability |
+| `CostCenter` | `CC-12345` | Chargeback |
+| `Project` | `AI-Platform` | Resource grouping |
+| `DataClassification` | `Confidential` | Security classification |
+
+### Policy Assignments
+
+| Check | Requirement | Status | Notes |
+|-------|-------------|--------|-------|
+| **5.4** | Built-in policies reviewed | [ ] | Allowed locations, allowed SKUs |
+| **5.5** | Custom policies defined for AI Landing Zone | [ ] | Private endpoint enforcement |
+| **5.6** | Policy exemptions documented | [ ] | With business justification |
+| **5.7** | Compliance dashboard configured | [ ] | In Azure Policy |
+
+### Cost Management
+
+| Check | Requirement | Status | Notes |
+|-------|-------------|--------|-------|
+| **5.8** | Budget alert configured | [ ] | 80%, 100%, 120% thresholds |
+| **5.9** | Cost allocation tags applied | [ ] | For chargeback/showback |
+| **5.10** | Monthly cost review scheduled | [ ] | Owner accountable |
+
+### Backup Strategy
+
+| Check | Requirement | Status | Notes |
+|-------|-------------|--------|-------|
+| **5.11** | APIM configuration backup | [ ] | GitOps or extraction scripts |
+| **5.12** | Key Vault soft-delete enabled | [ ] | Protects against accidental deletion |
+| **5.13** | Infrastructure state backed up | [ ] | Terraform state or Bicep in repo |
+| **5.14** | Recovery procedures documented | [ ] | RTO/RPO defined |
+
+---
+
+## Validation Commands Quick Reference
+
+### Complete Pre-Deployment Validation
+
+```bash
+#!/bin/bash
+# pre-deployment-validation.sh
+
+set -e
+
+echo "========================================="
+echo "AI Landing Zone Pre-Deployment Validation"
+echo "========================================="
+echo ""
+
+# Configuration
+SUBSCRIPTION_ID="$1"
+RESOURCE_GROUP="$2"
+LOCATION="$3"
+
+if [ -z "$SUBSCRIPTION_ID" ] || [ -z "$RESOURCE_GROUP" ] || [ -z "$LOCATION" ]; then
+    echo "Usage: $0 <subscription-id> <resource-group> <location>"
+    exit 1
+fi
+
+echo "Subscription: $SUBSCRIPTION_ID"
+echo "Resource Group: $RESOURCE_GROUP"
+echo "Location: $LOCATION"
+echo ""
+
+# Set subscription
+az account set --subscription "$SUBSCRIPTION_ID"
+
+# Check 1: Subscription state
+echo "1. Checking subscription state..."
+STATE=$(az account show --query "state" -o tsv)
+if [ "$STATE" = "Enabled" ]; then
+    echo "   ✅ Subscription is Enabled"
+else
+    echo "   ❌ Subscription state: $STATE"
+    exit 1
+fi
+
+# Check 2: Resource providers
+echo "2. Checking resource providers..."
+REQUIRED_PROVIDERS=(
+    "Microsoft.ApiManagement"
+    "Microsoft.CognitiveServices"
+    "Microsoft.KeyVault"
+    "Microsoft.Network"
+)
+
+for provider in "${REQUIRED_PROVIDERS[@]}"; do
+    REG_STATE=$(az provider show --namespace "$provider" --query "registrationState" -o tsv)
+    if [ "$REG_STATE" = "Registered" ]; then
+        echo "   ✅ $provider: Registered"
+    else
+        echo "   ❌ $provider: $REG_STATE"
+    fi
+done
+
+# Check 3: Resource group exists
+echo "3. Checking resource group..."
+if az group show --name "$RESOURCE_GROUP" &>/dev/null; then
+    echo "   ✅ Resource group exists"
+else
+    echo "   ⚠️  Resource group will be created during deployment"
+fi
+
+# Check 4: Current user permissions
+echo "4. Checking permissions..."
+USER_ID=$(az ad signed-in-user show --query "id" -o tsv)
+ROLES=$(az role assignment list --assignee "$USER_ID" --scope "/subscriptions/$SUBSCRIPTION_ID" --query "[].roleDefinitionName" -o tsv)
+echo "   Assigned roles: $ROLES"
+
+echo ""
+echo "========================================="
+echo "Validation Complete"
+echo "========================================="
+```
+
+---
+
+## Go/No-Go Criteria
+
+### Critical Checks (Must Pass)
+
+All of the following must pass before deployment:
+
+- [ ] Azure subscription is **Enabled** and active
+- [ ] User has **Contributor** and **User Access Administrator** roles
+- [ ] All required resource providers are **Registered**
+- [ ] Network CIDRs are planned with **no overlaps**
+- [ ] APIM SKU is available in target **region**
+- [ ] Cost estimate is **approved**
+
+### Warnings (Document Mitigation)
+
+The following may proceed with documented mitigation:
+
+- [ ] Resource quotas near limit — Mitigation: Request increase before deployment
+- [ ] New region for organization — Mitigation: Verify compliance requirements
+- [ ] First AI Landing Zone deployment — Mitigation: Schedule additional validation time
+
+### Sign-Off
+
+| Role | Name | Date | Signature |
+|------|------|------|-----------|
+| Platform Engineer | | | |
+| Security Architect | | | |
+| Network Engineer | | | |
+| Finance/Cost Owner | | | |
+
+**Deployment Approved:** [ ] Yes / [ ] No
+
+---
+
+## Next Steps
+
+After completing this checklist:
+
+<CardGroup cols={2}>
+  <Card
+    title="Proceed to Deployment"
+    icon="server"
+    href="/guides/deployment-guide"
+  >
+    Begin infrastructure deployment with confidence
+  </Card>
+  
+  <Card
+    title="Post-Deployment Validation"
+    icon="check-circle"
+    href="/implementation/validation/post-deployment-validation"
+  >
+    Prepare for smoke tests and functional verification
+  </Card>
+</CardGroup>
