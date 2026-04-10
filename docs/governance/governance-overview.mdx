@@ -1,0 +1,319 @@
+---
+title: "Governance Framework Overview"
+description: "Enterprise AI governance principles, policy-as-code approach, and governance lifecycle for consistent, auditable AI operations"
+---
+
+# 🤝 Governance Framework Overview
+
+## Introduction
+
+Enterprise AI governance ensures that artificial intelligence workloads operate within organizational boundaries, meet compliance requirements, and maintain security standards. The Foundry Citadel Platform implements **policy-as-code governance** that shifts controls left into the deployment pipeline while maintaining runtime enforcement through automated mechanisms.
+
+## Governance Philosophy
+
+### Policy-as-Code Approach
+
+Traditional governance relies on manual reviews, documentation, and human enforcement. The policy-as-code approach codifies governance rules into executable policies that are:
+
+| Characteristic | Benefit |
+|----------------|---------|
+| **Version Controlled** | Track policy changes through Git history |
+| **Testable** | Validate policies before deployment |
+| **Reproducible** | Consistent enforcement across environments |
+| **Auditable** | Complete history of policy decisions |
+| **Automated** | No manual gatekeeping required |
+
+### Shift-Left Governance
+
+Governance checks are integrated as early as possible in the development lifecycle:
+
+```
+Development Pipeline with Governance:
+┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐
+│  Code   │ → │  Lint   │ → │ Policy  │ → │  Build  │ → │ Deploy  │
+│  Write  │   │  Check  │   │  Scan   │   │  Image  │   │  Check  │
+└─────────┘   └─────────┘   └─────────┘   └─────────┘   └─────────┘
+                 ↑              ↑                           ↑
+            Code style    AI safety rules           Runtime
+            violations    compliance checks         enforcement
+```
+
+### Automated vs. Manual Enforcement
+
+| Enforcement Type | Use Cases | Implementation |
+|------------------|-----------|----------------|
+| **Automated** | Rate limiting, authentication, content filtering | APIM policies, Azure Policy |
+| **Manual** | Novel use cases, exceptions, architectural review | Ticketing workflows, CAB approval |
+| **Hybrid** | Standard workloads auto-approved, exceptions reviewed | Policy-driven routing with manual gates |
+
+### Auditability and Compliance
+
+Every AI interaction is traceable:
+
+- **Who**: Identity of the user or agent making the request
+- **What**: Model, endpoint, and parameters accessed
+- **When**: Timestamp with millisecond precision
+- **Where**: Source IP, gateway, and backend endpoint
+- **Why**: Business context and purpose classification
+- **How**: Tokens consumed, cost incurred, response time
+
+## Governance Hub in the 4-Layer Architecture
+
+The [Governance Hub](../architecture/layer-1-governance-hub) (Layer 1) serves as the **runtime enforcement plane**:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     GOVERNANCE HUB                              │
+│                    (Layer 1 - Enforcement)                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │   Identity  │  │    Rate     │  │   Content   │             │
+│  │ Validation  │  │   Limiting  │  │   Safety    │             │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘             │
+│         │                │                │                     │
+│         └────────────────┼────────────────┘                     │
+│                          │                                      │
+│                          ▼                                      │
+│         ┌──────────────────────────────────┐                   │
+│         │    Unified AI Gateway (APIM)     │                   │
+│         │  • Authentication enforcement    │                   │
+│         │  • Policy evaluation             │                   │
+│         │  • Request routing               │                   │
+│         │  • Audit logging                 │                   │
+│         └──────────────────────────────────┘                   │
+│                          │                                      │
+└──────────────────────────┼──────────────────────────────────────┘
+                           │
+                           ▼
+                    AI Services
+              (Azure OpenAI, etc.)
+```
+
+## Key Governance Capabilities
+
+### Access Control and Authentication
+
+- **Identity Sources**: Microsoft Entra ID, API keys, managed identities
+- **Authentication**: OAuth 2.0, OIDC, client credentials, certificate-based
+- **Authorization**: RBAC, ABAC, custom policies
+- **Agent Identity**: [Agent 365](../architecture/layer-3-agent-identity) integration for agent governance
+
+### Rate Limiting and Throttling
+
+Prevent cost overruns and ensure fair resource allocation:
+
+| Limit Type | Purpose | Example |
+|------------|---------|---------|
+| **Request Rate** | Prevent API abuse | 100 requests/minute |
+| **Token Quota** | Control costs | 1M tokens/day |
+| **Concurrent** | Prevent resource exhaustion | 10 concurrent requests |
+| **Burst** | Handle traffic spikes | 200 requests/minute burst |
+
+### Content Filtering and Safety
+
+Multi-layer safety approach:
+
+```
+Request Flow with Safety Checks:
+
+Incoming Request
+       ↓
+┌─────────────────┐
+│  Prompt Shields │ → Block jailbreak attempts
+└─────────────────┘
+       ↓
+┌─────────────────┐
+│ Content Filter  │ → Filter harmful content
+└─────────────────┘
+       ↓
+┌─────────────────┐
+│  PII Detection  │ → Redact sensitive data
+└─────────────────┘
+       ↓
+   AI Model
+       ↓
+┌─────────────────┐
+│ Output Filter   │ → Check response safety
+└─────────────────┘
+```
+
+### Cost Attribution and Budgeting
+
+Track and control AI spending:
+
+- **Per-Request Tracking**: Tokens, cost, model usage
+- **Dimensional Attribution**: Team, project, environment, agent
+- **Budget Alerts**: Proactive notifications at thresholds
+- **Chargeback**: Allocate costs to business units
+
+### Audit Logging and Monitoring
+
+Comprehensive observability:
+
+| Log Type | Content | Retention |
+|----------|---------|-----------|
+| **Access Logs** | Who accessed what and when | 90 days |
+| **Policy Logs** | Policy decisions and violations | 1 year |
+| **Audit Trail** | Complete request/response | 7 years |
+| **Security Logs** | Threats, anomalies, incidents | 7 years |
+
+## Governance Lifecycle
+
+### 1. Policy Definition
+
+Define governance rules in code:
+
+```json
+{
+  "policyName": "production-ai-access",
+  "version": "1.0.0",
+  "rules": [
+    {
+      "name": "rate-limit",
+      "type": "rateLimit",
+      "limit": 1000,
+      "period": "hour"
+    },
+    {
+      "name": "content-safety",
+      "type": "contentFilter",
+      "severity": "high"
+    }
+  ]
+}
+```
+
+### 2. Contract Creation
+
+Create [Access Contracts](./access-contracts) that bind policies to identities:
+
+```
+Contract: Finance-Team-Production
+├── Identity: Finance Team
+├── Environment: Production
+├── Policies:
+│   ├── rate-limit-production
+│   ├── content-safety-standard
+│   └── cost-budget-finance
+└── Validity: 90 days
+```
+
+### 3. Deployment and Enforcement
+
+Policies are deployed to the gateway and enforced at runtime:
+
+```
+Policy Deployment Pipeline:
+Git Commit → CI Build → Policy Validation → Staging Deploy → Production Deploy
+                ↓
+         Azure API Management
+                ↓
+         Runtime Enforcement
+```
+
+### 4. Monitoring and Compliance
+
+Continuous monitoring ensures policy effectiveness:
+
+- **Real-Time Dashboards**: Current violations, usage patterns
+- **Compliance Reports**: Periodic attestation of controls
+- **Anomaly Detection**: ML-based detection of unusual patterns
+- **Remediation**: Automated response to violations
+
+### 5. Iteration and Updates
+
+Governance is continuous improvement:
+
+```
+Review Cycle:
+1. Analyze policy effectiveness metrics
+2. Identify gaps or new requirements
+3. Update policies in version control
+4. Deploy updated policies
+5. Monitor for intended effects
+6. Repeat quarterly
+```
+
+## Integration with Azure Services
+
+### Azure Policy
+
+Enforce organizational standards across Azure resources:
+
+- **Resource Compliance**: Ensure AI services meet security baselines
+- **Tagging Requirements**: Mandatory cost center, owner tags
+- **Network Policies**: Restrict public access, enforce private endpoints
+- **Encryption**: Require CMK (Customer Managed Keys)
+
+### Microsoft Defender for Cloud
+
+Runtime threat protection:
+
+- **Threat Detection**: Identify anomalous AI access patterns
+- **Security Recommendations**: Remediate security gaps
+- **Vulnerability Assessment**: Scan AI deployments
+- **Security Alerts**: Real-time threat notifications
+
+### Microsoft Purview
+
+Data governance and protection:
+
+- **Data Classification**: Auto-classify sensitive data in AI training
+- **Sensitivity Labels**: Apply labels to AI outputs
+- **Data Loss Prevention**: Prevent sensitive data in prompts/responses
+- **Audit Records**: Complete data governance audit trail
+
+## Compliance Framework Alignment
+
+The governance framework supports major compliance requirements:
+
+| Framework | Governance Support |
+|-----------|-------------------|
+| **SOX** | Audit trails, change management, access controls |
+| **GDPR** | Data classification, right to deletion, consent tracking |
+| **HIPAA** | PHI protection, access logging, encryption requirements |
+| **PCI DSS** | Payment data isolation, access restrictions, monitoring |
+| **ISO 27001** | Security controls, risk management, compliance reporting |
+| **NIST** | Security frameworks, zero trust implementation |
+
+## Governance Maturity Model
+
+Organizations progress through governance maturity stages:
+
+| Level | Characteristics | Capabilities |
+|-------|----------------|--------------|
+| **1. Basic** | Manual reviews, ad-hoc policies | Basic logging, manual approval |
+| **2. Defined** | Documented policies, some automation | Policy-as-code, automated checks |
+| **3. Managed** | Metrics-driven, proactive monitoring | Real-time dashboards, compliance reports |
+| **4. Optimized** | ML-driven, continuous improvement | Predictive governance, self-healing |
+
+## Best Practices
+
+### Start with High-Impact Policies
+
+1. **Authentication Required**: No anonymous access
+2. **Rate Limiting**: Prevent runaway costs
+3. **Content Safety**: Block harmful outputs
+4. **Audit Logging**: Maintain complete trails
+
+### Design for Developer Experience
+
+- **Self-Service Onboarding**: Developers request access through contracts
+- **Fast Feedback**: Policy validation in IDE and CI
+- **Clear Documentation**: Policies explained in plain language
+- **Reasonable Defaults**: Sensible starting points
+
+### Balance Security and Innovation
+
+- **Tiered Access**: Different policies for dev/staging/prod
+- **Exception Process**: Documented path for special cases
+- **Time-Bound Permissions**: Access expires automatically
+- **Progressive Rollout**: Test policies before full deployment
+
+## Next Steps
+
+- Learn about [AI Access Contracts](./access-contracts) for agent onboarding
+- Explore [policy enforcement mechanisms](./policy-enforcement)
+- Understand [identity management patterns](./identity-management)
+- Review the [Governance Hub architecture](../architecture/layer-1-governance-hub)
