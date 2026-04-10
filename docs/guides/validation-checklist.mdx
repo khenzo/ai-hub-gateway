@@ -1,0 +1,297 @@
+---
+title: Validation Checklist
+description: Post-deployment validation procedures to confirm successful AI Landing Zone deployment
+icon: check-circle
+---
+
+# Validation Checklist
+
+This checklist verifies that the AI Landing Zone (Citadel Governance Hub) is correctly deployed, functioning, and ready for production use. Complete all sections before declaring the deployment successful.
+
+<Note>
+Complete the [Deployment Checklist](/guides/deployment-checklist) before starting validation. If any validation step fails, consult the troubleshooting guidance linked at the bottom of each section.
+</Note>
+
+---
+
+## How to Use This Checklist
+
+Run each validation command from an appropriate location:
+- **Azure CLI commands**: Run from any machine with Azure CLI and appropriate role
+- **Network connectivity tests**: Run from a VM inside the Hub VNet (jumpbox or bastion)
+- **API tests**: Run from within the VNet or via APIM portal test console
+
+**Status symbols:**
+- `[ ]` — Not validated
+- `[P]` — Passed
+- `[F]` — Failed (document failure and resolution in notes)
+- `[S]` — Skipped (document reason)
+
+**Validation record:**
+
+| Environment | Validator | Date | Overall Status |
+|-------------|-----------|------|----------------|
+| Development | | | |
+| Staging | | | |
+| Production | | | |
+
+---
+
+## Section 1: Network Validation
+
+### 1.1 Hub VNet Connectivity
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 1.1.1 | Hub VNet exists and is in Succeeded state | `az network vnet show --name vnet-hub-<env> --resource-group rg-citadel-hub-<env> --query provisioningState` | `Succeeded` | `[ ]` | |
+| 1.1.2 | APIM subnet has correct address prefix | `az network vnet subnet show --vnet-name vnet-hub-<env> -g rg-citadel-hub-<env> --name snet-apim --query addressPrefix` | Matches planned CIDR | `[ ]` | |
+| 1.1.3 | Private endpoint subnet configured | `az network vnet subnet show --name snet-private-endpoints ...` | Subnet exists | `[ ]` | |
+| 1.1.4 | NSGs associated with subnets | `az network vnet subnet list --vnet-name vnet-hub-<env> -g rg-citadel-hub-<env> --query "[].{name:name, nsg:networkSecurityGroup.id}"` | NSG IDs populated | `[ ]` | |
+
+### 1.2 Hub-Spoke Connectivity
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 1.2.1 | Hub-to-spoke peering in Connected state | `az network vnet peering list --resource-group rg-citadel-hub-<env> --vnet-name vnet-hub-<env> --query "[].{name:name, state:peeringState}"` | `Connected` for all spokes | `[ ]` | |
+| 1.2.2 | Spoke-to-hub peering in Connected state | `az network vnet peering list --resource-group rg-citadel-spoke<n>-<env> --vnet-name vnet-spoke<n>-<env> --query "[].peeringState"` | `Connected` | `[ ]` | |
+| 1.2.3 | Bidirectional ping: hub to spoke | From hub VM: `ping 10.1.1.4` (spoke VM IP) | Successful ping | `[ ]` | Requires jumpbox |
+| 1.2.4 | Bidirectional ping: spoke to hub | From spoke VM: `ping 10.0.1.4` (hub APIM IP) | Successful ping | `[ ]` | |
+| 1.2.5 | Cross-spoke isolation confirmed | From spoke1 VM: attempt `ping <spoke2-ip>` | No response (isolated) | `[ ]` | Spokes should not route to each other |
+
+### 1.3 Private DNS Resolution
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 1.3.1 | Azure OpenAI resolves to private IP | From hub VNet VM: `nslookup <openai-name>.openai.azure.com` | Returns `10.x.x.x` (private IP) | `[ ]` | |
+| 1.3.2 | Key Vault resolves to private IP | From hub VNet VM: `nslookup <kv-name>.vault.azure.net` | Returns `10.x.x.x` | `[ ]` | |
+| 1.3.3 | APIM resolves to private IP | From spoke VM: `nslookup apim-citadel-<env>.azure-api.net` | Returns `10.x.x.x` | `[ ]` | |
+| 1.3.4 | No public IP resolution for private services | From public internet: `nslookup <openai-name>.openai.azure.com` | Returns CNAME or NXDOMAIN, not public IP | `[ ]` | |
+
+### 1.4 NSG Rule Validation
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 1.4.1 | APIM management port (3443) open | `az network nsg rule list --nsg-name nsg-citadel-apim -g rg-citadel-hub-<env> --query "[?destinationPortRange=='3443']"` | Rule allowing `ApiManagement` tag | `[ ]` | |
+| 1.4.2 | APIM gateway port (443) accessible from clients | Test HTTPS call to APIM gateway URL | HTTP 200 or 401 (auth required) | `[ ]` | |
+| 1.4.3 | Spoke NSGs block direct internet inbound | Attempt external connection to spoke resource | Connection refused | `[ ]` | |
+| 1.4.4 | Route tables directing traffic correctly | `az network route-table route list ...` | Routes match network design | `[ ]` | |
+
+---
+
+## Section 2: API Management Validation
+
+### 2.1 APIM Gateway Health
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 2.1.1 | APIM in Succeeded provisioning state | `az apim show --name apim-citadel-<env> -g rg-citadel-hub-<env> --query provisioningState` | `Succeeded` | `[ ]` | |
+| 2.1.2 | APIM gateway URL accessible | `curl -s -o /dev/null -w "%{http_code}" https://<apim-name>.azure-api.net/` | `200` or `404` | `[ ]` | |
+| 2.1.3 | APIM VNet integration confirmed | `az apim show ... --query virtualNetworkConfiguration` | VNet subnet ID populated | `[ ]` | |
+| 2.1.4 | APIM managed identity enabled | `az apim show ... --query identity.type` | `SystemAssigned` | `[ ]` | |
+
+### 2.2 API Endpoints
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 2.2.1 | Azure OpenAI API registered in APIM | `az apim api list --service-name apim-citadel-<env> -g rg-citadel-hub-<env> --query "[?contains(name,'openai')]"` | API(s) listed | `[ ]` | |
+| 2.2.2 | OpenAI completions endpoint responds | `curl -X POST <apim-url>/openai/deployments/<model>/chat/completions?api-version=2024-02-01 -H "api-key: <key>" -d '{"messages":[{"role":"user","content":"test"}],"max_tokens":5}'` | HTTP 200 with response body | `[ ]` | |
+| 2.2.3 | Universal LLM API endpoint available (if deployed) | `curl -s -o /dev/null -w "%{http_code}" <apim-url>/models` | `200` with model list | `[ ]` | |
+| 2.2.4 | AI Foundry API endpoint responding (if deployed) | `curl -s -X POST <apim-url>/v1/chat/completions ...` | HTTP 200 | `[ ]` | |
+
+### 2.3 Policy Validation
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 2.3.1 | Authentication/authorization working (unauthenticated request rejected) | `curl -s -o /dev/null -w "%{http_code}" <apim-url>/openai/...` (no key) | `401 Unauthorized` | `[ ]` | |
+| 2.3.2 | Invalid subscription key rejected | `curl -H "api-key: invalid-key" <apim-url>/openai/...` | `401 Unauthorized` | `[ ]` | |
+| 2.3.3 | Rate limiting functional — exceed rate limit | Send >N requests/min per contract limit | `429 Too Many Requests` after threshold | `[ ]` | |
+| 2.3.4 | Content Safety blocking harmful content | Send test request with `{"messages":[{"role":"user","content":"<harmful content>"}]}` | `400` with Content Safety refusal | `[ ]` | Use test content from Azure AI Content Safety docs |
+| 2.3.5 | Usage logging visible in Log Analytics | Run query: `APIMRequests | where TimeGenerated > ago(1h) | count` | Count > 0 | `[ ]` | After sending test requests |
+| 2.3.6 | Token usage tracked in telemetry | `AzureDiagnostics | where ResourceType == "APIMANAGEMENT" | where Message contains "tokens"` | Token counts in logs | `[ ]` | |
+
+### 2.4 Backend Connectivity
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 2.4.1 | APIM backend health check passing | Check APIM backend health in portal: APIs > Backends | All backends show healthy | `[ ]` | |
+| 2.4.2 | APIM can reach OpenAI via private endpoint | Make test API call through APIM | Response from OpenAI (HTTP 200) | `[ ]` | |
+| 2.4.3 | Backend pool load balancing functional (if multiple backends) | Make 10+ requests, verify distribution in logs | Requests distributed across backends | `[ ]` | |
+| 2.4.4 | Circuit breaker not tripped | `az apim backend show ...` | Backend in active state | `[ ]` | |
+
+---
+
+## Section 3: Security Validation
+
+### 3.1 Public Exposure Check
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 3.1.1 | Azure OpenAI has no public network access | `az cognitiveservices account show --name <openai-name> -g <rg> --query properties.networkAcls.defaultAction` | `Deny` | `[ ]` | |
+| 3.1.2 | Key Vault network access restricted | `az keyvault show --name <kv-name> -g <rg> --query properties.networkAcls.defaultAction` | `Deny` | `[ ]` | |
+| 3.1.3 | AI Foundry has no public network access (if deployed) | Check in Azure Portal: AI Foundry > Networking | Public access disabled | `[ ]` | |
+| 3.1.4 | Direct access to OpenAI endpoint from internet denied | From public internet: `curl https://<openai-name>.openai.azure.com/openai/...` | Connection refused or timeout | `[ ]` | |
+| 3.1.5 | APIM only exposes intended APIs | Review APIM API list in portal | Only approved APIs published | `[ ]` | |
+
+### 3.2 Authentication and Authorization
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 3.2.1 | Entra ID token validation working | Send request with valid Entra ID token | HTTP 200 | `[ ]` | |
+| 3.2.2 | Expired token rejected | Send request with expired JWT | `401 Unauthorized` | `[ ]` | |
+| 3.2.3 | Token from wrong tenant rejected | Send request with token from different Entra tenant | `401 Unauthorized` | `[ ]` | |
+| 3.2.4 | APIM managed identity can read Key Vault secrets | `az keyvault secret show --vault-name <kv> --name apim-publisher-email` | Secret value returned | `[ ]` | |
+| 3.2.5 | APIM managed identity can call Azure OpenAI | Verify via APIM trace: AI response via managed identity auth | No auth errors in trace | `[ ]` | |
+
+### 3.3 Secrets Management
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 3.3.1 | No secrets in code or parameter files | `git grep -i "password\|secret\|apikey" bicep/ scripts/` | No matches | `[ ]` | |
+| 3.3.2 | All secrets stored in Key Vault | Review Key Vault secrets list | All required secrets present | `[ ]` | |
+| 3.3.3 | Subscription keys stored in Key Vault | `az keyvault secret list --vault-name <kv-name> --query "[?contains(name,'subscription')]"` | Keys present | `[ ]` | |
+| 3.3.4 | Key Vault access logs showing activity | Log Analytics: `AzureDiagnostics | where ResourceProvider == "MICROSOFT.KEYVAULT"` | Access events logged | `[ ]` | |
+
+### 3.4 RBAC and Least Privilege
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 3.4.1 | Deployment service principal has minimum required roles | `az role assignment list --assignee <sp-client-id> --query "[].{role:roleDefinitionName,scope:scope}"` | Only Contributor + UAA | `[ ]` | |
+| 3.4.2 | No personal accounts with Owner role (production) | Review IAM in Azure Portal | Only service principals/groups, no personal accounts | `[ ]` | |
+| 3.4.3 | AI workload teams only have access to their spoke | Verify spoke resource group RBAC | Teams restricted to own spoke | `[ ]` | |
+| 3.4.4 | Content Safety filtering operational | Use APIM test console: send flagged test content | Request blocked with 400 | `[ ]` | |
+
+---
+
+## Section 4: Monitoring Validation
+
+### 4.1 Log Collection
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 4.1.1 | APIM logs flowing to Log Analytics | `az monitor log-analytics query --workspace <workspace-id> --analytics-query "ApiManagementGatewayLogs | count"` | Count > 0 | `[ ]` | After sending test requests |
+| 4.1.2 | Azure OpenAI logs flowing to Log Analytics | `AzureDiagnostics | where ResourceProvider == "MICROSOFT.COGNITIVESERVICES" | count` | Count > 0 | `[ ]` | |
+| 4.1.3 | Application Insights receiving telemetry | Check Application Insights Live Metrics | Active traces visible | `[ ]` | |
+| 4.1.4 | Key Vault audit logs enabled | `AzureDiagnostics | where ResourceProvider == "MICROSOFT.KEYVAULT" | count` | Count > 0 | `[ ]` | |
+
+### 4.2 Metrics and Dashboards
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 4.2.1 | Azure Monitor metrics visible for APIM | Azure Portal: APIM > Metrics | Requests, Capacity, Latency charts visible | `[ ]` | |
+| 4.2.2 | Azure Monitor metrics visible for Azure OpenAI | Azure Portal: OpenAI > Metrics | Calls, Tokens charts visible | `[ ]` | |
+| 4.2.3 | Custom dashboards deployed and accessible | Azure Portal: Dashboard | Citadel dashboard visible | `[ ]` | |
+| 4.2.4 | Power BI dashboard connected (if applicable) | Open Power BI report | Data loading from Log Analytics | `[ ]` | |
+
+### 4.3 Alert Rules
+
+| # | Validation | Command / Method | Expected Result | Status | Notes |
+|---|-----------|-----------------|-----------------|--------|-------|
+| 4.3.1 | Alert rules deployed | `az monitor alert-rule list -g rg-citadel-hub-<env> --query "[].name"` | Alert rules listed | `[ ]` | |
+| 4.3.2 | Action groups configured with notification targets | `az monitor action-group list -g rg-citadel-hub-<env>` | Action groups with email/webhook | `[ ]` | |
+| 4.3.3 | Test alert fires and notification received | Manually trigger alert or use "Fire test alert" in portal | Notification received | `[ ]` | |
+| 4.3.4 | Budget alerts configured | Azure Portal: Subscriptions > Budgets | Budget threshold alerts set | `[ ]` | |
+
+---
+
+## Section 5: Performance Validation
+
+### 5.1 Baseline Performance
+
+| # | Validation | Method | Expected Result | Status | Notes |
+|---|-----------|--------|-----------------|--------|-------|
+| 5.1.1 | API response time within SLA | Send 10 sequential requests, measure P50 and P95 | P50 < 2s, P95 < 5s for GPT-4 | `[ ]` | Results vary by model |
+| 5.1.2 | APIM gateway overhead < 50ms | Compare direct OpenAI vs APIM response times | APIM adds < 50ms overhead | `[ ]` | |
+| 5.1.3 | No cold-start latency issues | Send requests after 5 min idle | First request within SLA | `[ ]` | |
+
+### 5.2 Load Testing (Staging and Production)
+
+| # | Validation | Method | Expected Result | Status | Notes |
+|---|-----------|--------|-----------------|--------|-------|
+| 5.2.1 | 50 concurrent requests handled | Use Azure Load Testing or k6 with 50 VUs | No 5xx errors | `[ ]` | |
+| 5.2.2 | Rate limiting activates under load | Exceed rate limit threshold in test | `429` responses with retry-after header | `[ ]` | |
+| 5.2.3 | APIM capacity metrics within bounds | Monitor APIM Capacity metric during load test | Capacity < 70% | `[ ]` | |
+| 5.2.4 | Auto-scaling triggers (if configured) | Drive load to trigger scaling | New unit provisions within 15 min | `[ ]` | |
+
+### 5.3 Failover Testing (Production)
+
+| # | Validation | Method | Expected Result | Status | Notes |
+|---|-----------|--------|-----------------|--------|-------|
+| 5.3.1 | Primary backend failover to secondary | Disable primary OpenAI backend, make API call | Request routes to secondary backend | `[ ]` | |
+| 5.3.2 | Circuit breaker opens on backend failure | Simulate backend errors (return 500s) | Circuit breaker trips, requests fail fast | `[ ]` | |
+| 5.3.3 | Multi-region APIM failover (Premium production) | Simulate primary region outage | Requests route to secondary region | `[ ]` | |
+
+---
+
+## Section 6: Documentation Validation
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 6.1 | As-built documentation updated with actual resource names and IPs | Platform Engineer | `[ ]` | |
+| 6.2 | Network diagram updated with actual deployed topology | Network Engineer | `[ ]` | |
+| 6.3 | Runbooks created for common operations (scale, backup, policy update) | Operations | `[ ]` | |
+| 6.4 | Escalation contacts and on-call schedule documented | Operations | `[ ]` | |
+| 6.5 | Access contract inventory documented with owners | AI Platform Lead | `[ ]` | |
+| 6.6 | Subscription key distribution documented | AI Platform Lead | `[ ]` | |
+| 6.7 | Deployment parameters archived for future reference | DevOps Engineer | `[ ]` | Store in secure location |
+| 6.8 | Incident response procedure documented | Operations | `[ ]` | |
+
+---
+
+## Section 7: Operational Readiness Sign-Off
+
+| Role | Name | Date | Signature |
+|------|------|------|-----------|
+| Platform Engineer | | | |
+| Network Engineer | | | |
+| Security Architect | | | |
+| Operations Lead | | | |
+| AI Platform Lead | | | |
+| Change Manager (Production) | | | |
+
+**Deployment approved for production use:** `[ ]` Yes / `[ ]` No (explain below)
+
+**Outstanding items requiring follow-up:**
+
+| # | Item | Owner | Target Date |
+|---|------|-------|------------|
+| | | | |
+| | | | |
+
+---
+
+## Validation Failure Reference
+
+If validation steps fail, use this reference to diagnose:
+
+| Section | Common Failure | Likely Cause | Quick Fix |
+|---------|---------------|--------------|-----------|
+| 1.2 | VNet peering not Connected | Peering only created one direction | Create peering in both directions |
+| 1.3 | DNS resolves to public IP | Private DNS zone not linked to VNet | Link DNS zone to hub VNet |
+| 2.1 | APIM gateway unreachable | NSG blocking port 3443 | Add NSG rule for `ApiManagement` service tag |
+| 2.3 | Auth returns 500 (not 401) | APIM policy XML error | Check APIM policy XML in developer portal |
+| 3.1 | OpenAI accessible from public internet | Public network access not disabled | Set `publicNetworkAccess: Disabled` on OpenAI resource |
+| 4.1 | No logs in Log Analytics | Diagnostic settings not configured | Enable diagnostics on APIM and OpenAI |
+| 5.1 | High latency | Cold network connection or wrong region | Test from within VNet; verify same region |
+
+For unresolved failures, consult the [Troubleshooting Guide](/guides/troubleshooting) or open a GitHub issue on the ai-hub-gateway repository.
+
+---
+
+## Next Steps
+
+After successful validation:
+
+<CardGroup cols={2}>
+  <Card title="Configuration Guide" icon="gear" href="/guides/configuration-guide">
+    Environment-specific configuration and customization
+  </Card>
+  <Card title="Troubleshooting Guide" icon="wrench" href="/guides/troubleshooting">
+    Diagnose and resolve deployment and runtime issues
+  </Card>
+  <Card title="Access Contracts" icon="shield-check" href="/governance/access-contracts">
+    Configure governance policies for AI workloads
+  </Card>
+  <Card title="Network Approach" icon="network-wired" href="/guides/network-approach">
+    Network architecture patterns and design decisions
+  </Card>
+</CardGroup>
