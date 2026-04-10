@@ -1,0 +1,52 @@
+---
+title: "Network Configuration"
+description: "Hub-based and spoke-based network configuration examples"
+---
+
+# Network Configuration
+
+## Hub-Based Configuration
+
+Deploy Citadel within your existing hub VNet:
+
+```bicep
+param useExistingVnet = true
+param vnetName = 'vnet-hub-eastus'
+param existingVnetRG = 'rg-network-hub'
+param apimSubnetName = 'snet-citadel-apim'
+param privateEndpointSubnetName = 'snet-citadel-private-endpoints'
+param functionAppSubnetName = 'snet-citadel-functions'
+param dnsZoneRG = 'rg-network-hub'
+param dnsSubscriptionId = '<hub-subscription-id>'
+```
+
+## Spoke-Based Configuration
+
+Deploy Citadel in a dedicated spoke VNet:
+
+```bicep
+param useExistingVnet = false
+param vnetName = 'vnet-citadel-eastus'
+param vnetAddressPrefix = '10.170.0.0/24'
+param apimSubnetPrefix = '10.170.0.0/26'
+param privateEndpointSubnetPrefix = '10.170.0.64/26'
+param functionAppSubnetPrefix = '10.170.0.128/26'
+param dnsZoneRG = 'rg-network-hub'
+param dnsSubscriptionId = '<hub-subscription-id>'
+```
+
+## Private Endpoint Examples
+
+### Enable Private Endpoints
+```bicep
+param apimV2UsePrivateEndpoint = true
+param cosmosDbPublicAccess = 'Disabled'
+param eventHubNetworkAccess = 'Disabled'
+```
+
+### Disable Public Access
+```bicep
+param apimV2PublicNetworkAccess = false
+param languageServiceExternalNetworkAccess = 'Disabled'
+param aiContentSafetyExternalNetworkAccess = 'Disabled'
+```

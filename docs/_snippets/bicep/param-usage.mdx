@@ -1,0 +1,67 @@
+---
+title: "Bicep Parameter Usage"
+description: "Common parameter file patterns and usage examples"
+---
+
+# Parameter Usage
+
+Common patterns for using Bicep parameter files with AI Citadel Governance Hub deployments.
+
+## Basic Parameter File Structure
+
+```bicep
+using './main.bicep'
+
+// Environment Configuration
+param environmentName = 'citadel-dev'
+param location = 'eastus'
+param tags = {
+  Environment: 'Development'
+  CostCenter: 'Engineering'
+}
+
+// Compute SKUs
+param apimSku = 'StandardV2'
+param apimSkuUnits = 1
+
+// Networking
+param useExistingVnet = false
+```
+
+## Environment Variable Usage
+
+```bicep
+using './main.bicep'
+
+param environmentName = readEnvironmentVariable('AZURE_ENV_NAME', 'citadel-dev')
+param location = readEnvironmentVariable('AZURE_LOCATION', 'eastus')
+param apimSku = readEnvironmentVariable('APIM_SKU', 'StandardV2')
+```
+
+## Using Statement
+
+Every parameter file must start with a `using` statement pointing to the main Bicep template:
+
+```bicep
+using './main.bicep'
+
+// Your parameters follow...
+```
+
+## Common Patterns
+
+### Development Environment
+```bicep
+param apimSku = 'Developer'
+param cosmosDbRUs = 400
+param enableAPICenter = false
+```
+
+### Production Environment
+```bicep
+param apimSku = 'PremiumV2'
+param apimSkuUnits = 2
+param cosmosDbRUs = 1000
+param enableAPICenter = true
+param entraAuth = true
+```

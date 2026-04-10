@@ -1,0 +1,79 @@
+---
+title: "Backend Configuration"
+description: "LLM backend onboarding configuration templates"
+---
+
+# Backend Configuration
+
+## LLM Backend Onboarding Template
+
+```bicep
+param llmBackendConfig = [
+  {
+    backendId: 'aif-citadel-primary'
+    backendType: 'ai-foundry'
+    endpoint: 'https://aif-example.services.ai.azure.com/models'
+    authScheme: 'managedIdentity'
+    supportedModels: [
+      { 
+        name: 'gpt-4o'
+        sku: 'GlobalStandard'
+        capacity: 100
+        modelFormat: 'OpenAI'
+        modelVersion: '2024-11-20'
+      }
+    ]
+    priority: 1
+    weight: 100
+  }
+]
+```
+
+## Authentication Schemes
+
+### Managed Identity
+```bicep
+{
+  backendId: 'foundry-eastus'
+  authScheme: 'managedIdentity'
+}
+```
+
+### API Key
+```bicep
+{
+  backendId: 'custom-backend'
+  authScheme: 'apiKey'
+  apiKeySecretName: 'backend-api-key'
+}
+```
+
+## Load Balancing Configuration
+
+### Priority-Based Failover
+```bicep
+{
+  backendId: 'primary-backend'
+  priority: 1
+  weight: 100
+}
+{
+  backendId: 'secondary-backend'
+  priority: 2
+  weight: 100
+}
+```
+
+### Weighted Distribution
+```bicep
+{
+  backendId: 'backend-a'
+  priority: 1
+  weight: 75
+}
+{
+  backendId: 'backend-b'
+  priority: 1
+  weight: 25
+}
+```

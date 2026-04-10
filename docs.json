@@ -55,6 +55,50 @@
       ]
     },
     {
+      "group": "Guides",
+      "pages": [
+        "guides/index",
+        {
+          "group": "Deployment",
+          "pages": [
+            "guides/deployment/quick-start",
+            "guides/deployment/full-deployment",
+            "guides/deployment/parameters"
+          ]
+        },
+        {
+          "group": "Architecture",
+          "pages": [
+            "guides/architecture/networking",
+            "guides/architecture/llm-routing"
+          ]
+        },
+        {
+          "group": "Features",
+          "pages": [
+            "guides/features/pii-masking",
+            "guides/features/throttling-handling",
+            "guides/features/llm-backend-onboarding"
+          ]
+        },
+        {
+          "group": "Operations",
+          "pages": [
+            "guides/operations/citadel-sizing",
+            "guides/operations/estimation-guide",
+            "guides/operations/power-bi-dashboard"
+          ]
+        },
+        {
+          "group": "Reference",
+          "pages": [
+            "guides/reference/entraid-auth",
+            "guides/reference/governance-benefits"
+          ]
+        }
+      ]
+    },
+    {
       "group": "Implementation",
       "pages": [
         "implementation/deployment",
