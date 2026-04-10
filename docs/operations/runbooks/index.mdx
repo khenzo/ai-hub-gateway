@@ -1,0 +1,565 @@
+---
+title: Operations Runbooks
+description: Operational procedures for daily, weekly, and monthly maintenance of AI Landing Zones
+description: operations, runbooks, maintenance
+---
+
+# Operations Runbooks
+
+This section provides standardized operational procedures for maintaining AI Landing Zone infrastructure. Follow these runbooks to ensure consistent operations and minimize downtime.
+
+<Note>
+These runbooks assume the AI Landing Zone has been successfully deployed and validated. For deployment procedures, see the [Deployment Guide](/guides/deployment-guide).
+</Note>
+
+---
+
+## Runbook Categories
+
+<CardGroup cols={2}>
+  <Card
+    title="Daily Operations"
+    icon="calendar-day"
+    href="#daily-operations"
+  >
+    Health checks, monitoring reviews, and incident triage
+  </Card>
+  
+  <Card
+    title="Weekly Reviews"
+    icon="calendar-week"
+    href="#weekly-reviews"
+  >
+    Performance analysis, capacity review, and security checks
+  </Card>
+  
+  <Card
+    title="Monthly Maintenance"
+    icon="calendar"
+    href="#monthly-maintenance"
+  >
+    Patch management, access reviews, and documentation updates
+  </Card>
+  
+  <Card
+    title="Incident Response"
+    icon="exclamation-triangle"
+    href="/operations/runbooks/common-issues"
+  >
+    Common operational issues and resolution procedures
+  </Card>
+</CardGroup>
+
+---
+
+## Daily Operations
+
+### Morning Health Check
+
+**Time Required:** 15 minutes
+**Frequency:** Every business day
+**Owner:** Operations Team
+
+#### Automated Health Dashboard Review
+
+```bash
+#!/bin/bash
+# daily-health-check.sh
+
+RG="<resource-group>"
+APIM="<apim-name>"
+
+echo "=== Daily Health Check ==="
+echo "Date: $(date)"
+echo ""
+
+# 1. APIM Status
+echo "1. APIM Service Status"
+APIM_STATE=$(az apim show -n "$APIM" -g "$RG" --query "provisioningState" -o tsv)
+echo "   State: $APIM_STATE"
+
+# 2. Recent Errors (last 1 hour)
+echo ""
+echo "2. Recent Errors (last 1 hour)"
+WORKSPACE_ID=$(az monitor log-analytics workspace list -g "$RG" --query "[0].customerId" -o tsv)
+
+az monitor log-analytics query \
+  --workspace "$WORKSPACE_ID" \
+  --analytics-query "ApiManagementGatewayLogs | where TimeGenerated > ago(1h) | where responseCode >= 400 | summarize count() by responseCode" \
+  --output table
+
+# 3. Capacity Check
+echo ""
+echo "3. Current Capacity"
+az monitor metrics list \
+  --resource "$(az apim show -n $APIM -g $RG --query id -o tsv)" \
+  --metric "Capacity" \
+  --interval PT5M \
+  --query "value[0].timeseries[0].data[-1].average" \
+  --output tsv
+
+echo ""
+echo "=== End Health Check ==="
+```
+
+#### Manual Dashboard Review Checklist
+
+| Check | Action | Expected Result | Status |
+|-------|--------|-----------------|--------|
+| **1.1** | Open Azure Portal Dashboard | All tiles loading | [ ] |
+| **1.2** | Review APIM Capacity widget | < 60% capacity | [ ] |
+| **1.3** | Check error rate trend | < 1% error rate | [ ] |
+| **1.4** | Review alert status | No active critical alerts | [ ] |
+| **1.5** | Check backend health | All backends healthy | [ ] |
+
+#### Escalation Criteria
+
+Escalate to on-call engineer if:
+- APIM capacity > 80%
+- Error rate > 5%
+- Any critical alert firing
+- Backend health check failures
+
+---
+
+### Log Review
+
+**Time Required:** 10 minutes
+**Frequency:** Daily
+**Owner:** Operations Team
+
+#### Key Log Queries
+
+```kusto
+// Failed requests in last 24 hours
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(24h)
+| where responseCode >= 400
+| summarize Count = count() by responseCode, bin(TimeGenerated, 1h)
+| render timechart
+
+// Top error sources
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(24h)
+| where responseCode >= 400
+| extend ErrorSource = tostring(lastError_source_s)
+| where isnotempty(ErrorSource)
+| summarize Count = count() by ErrorSource
+| order by Count desc
+```
+
+#### Log Review Actions
+
+| Pattern | Action | Owner |
+|---------|--------|-------|
+| Spike in 401 errors | Check for expired credentials | Security |
+| Spike in 429 errors | Review rate limiting, may need scaling | Platform |
+| Backend 5xx errors | Check OpenAI service health | Operations |
+| Policy errors | Review recent policy changes | DevOps |
+
+---
+
+## Weekly Reviews
+
+### Performance Analysis
+
+**Time Required:** 30 minutes
+**Frequency:** Weekly (Monday mornings)
+**Owner:** Platform Engineer
+
+#### Metrics to Review
+
+| Metric | Source | Target | Action if Exceeded |
+|--------|--------|--------|-------------------|
+| P95 Latency | APIM Gateway Logs | < 3s | Investigate backend performance |
+| P99 Latency | APIM Gateway Logs | < 5s | Scale or optimize |
+| Throughput | APIM Metrics | Baseline + 20% | Plan capacity increase |
+| Error Rate | APIM Metrics | < 1% | Root cause analysis |
+| Capacity | APIM Metrics | < 60% | Schedule scaling |
+
+#### Weekly Performance Query
+
+```kusto
+// Weekly performance summary
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(7d)
+| summarize 
+    TotalRequests = count(),
+    ErrorRate = countif(responseCode >= 400) * 100.0 / count(),
+    P50Latency = percentile(DurationMs, 50),
+    P95Latency = percentile(DurationMs, 95),
+    P99Latency = percentile(DurationMs, 99)
+    by bin(TimeGenerated, 1d)
+| order by TimeGenerated desc
+```
+
+#### Performance Review Actions
+
+1. **Latency Increasing:**
+   - Check backend response times
+   - Review APIM capacity metrics
+   - Verify no network issues
+
+2. **Error Rate High:**
+   - Categorize errors by type
+   - Check recent deployments
+   - Review policy changes
+
+3. **Throughput Growing:**
+   - Forecast capacity needs
+   - Plan scaling window
+   - Update capacity documentation
+
+---
+
+### Capacity Planning Review
+
+**Time Required:** 20 minutes
+**Frequency:** Weekly
+**Owner:** Platform Engineer
+
+#### Capacity Forecasting
+
+```bash
+#!/bin/bash
+# capacity-review.sh
+
+APIM="<apim-name>"
+RG="<resource-group>"
+
+echo "=== Capacity Review ==="
+
+# Current capacity
+echo "Current Capacity Units:"
+az apim show -n "$APIM" -g "$RG" --query "sku.capacity"
+
+# Current utilization (peak last 7 days)
+echo ""
+echo "Peak Capacity Utilization (7 days):"
+az monitor metrics list \
+  --resource "$(az apim show -n $APIM -g $RG --query id -o tsv)" \
+  --metric "Capacity" \
+  --interval PT1H \
+  --start-time "$(date -d '7 days ago' -Iseconds)" \
+  --end-time "$(date -Iseconds)" \
+  --aggregation Maximum \
+  --query "value[0].timeseries[0].data | max_by(@, &maximum).maximum" \
+  --output tsv
+
+# Current SKUs
+echo ""
+echo "Current SKU:"
+az apim show -n "$APIM" -g "$RG" --query "sku.name"
+```
+
+#### Capacity Decision Matrix
+
+| Peak Utilization | Action | Timeline |
+|-----------------|--------|----------|
+| < 50% | No action | Continue monitoring |
+| 50-70% | Plan scaling | Within 2 weeks |
+| 70-85% | Schedule scaling | Within 1 week |
+| > 85% | Scale immediately | Emergency change |
+
+---
+
+### Security Review
+
+**Time Required:** 20 minutes
+**Frequency:** Weekly
+**Owner:** Security Engineer
+
+#### Security Checklist
+
+| Check | Method | Expected Result | Status |
+|-------|--------|-----------------|--------|
+| **3.1** | Review failed authentication attempts | Log Analytics query | < 100/day | [ ] |
+| **3.2** | Check for policy violations | Foundry Control Plane | No violations | [ ] |
+| **3.3** | Review Key Vault access logs | Key Vault logs | Normal pattern | [ ] |
+| **3.4** | Verify NSG rules unchanged | Azure Policy compliance | Compliant | [ ] |
+| **3.5** | Check for new CVEs | Microsoft Security Center | No critical alerts | [ ] |
+
+#### Security Query Examples
+
+```kusto
+// Failed authentication attempts
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(7d)
+| where responseCode == 401
+| summarize FailedAttempts = count() by bin(TimeGenerated, 1d), callerIpAddress
+| order by FailedAttempts desc
+
+// Key Vault access
+AzureDiagnostics
+| where ResourceProvider == "MICROSOFT.KEYVAULT"
+| where TimeGenerated > ago(7d)
+| where OperationName == "Authentication"
+| summarize count() by ResultSignature, bin(TimeGenerated, 1d)
+```
+
+---
+
+## Monthly Maintenance
+
+### Certificate Rotation
+
+**Time Required:** 2-4 hours
+**Frequency:** Monthly or per certificate expiry
+**Owner:** Security Engineer / Platform Engineer
+
+#### Certificate Inventory
+
+```bash
+#!/bin/bash
+# certificate-inventory.sh
+
+RG="<resource-group>"
+APIM="<apim-name>"
+KV="<keyvault-name>"
+
+echo "=== Certificate Inventory ==="
+echo "Date: $(date)"
+echo ""
+
+# Key Vault certificates
+echo "Key Vault Certificates:"
+az keyvault certificate list \
+  --vault-name "$KV" \
+  --query "[].{name:name, expires:attributes.expires, enabled:attributes.enabled}"
+
+# APIM certificates
+echo ""
+echo "APIM Certificates:"
+az apim list -g "$RG" --query "[].name" -o tsv | while read apim; do
+  az apim show -n "$apim" -g "$RG" --query "hostnameConfigurations"
+done
+```
+
+#### Certificate Rotation Procedure
+
+```
+Phase 1: Preparation (Week before expiry)
+└─ Verify new certificate is ready in Key Vault
+└─ Schedule maintenance window
+└─ Notify stakeholders
+
+Phase 2: Rotation (Day of rotation)
+└─ Update APIM hostname configuration
+└─ Update backend trust stores if needed
+└─ Validate certificate is active
+
+Phase 3: Validation (Post-rotation)
+└─ Test API calls succeed
+└─ Verify certificate in browser/cert chain
+└─ Monitor for errors
+
+Phase 4: Cleanup (After validation)
+└─ Revoke old certificate
+└─ Update documentation
+└─ Close maintenance ticket
+```
+
+**Certificate Rotation Commands:**
+
+```bash
+# Add new certificate to APIM
+az apim update \
+  --name <apim-name> \
+  --resource-group <rg> \
+  --set hostnameConfigurations[0].keyVaultId="https://<kv>.vault.azure.net/secrets/<cert-name>"
+
+# Verify certificate
+az apim show -n <apim> -g <rg> --query "hostnameConfigurations[].{host:hostName, cert:encodedCertificate}"
+```
+
+---
+
+### Access Review
+
+**Time Required:** 1-2 hours
+**Frequency:** Monthly
+**Owner:** Security Engineer / Platform Owner
+
+#### Access Review Checklist
+
+| Resource | Review Action | Owner |
+|----------|---------------|-------|
+| **Azure RBAC** | Review all role assignments | Security |
+| **APIM Products** | Verify product subscriptions | Platform |
+| **Key Vault** | Review access policies/RBAC | Security |
+| **Foundry Projects** | Review project memberships | Platform |
+
+#### Access Review Queries
+
+```bash
+# List all RBAC assignments
+az role assignment list \
+  --resource-group <resource-group> \
+  --query "[].{principal:principalName, role:roleDefinitionName, scope:scope}"
+
+# List APIM subscriptions
+az apim product subscription list \
+  --resource-group <rg> \
+  --service-name <apim> \
+  --product-id <product-id> \
+  --query "[].{name:name, state:state, owner:userId}"
+
+# List Key Vault access (RBAC model)
+az role assignment list \
+  --scope <kv-id> \
+  --query "[].{user:principalName, role:roleDefinitionName}"
+```
+
+#### Access Review Actions
+
+1. **Remove terminated employees:**
+   ```bash
+   az role assignment delete \
+     --assignee <user-id> \
+     --role "Contributor" \
+     --scope <scope>
+   ```
+
+2. **Rotate shared credentials:**
+   - Generate new subscription keys
+   - Distribute to active users
+   - Revoke old keys
+
+3. **Document exceptions:**
+   - Note any elevated access with business justification
+   - Set review dates for temporary access
+
+---
+
+### Documentation Updates
+
+**Time Required:** 1 hour
+**Frequency:** Monthly
+**Owner:** Operations Lead
+
+#### Documentation Checklist
+
+| Document | Update Trigger | Review Frequency |
+|----------|---------------|------------------|
+| **As-built diagrams** | Any infrastructure change | Monthly |
+| **Runbooks** | New procedures or issues | Monthly |
+| **Contact lists** | Team changes | Monthly |
+| **Architecture decisions** | New decisions | As needed |
+| **Dependency mappings** | New integrations | Quarterly |
+
+---
+
+## Quarterly Activities
+
+### Disaster Recovery Testing
+
+**Time Required:** 4-8 hours
+**Frequency:** Quarterly
+**Owner:** Operations Lead / Platform Engineer
+
+#### DR Test Scenarios
+
+| Scenario | Test Method | Success Criteria |
+|----------|-------------|------------------|
+| **Primary region failure** | Simulate region outage | Failover to secondary within RTO |
+| **APIM configuration loss** | Restore from backup | Configuration restored within RTO |
+| **Data corruption** | Restore from backup | Data integrity verified |
+| **Complete rebuild** | Deploy to new RG | Full functionality restored |
+
+---
+
+### Security Audit
+
+**Time Required:** 4 hours
+**Frequency:** Quarterly
+**Owner:** Security Architect
+
+#### Security Audit Checklist
+
+- [ ] Review all network security group rules
+- [ ] Verify private endpoint configurations
+- [ ] Audit diagnostic settings and log retention
+- [ ] Review encryption settings
+- [ ] Validate compliance with security baseline
+- [ ] Check for security advisories and patches
+- [ ] Review incident response procedures
+
+---
+
+## Runbook Templates
+
+### Standard Change Runbook
+
+```markdown
+## Change: [Title]
+
+**Type:** Standard / Normal / Emergency
+**Risk:** Low / Medium / High
+**Duration:** X hours
+**Maintenance Window:** YYYY-MM-DD HH:MM - HH:MM
+
+### Prerequisites
+- [ ] Backups completed
+- [ ] Stakeholders notified
+- [ ] Rollback plan documented
+- [ ] Test environment validated
+
+### Procedure
+1. [Step 1]
+2. [Step 2]
+3. [Step 3]
+
+### Validation
+- [ ] Smoke tests pass
+- [ ] Monitoring shows normal metrics
+- [ ] No new errors in logs
+
+### Rollback
+[If issues detected, execute these steps...]
+
+### Post-Change
+- [ ] Documentation updated
+- [ ] Change ticket closed
+- [ ] Lessons learned documented
+```
+
+### Incident Response Runbook
+
+See [Common Issues Runbook](/operations/runbooks/common-issues) for specific incident procedures.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Common Issues Runbook"
+    icon="book-open"
+    href="/operations/runbooks/common-issues"
+  >
+    Procedures for certificate rotation, scaling, and incident response
+  </Card>
+  
+  <Card
+    title="Phase 3 Security Operations"
+    icon="shield"
+    href="/governance/overview"
+  >
+    Security governance and compliance procedures
+  </Card>
+  <Card
+    title="Troubleshooting Guide"
+    icon="wrench"
+    href="/implementation/validation/troubleshooting"
+  >
+    Diagnostic procedures for operational issues
+  </Card>
+  
+  <Card
+    title="Best Practices"
+    icon="star"
+    href="/guides/best-practices"
+  >
+    Operational excellence recommendations
+  </Card>
+</CardGroup>

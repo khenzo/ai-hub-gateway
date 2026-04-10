@@ -1,0 +1,657 @@
+---
+title: Common Operational Issues
+icon: book-open
+---
+
+# Common Operational Issues Runbook
+
+This runbook provides step-by-step procedures for resolving common operational scenarios in AI Landing Zone environments. Each procedure includes validation steps and estimated completion times.
+
+<Note>
+All procedures assume you have appropriate Azure RBAC permissions (Contributor or higher on the resource group).
+</Note>
+
+---
+
+## Certificate Rotation
+
+**Estimated Time:** 2-4 hours  
+**Downtime:** None (if using overlapping certificates)  
+**Risk:** Medium
+
+### When to Rotate
+
+| Trigger | Action |
+|---------|--------|
+| Certificate expires in < 30 days | Schedule rotation |
+| Certificate compromise | Emergency rotation |
+| Policy requires scheduled rotation | Scheduled maintenance |
+| Certificate chain issues | Immediate rotation |
+
+### Pre-Rotation Checklist
+
+- [ ] New certificate obtained and validated
+- [ ] Certificate uploaded to Key Vault
+- [ ] Maintenance window scheduled
+- [ ] Stakeholders notified
+- [ ] Rollback plan documented
+- [ ] Test environment validated
+
+### Rotation Procedure
+
+#### Step 1: Upload New Certificate to Key Vault
+
+```bash
+# Verify certificate is in PFX format with private key
+openssl pkcs12 -in new-certificate.pfx -info -noout
+
+# Upload to Key Vault
+az keyvault certificate import \
+  --vault-name <keyvault-name> \
+  --name <certificate-name>-new \
+  --file new-certificate.pfx \
+  --password <pfx-password>
+
+# Verify upload
+az keyvault certificate show \
+  --vault-name <keyvault-name> \
+  --name <certificate-name>-new \
+  --query "{name:name, enabled:attributes.enabled, expires:attributes.expires}"
+```
+
+#### Step 2: Update APIM Certificate Reference
+
+```bash
+# Get current hostname configuration
+az apim show \
+  --name <apim-name> \
+  --resource-group <resource-group> \
+  --query "hostnameConfigurations"
+
+# Update certificate reference
+az apim update \
+  --name <apim-name> \
+  --resource-group <resource-group> \
+  --set hostnameConfigurations[0].keyVaultId="https://<keyvault>.vault.azure.net/secrets/<certificate-name>-new"
+
+# Verify update
+az apim show \
+  --name <apim-name> \
+  --resource-group <resource-group> \
+  --query "hostnameConfigurations[0].{host:hostName, kv:keyVaultId}"
+```
+
+#### Step 3: Validate Certificate Deployment
+
+```bash
+# Test HTTPS endpoint
+curl -v https://<custom-domain>/echo/resource 2>&1 | grep -E "(SSL|certificate|subject)"
+
+# Verify certificate chain
+openssl s_client -connect <custom-domain>:443 -servername <custom-domain> < /dev/null 2>/dev/null | openssl x509 -noout -text | grep -E "(Subject:|Issuer:|Not After)"
+```
+
+#### Step 4: Monitor for Issues
+
+```bash
+# Check APIM logs for certificate-related errors
+az monitor log-analytics query \
+  --workspace <workspace-id> \
+  --analytics-query "ApiManagementGatewayLogs | where TimeGenerated > ago(1h) | where Message contains 'certificate' or Message contains 'SSL' | project TimeGenerated, Message" \
+  --output table
+```
+
+#### Step 5: Cleanup (After 24 Hours)
+
+```bash
+# Remove old certificate from Key Vault (if rotation successful)
+az keyvault certificate delete \
+  --vault-name <keyvault-name> \
+  --name <certificate-name>-old
+
+# Purge deleted certificate (optional)
+az keyvault certificate purge \
+  --vault-name <keyvault-name> \
+  --name <certificate-name>-old
+```
+
+### Rollback Procedure
+
+If issues occur within 24 hours:
+
+```bash
+# Revert to old certificate
+az apim update \
+  --name <apim-name> \
+  --resource-group <resource-group> \
+  --set hostnameConfigurations[0].keyVaultId="https://<keyvault>.vault.azure.net/secrets/<certificate-name>-old"
+
+# Verify rollback
+curl -I https://<custom-domain>/echo/resource
+```
+
+---
+
+## Scaling Operations
+
+### When to Scale APIM
+
+| Metric | Current | Target | Action |
+|--------|---------|--------|--------|
+| Capacity | > 70% | < 60% | Scale up |
+| P95 Latency | > 3s | < 2s | Scale up |
+| Error Rate | > 5% | < 1% | Scale up |
+| Capacity | < 30% | N/A | Consider scale down (cost optimization) |
+
+### Scale-Up Procedure
+
+**Estimated Time:** 15-30 minutes  
+**Downtime:** None (if multi-unit)  
+**Risk:** Low
+
+#### Step 1: Check Current Capacity
+
+```bash
+# Current capacity units
+CURRENT_CAPACITY=$(az apim show \
+  --name <apim-name> \
+  --resource-group <resource-group> \
+  --query "sku.capacity" \
+  --output tsv)
+
+echo "Current capacity: $CURRENT_CAPACITY units"
+
+# Current utilization
+az monitor metrics list \
+  --resource $(az apim show -n <apim> -g <rg> --query id -o tsv) \
+  --metric "Capacity" \
+  --interval PT5M \
+  --query "value[0].timeseries[0].data[-1].average" \
+  --output tsv
+```
+
+#### Step 2: Calculate New Capacity
+
+```bash
+# Target: Add 50% capacity or minimum 1 unit
+NEW_CAPACITY=$((CURRENT_CAPACITY + CURRENT_CAPACITY / 2))
+if [ $NEW_CAPACITY -eq $CURRENT_CAPACITY ]; then
+  NEW_CAPACITY=$((CURRENT_CAPACITY + 1))
+fi
+
+echo "New capacity: $NEW_CAPACITY units"
+```
+
+#### Step 3: Execute Scaling
+
+```bash
+# Scale APIM
+az apim update \
+  --name <apim-name> \
+  --resource-group <resource-group> \
+  --sku-capacity $NEW_CAPACITY
+
+# Monitor scaling progress
+echo "Monitoring scaling progress..."
+while true; do
+  STATE=$(az apim show \
+    --name <apim-name> \
+    --resource-group <resource-group> \
+    --query "provisioningState" \
+    --output tsv)
+  
+  echo "Current state: $STATE"
+  
+  if [ "$STATE" = "Succeeded" ]; then
+    echo "Scaling complete!"
+    break
+  elif [ "$STATE" = "Failed" ]; then
+    echo "Scaling failed! Check Azure Portal for details."
+    exit 1
+  fi
+  
+  sleep 30
+done
+```
+
+#### Step 4: Validate Scaling
+
+```bash
+# Verify new capacity
+az apim show \
+  --name <apim-name> \
+  --resource-group <resource-group> \
+  --query "{name:name, sku:sku.name, capacity:sku.capacity}"
+
+# Test API functionality
+curl -s -o /dev/null -w "%{http_code}" \
+  -H "Ocp-Apim-Subscription-Key: <subscription-key>" \
+  https://<apim-name>.azure-api.net/echo/resource
+
+# Monitor capacity metrics for 15 minutes
+```
+
+### Scale-Down Procedure (Cost Optimization)
+
+**Warning:** Only scale down if you have capacity headroom and understand traffic patterns.
+
+```bash
+# Calculate target capacity (reduce by 25%, minimum 1)
+CURRENT=$(az apim show -n <apim> -g <rg> --query "sku.capacity" -o tsv)
+TARGET=$((CURRENT - CURRENT / 4))
+if [ $TARGET -lt 1 ]; then
+  TARGET=1
+fi
+
+echo "Scaling from $CURRENT to $TARGET units"
+
+# Execute scale-down
+az apim update \
+  --name <apim-name> \
+  --resource-group <resource-group> \
+  --sku-capacity $TARGET
+```
+
+---
+
+## Policy Updates
+
+### Policy Change Procedure
+
+**Estimated Time:** 30-60 minutes  
+**Downtime:** None (atomic policy swap)  
+**Risk:** Medium
+
+#### Pre-Change Checklist
+
+- [ ] Policy tested in non-production environment
+- [ ] Change ticket created
+- [ ] Rollback policy version saved
+- [ ] Stakeholders notified of potential impact
+
+#### Step 1: Export Current Policy (Backup)
+
+```bash
+# Export current API policy
+az apim api policy show \
+  --resource-group <resource-group> \
+  --service-name <apim-name> \
+  --api-id <api-id> \
+  --output tsv > policy-backup-$(date +%Y%m%d).xml
+
+echo "Policy backed up to policy-backup-$(date +%Y%m%d).xml"
+```
+
+#### Step 2: Apply New Policy
+
+```bash
+# Create new policy file
+cat > new-policy.xml << 'EOF'
+<policies>
+  <inbound>
+    <!-- New policy content -->
+    <base />
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>
+EOF
+
+# Apply policy
+az apim api policy create \
+  --resource-group <resource-group> \
+  --service-name <apim-name> \
+  --api-id <api-id> \
+  --policy-format xml \
+  --value @new-policy.xml
+```
+
+#### Step 3: Validate Policy
+
+```bash
+# Test API with new policy
+curl -s -o /dev/null -w "%{http_code}" \
+  -H "Ocp-Apim-Subscription-Key: <subscription-key>" \
+  https://<apim-name>.azure-api.net/<api-path>
+
+# Check for policy errors
+az monitor log-analytics query \
+  --workspace <workspace-id> \
+  --analytics-query "ApiManagementGatewayLogs | where TimeGenerated > ago(15m) | where Message contains 'policy' or lastError_source_s contains 'policy' | project TimeGenerated, Message, lastError_message_s"
+```
+
+#### Rollback Procedure
+
+```bash
+# Restore previous policy
+az apim api policy create \
+  --resource-group <resource-group> \
+  --service-name <apim-name> \
+  --api-id <api-id> \
+  --policy-format xml \
+  --value @policy-backup-<date>.xml
+```
+
+---
+
+## Backup and Recovery
+
+### What's Backed Up
+
+| Component | Backup Method | Frequency | Retention |
+|-----------|--------------|-----------|-----------|
+| **APIM Configuration** | GitOps / Export | On change | Version history |
+| **Key Vault Secrets** | Soft-delete + Purge protection | Continuous | 90 days |
+| **Log Analytics** | Data export to Storage | Daily | Per policy |
+| **Infrastructure State** | Git repository | On change | Version history |
+
+### APIM Configuration Backup
+
+```bash
+#!/bin/bash
+# apim-backup.sh
+
+APIM="<apim-name>"
+RG="<resource-group>"
+STORAGE="<storage-account>"
+CONTAINER="apim-backups"
+DATE=$(date +%Y%m%d-%H%M%S)
+
+echo "Backing up APIM: $APIM"
+
+# Create backup
+az apim backup \
+  --name "$APIM" \
+  --resource-group "$RG" \
+  --backup-name "apim-backup-$DATE" \
+  --storage-account-name "$STORAGE" \
+  --storage-account-container "$CONTAINER" \
+  --storage-account-key "$(az storage account keys list -n $STORAGE --query '[0].value' -o tsv)"
+
+echo "Backup complete: apim-backup-$DATE"
+```
+
+### Recovery Procedure
+
+```bash
+# Restore APIM from backup
+az apim restore \
+  --name <apim-name> \
+  --resource-group <resource-group> \
+  --backup-name <backup-name> \
+  --storage-account-name <storage-account> \
+  --storage-account-container <container> \
+  --storage-account-key <key>
+```
+
+---
+
+## Access Reviews
+
+### Quarterly Access Review Procedure
+
+**Estimated Time:** 2-3 hours  
+**Frequency:** Quarterly  
+**Risk:** Low
+
+#### Step 1: Generate Access Report
+
+```bash
+#!/bin/bash
+# access-review.sh
+
+RG="<resource-group>"
+APIM="<apim-name>"
+REPORT_DATE=$(date +%Y%m%d)
+
+echo "=== Access Review Report: $REPORT_DATE ==="
+echo ""
+
+# Azure RBAC assignments
+echo "## Azure RBAC Assignments"
+az role assignment list \
+  --resource-group "$RG" \
+  --query "[].{principal:principalName, type:principalType, role:roleDefinitionName}" \
+  --output table
+
+# APIM Product subscriptions
+echo ""
+echo "## APIM Product Subscriptions"
+az apim product list \
+  --resource-group "$RG" \
+  --service-name "$APIM" \
+  --query "[].{product:name, displayName:displayName}" \
+  --output table | while read product; do
+    echo "Subscriptions for $product:"
+    az apim product subscription list \
+      --resource-group "$RG" \
+      --service-name "$APIM" \
+      --product-id "$product" \
+      --query "[].{name:name, state:state, owner:userId}"
+done
+```
+
+#### Step 2: Review Each Assignment
+
+For each access grant, verify:
+
+- [ ] User still employed
+- [ ] Access still required for role
+- [ ] Level of access appropriate
+- [ ] Last access date reasonable
+
+#### Step 3: Remove Unnecessary Access
+
+```bash
+# Remove RBAC assignment
+az role assignment delete \
+  --assignee <user-id> \
+  --role "Contributor" \
+  --scope "/subscriptions/<sub>/resourceGroups/<rg>"
+
+# Revoke APIM subscription
+az apim subscription update \
+  --resource-group <rg> \
+  --service-name <apim> \
+  --sid <subscription-id> \
+  --state suspended
+```
+
+#### Step 4: Document Review
+
+```markdown
+## Access Review: YYYY-MM-DD
+
+**Reviewer:** [Name]
+**Scope:** [Resource Group / APIM Instance]
+
+### Changes Made
+| User | Previous Access | Action | Reason |
+|------|----------------|--------|--------|
+| user@company.com | Contributor | Removed | Role change |
+
+### Remaining Access
+| User | Access | Justification | Next Review |
+|------|--------|---------------|-------------|
+| admin@company.com | Owner | Platform ownership | 2024-06-01 |
+
+### Exceptions
+None.
+```
+
+---
+
+## Incident Response Procedures
+
+### P1 - Critical Incident
+
+**Definition:** Complete service outage affecting all users
+
+**Response Time:** 15 minutes
+
+#### Immediate Actions
+
+1. **Acknowledge and Communicate**
+   ```
+   - Post in #incidents channel
+   - Page on-call engineer
+   - Update status page
+   ```
+
+2. **Assess Impact**
+   ```bash
+   # Check APIM status
+   az apim show -n <apim> -g <rg> --query "provisioningState"
+   
+   # Check recent errors
+   az monitor log-analytics query \
+     --workspace <ws> \
+     --analytics-query "ApiManagementGatewayLogs | where TimeGenerated > ago(30m) | where responseCode >= 500 | summarize count() by responseCode"
+   ```
+
+3. **Escalation Path**
+   - 15 min: Platform team engaged
+   - 30 min: Engineering manager notified
+   - 1 hour: Executive notification
+
+### P2 - High Impact Incident
+
+**Definition:** Major functionality impaired, workaround available
+
+**Response Time:** 30 minutes
+
+### P3 - Medium Impact Incident
+
+**Definition:** Minor functionality impaired, low user impact
+
+**Response Time:** 2 hours
+
+### P4 - Low Impact Incident
+
+**Definition:** Cosmetic issues, no user impact
+
+**Response Time:** Next business day
+
+---
+
+## Procedure Templates
+
+### Standard Change Request
+
+```markdown
+## Change Request: [Title]
+
+**Change ID:** CHG-YYYY-NNNN
+**Requester:** [Name]
+**Implementer:** [Name]
+**Approver:** [Name]
+
+### Details
+- **Type:** Standard / Normal / Emergency
+- **Risk:** Low / Medium / High
+- **Scheduled:** YYYY-MM-DD HH:MM - HH:MM
+
+### Description
+[What is being changed and why]
+
+### Implementation Steps
+1. [Step 1]
+2. [Step 2]
+3. [Step 3]
+
+### Validation
+- [ ] Smoke tests pass
+- [ ] Monitoring normal
+- [ ] No error spikes
+
+### Rollback
+[Steps to undo change if needed]
+
+### Post-Implementation Review
+[To be completed after change]
+```
+
+---
+
+## Quick Reference
+
+### Common Commands
+
+```bash
+# APIM health check
+az apim show -n <apim> -g <rg> --query "{state:provisioningState, sku:sku.name, capacity:sku.capacity}"
+
+# Recent errors
+az monitor log-analytics query \
+  --workspace <ws> \
+  --analytics-query "ApiManagementGatewayLogs | where TimeGenerated > ago(1h) | where responseCode >= 400 | summarize count() by responseCode"
+
+# Capacity check
+az monitor metrics list \
+  --resource <apim-id> \
+  --metric "Capacity" \
+  --interval PT5M
+
+# VNet peering status
+az network vnet peering list -g <rg> --vnet-name <vnet> --query "[].{name:name, state:peeringState}"
+```
+
+### Escalation Contacts
+
+| Role | Contact | Hours |
+|------|---------|-------|
+| **Platform Engineer** | platform-oncall@company.com | 24/7 |
+| **Security Engineer** | security-oncall@company.com | 24/7 |
+| **Network Engineer** | network-oncall@company.com | Business hours |
+| **Engineering Manager** | eng-manager@company.com | Business hours |
+
+### External Support
+
+- **Azure Support:** [Azure Portal > Help + support](https://portal.azure.com)
+- **Microsoft Support:** 1-800-936-5700 (US)
+- **Severity A (Critical):** 1 hour response
+- **Severity B (High):** 4 hour response
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Runbooks Index"
+    icon="book"
+    href="/operations/runbooks"
+  >
+    Daily, weekly, and monthly operational procedures
+  </Card>
+  
+  <Card
+    title="Troubleshooting Guide"
+    icon="wrench"
+    href="/implementation/validation/troubleshooting"
+  >
+    Diagnostic procedures for validation failures
+  </Card>
+  <Card
+    title="Validation Guide"
+    icon="check-circle"
+    href="/implementation/validation"
+  >
+    Pre and post-deployment validation
+  </Card>
+  
+  <Card
+    title="Security Governance"
+    icon="shield"
+    href="/governance/overview"
+  >
+    Security policies and compliance procedures
+  </Card>
+</CardGroup>
