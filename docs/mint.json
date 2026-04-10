@@ -34,16 +34,16 @@
       "url": "architecture"
     },
     {
-      "name": "Deployment",
-      "url": "deployment"
+      "name": "Implementation",
+      "url": "implementation"
+    },
+    {
+      "name": "Guides",
+      "url": "guides"
     },
     {
       "name": "Governance",
       "url": "governance"
-    },
-    {
-      "name": "Operations",
-      "url": "operations"
     }
   ],
   "anchors": [
@@ -72,7 +72,9 @@
           "getting-started/what-is-ai-landing-zone",
           "getting-started/citadel-platform-overview",
           "getting-started/business-value",
-          "getting-started/prerequisites"
+          "getting-started/prerequisites",
+          "getting-started/quick-start",
+          "getting-started/roles-and-responsibilities"
         ]
       },
       {
@@ -89,14 +91,29 @@
         ]
       },
       {
-        "group": "Deployment",
+        "group": "Implementation",
         "pages": [
-          "deployment/overview",
-          "deployment/quick-start",
-          "deployment/full-deployment",
-          "deployment/network-configuration",
-          "deployment/parameter-reference",
-          "deployment/troubleshooting"
+          "implementation/index",
+          {
+            "group": "Integrations",
+            "pages": [
+              "implementation/integration/index",
+              "implementation/integration/foundry-control-plane"
+            ]
+          }
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "guides/deployment-guide",
+          "guides/bicep-modules",
+          "guides/deployment-checklist",
+          "guides/validation-checklist",
+          "guides/configuration-examples",
+          "guides/troubleshooting",
+          "guides/common-issues",
+          "guides/best-practices"
         ]
       },
       {
@@ -108,17 +125,6 @@
           "governance/identity-management",
           "governance/content-safety",
           "governance/pii-protection"
-        ]
-      },
-      {
-        "group": "Operations",
-        "pages": [
-          "operations/overview",
-          "operations/monitoring",
-          "operations/observability",
-          "operations/cost-management",
-          "operations/validation",
-          "operations/maintenance"
         ]
       }
     ]
