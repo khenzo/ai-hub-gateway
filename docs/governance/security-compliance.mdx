@@ -1,0 +1,755 @@
+---
+title: "Security and Compliance"
+description: "Comprehensive security architecture, threat protection, and compliance framework for AI Landing Zones with defense in depth and zero trust principles"
+---
+
+# 🔐 Security and Compliance
+
+## Overview
+
+Security for AI workloads requires a **defense in depth** approach that addresses unique threats while maintaining compliance with regulatory frameworks. This document establishes the security foundation for AI Landing Zones, integrating Layer 4 Security Fabric capabilities with enterprise governance requirements.
+
+## Security Architecture Principles
+
+### Defense in Depth
+
+```
+Defense in Depth Layers:
+
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 7: Application Security                               │
+│  • Input validation, output filtering                        │
+│  • Secure coding practices                                   │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 6: Data Security                                      │
+│  • Encryption at rest and in transit                         │
+│  • Data classification and DLP                               │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 5: Identity Security                                  │
+│  • Authentication, authorization                             │
+│  • MFA, conditional access                                   │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 4: Network Security                                   │
+│  • Firewalls, NSGs, private endpoints                        │
+│  • Network segmentation                                      │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 3: Infrastructure Security                            │
+│  • Hardening, patching, monitoring                           │
+│  • Vulnerability management                                  │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 2: Endpoint Security                                  │
+│  • API security, gateway protection                          │
+│  • Defender for APIs                                         │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 1: Perimeter Security                                 │
+│  • WAF, DDoS protection                                      │
+│  • Traffic filtering                                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Zero Trust for AI Workloads
+
+| Principle | Traditional | Zero Trust |
+|-----------|-------------|------------|
+| **Assume Breach** | Trust internal network | Verify every request |
+| **Least Privilege** | Broad access | Minimum necessary |
+| **Verify Explicitly** | Implicit trust | Continuous validation |
+| **Micro-segmentation** | Flat network | Isolated segments |
+
+```
+Zero Trust Architecture:
+
+     Request
+        │
+        ▼
+┌───────────────┐
+│   Verify      │
+│  Identity     │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│   Verify      │
+│   Device      │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│   Verify      │
+│   Session     │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│   Verify      │
+│   Behavior    │
+└───────┬───────┘
+        │
+        ▼
+    ┌───────┐
+    │ Allow │
+    │ Access│
+    └───────┘
+```
+
+### Least Privilege Access
+
+| Resource | Typical Permission | Least Privilege |
+|----------|-------------------|-----------------|
+| **AI Gateway** | Full admin | Read + Execute |
+| **Model Access** | All models | Specific models |
+| **Data Access** | All data | Need-to-know |
+| **Key Vault** | Full access | Specific secrets |
+| **Logging** | Full access | Read-only |
+
+### Secure by Design
+
+Security considerations at every design phase:
+
+| Phase | Security Activity |
+|-------|-------------------|
+| **Requirements** | Threat modeling, compliance mapping |
+| **Architecture** | Security controls, data flow analysis |
+| **Development** | Secure coding, SAST/DAST |
+| **Deployment** | Security scanning, IaC validation |
+| **Operations** | Monitoring, incident response |
+
+## Layer 4 Security Fabric Integration
+
+The Security Fabric provides unified protection across all AI Landing Zone layers:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    LAYER 4: SECURITY FABRIC                  │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│   │  Microsoft  │  │  Microsoft  │  │  Microsoft  │         │
+│   │  Defender   │  │  Purview    │  │   Entra     │         │
+│   │             │  │             │  │             │         │
+│   │ • Threat    │  │ • Data      │  │ • Identity  │         │
+│   │   intel     │  │   governance│  │ • Access    │         │
+│   │ • Jailbreak │  │ • PII       │  │ • Lifecycle │         │
+│   │   detection │  │   detection │  │   mgmt      │         │
+│   │ • API       │  │ • Compliance│  │ • Shadow    │         │
+│   │   security  │  │ • Labels    │  │   agent     │         │
+│   │             │  │             │  │   discovery │         │
+│   └──────┬──────┘  └──────┬──────┘  └──────┬──────┘         │
+│          │                │                │                │
+│          └────────────────┼────────────────┘                │
+│                           │                                 │
+│                    ┌──────▼──────┐                          │
+│                    │   Unified   │                          │
+│                    │   Security  │                          │
+│                    │  Operations │                          │
+│                    └─────────────┘                          │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Microsoft Defender for AI
+
+Defender provides AI-specific threat protection:
+
+| Capability | Description | Integration Point |
+|------------|-------------|-------------------|
+| **AI Posture Management** | Continuous security assessment | Layer 1-4 monitoring |
+| **Vulnerability Detection** | Identify AI-specific weaknesses | CI/CD pipeline |
+| **Threat Intelligence** | AI attack signatures | Real-time detection |
+| **Attack Simulation** | Test defenses | Red team exercises |
+
+#### Real-Time Jailbreak Detection
+
+```
+Jailbreak Detection Flow:
+
+User Request
+     │
+     ▼
+┌─────────────┐
+│   Defender  │
+│    AI       │
+│  Analysis   │
+└──────┬──────┘
+       │
+       ├─ Pattern Match ── Known Attacks
+       ├─ Heuristics ──── Suspicious Structure
+       ├─ Behavior ────── Anomaly Detection
+       │
+       ▼
+   Decision
+       │
+   ┌───┴───┐
+   │       │
+   ▼       ▼
+┌──────┐ ┌──────┐
+│ Pass │ │ Block│
+│      │ │      │
+└──────┘ └──────┘
+```
+
+### Microsoft Purview Governance
+
+Purview automates data governance and compliance:
+
+| Feature | AI Application |
+|---------|----------------|
+| **Sensitivity Labels** | Auto-classify AI training data |
+| **Data Lineage** | Track data through AI pipelines |
+| **Compliance Policies** | Enforce regulatory requirements |
+| **PII Detection** | Protect sensitive AI inputs/outputs |
+
+### Microsoft Entra Identity Protection
+
+Entra secures AI workload identities:
+
+```
+Entra Identity Protection Flow:
+
+┌─────────────────────────────────────────────────────────────┐
+│                 IDENTITY PROTECTION                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   Signals:                                                   │
+│   ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐      │
+│   │  Sign-in │ │  Device │ │  Behavior│ │  Location│      │
+│   │   Risk   │ │  Trust   │ │  Anomaly │ │   Risk   │      │
+│   └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘      │
+│        │            │            │            │              │
+│        └────────────┴────────────┴────────────┘              │
+│                     │                                        │
+│                     ▼                                        │
+│              ┌──────────┐                                    │
+│              │  Risk    │                                    │
+│              │  Engine  │                                    │
+│              └────┬─────┘                                    │
+│                   │                                          │
+│         ┌────────┼────────┐                                  │
+│         │        │        │                                  │
+│         ▼        ▼        ▼                                  │
+│      ┌─────┐  ┌─────┐  ┌─────┐                              │
+│      │ Low │  │ Med │  │ High│                              │
+│      └─────┘  └──┬──┘  └──┬──┘                              │
+│                  │        │                                  │
+│                  │        ├─ Require MFA                     │
+│                  │        ├─ Block Access                    │
+│                  │        └─ Alert SOC                       │
+│                  │                                           │
+│                  └─ Allow with monitoring                    │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Coordinated Threat Response
+
+Security Fabric enables cross-component response:
+
+```
+Threat Response Coordination:
+
+     Threat Detected
+           │
+           ▼
+┌──────────────────────┐
+│   Security Signal    │
+│     Generated        │
+└──────────┬───────────┘
+           │
+           ▼
+┌────────────────────────────────────────┐
+│         Signal Distribution            │
+│                                        │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐  │
+│  │Defender │ │Purview  │ │ Entra   │  │
+│  │Alerts   │ │Policies │ │Access   │  │
+│  └────┬────┘ └────┬────┘ └────┬────┘  │
+│       │           │           │       │
+│       └───────────┼───────────┘       │
+│                   │                   │
+│                   ▼                   │
+│           ┌───────────┐               │
+│           │  Unified  │               │
+│           │  Response │               │
+│           └─────┬─────┘               │
+│                 │                     │
+└─────────────────┼─────────────────────┘
+                  │
+        ┌─────────┼─────────┐
+        │         │         │
+        ▼         ▼         ▼
+   ┌────────┐ ┌────────┐ ┌────────┐
+   │ Block  │ │ Isolate│ │ Revoke │
+   │ Traffic│ │  Data  │ │Access  │
+   └────────┘ └────────┘ └────────┘
+```
+
+## Security Domains
+
+### Network Security
+
+| Component | Security Control | Implementation |
+|-----------|-----------------|----------------|
+| **Firewalls** | Traffic filtering | Azure Firewall, NSGs |
+| **Network Segments** | Isolation | Hub-spoke topology |
+| **Private Endpoints** | Private connectivity | All PaaS services |
+| **DDoS Protection** | Availability | Azure DDoS Standard |
+| **WAF** | Application protection | APIM + App Gateway |
+
+#### NSG Rules for AI Landing Zone
+
+```bicep
+// Network Security Group for AI subnet
+resource aiSubnetNsg 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
+  name: '${aiSubnetName}-nsg'
+  location: location
+  properties: {
+    securityRules: [
+      {
+        name: 'Allow-HTTPS-Inbound'
+        properties: {
+          priority: 100
+          direction: 'Inbound'
+          access: 'Allow'
+          protocol: 'Tcp'
+          sourceAddressPrefix: 'VirtualNetwork'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '443'
+        }
+      }
+      {
+        name: 'Deny-All-Inbound'
+        properties: {
+          priority: 4096
+          direction: 'Inbound'
+          access: 'Deny'
+          protocol: '*'
+          sourceAddressPrefix: '*'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '*'
+        }
+      }
+      {
+        name: 'Allow-Azure-OpenAI'
+        properties: {
+          priority: 100
+          direction: 'Outbound'
+          access: 'Allow'
+          protocol: 'Tcp'
+          sourceAddressPrefix: '*'
+          sourcePortRange: '*'
+          destinationAddressPrefix: 'AzureOpenAI'
+          destinationPortRange: '443'
+        }
+      }
+    ]
+  }
+}
+```
+
+#### Private Endpoint Configuration
+
+```bicep
+// Private endpoint for Azure OpenAI
+resource openAiPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-05-01' = {
+  name: '${openAiName}-pe'
+  location: location
+  properties: {
+    subnet: {
+      id: aiSubnetId
+    }
+    privateLinkServiceConnections: [
+      {
+        name: '${openAiName}-plsc'
+        properties: {
+          privateLinkServiceId: openAi.id
+          groupIds: ['account']
+        }
+      }
+    ]
+  }
+}
+
+// Private DNS zone for OpenAI
+resource openAiPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
+  name: 'privatelink.openai.azure.com'
+  location: 'global'
+}
+
+// Link DNS zone to VNet
+resource openAiDnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+  parent: openAiPrivateDnsZone
+  name: '${vnetName}-link'
+  location: 'global'
+  properties: {
+    registrationEnabled: false
+    virtualNetwork: {
+      id: vnetId
+    }
+  }
+}
+```
+
+### Identity Security
+
+| Control | Implementation | Purpose |
+|---------|---------------|---------|
+| **Authentication** | Microsoft Entra ID | Verify identity |
+| **Authorization** | RBAC + ABAC | Grant appropriate access |
+| **MFA** | Conditional Access | Strong authentication |
+| **PII Protection** | Tokenization | Protect sensitive data |
+| **Session Management** | Token lifetime | Limit exposure window |
+
+#### Conditional Access for AI Workloads
+
+```
+Conditional Access Policy:
+
+IF: User accessing AI Gateway
+  AND: Risk level = High
+  OR: Location = Outside corporate network
+  OR: Device = Non-compliant
+
+THEN: Require MFA
+   AND: Require compliant device
+   AND: Limit session lifetime to 1 hour
+```
+
+### Data Security
+
+| Layer | Protection | Implementation |
+|-------|-----------|----------------|
+| **In Transit** | TLS 1.3 | APIM SSL termination |
+| **At Rest** | AES-256 | Storage encryption |
+| **In Use** | Confidential Compute | Secure enclaves |
+| **Backups** | Encrypted | Azure Backup |
+| **Keys** | HSM-backed | Key Vault Premium |
+
+### Application Security
+
+| Threat | Protection | Implementation |
+|--------|-----------|----------------|
+| **Prompt Injection** | Input validation | APIM policies |
+| **Output Filtering** | Content Safety | Post-processing |
+| **API Abuse** | Rate limiting | APIM throttling |
+| **Data Exfiltration** | DLP policies | Purview |
+
+### Infrastructure Security
+
+| Area | Control | Tool |
+|------|---------|------|
+| **Hardening** | CIS Benchmarks | Azure Policy |
+| **Patching** | Automatic updates | Update Manager |
+| **Monitoring** | Security events | Microsoft Sentinel |
+| **Compliance** | Policy compliance | Azure Policy |
+
+## Threat Protection
+
+### Prompt Injection Detection
+
+```
+Prompt Injection Attack Types:
+
+1. DIRECT INJECTION
+   "Ignore previous instructions and..."
+   
+2. INDIRECT INJECTION
+   Hidden in user content, documents
+   
+3. JAILBREAK ATTEMPTS
+   "DAN" (Do Anything Now) patterns
+   
+4. SYSTEM PROMPT LEAKAGE
+   Attempts to reveal instructions
+```
+
+#### Detection Patterns
+
+```xml
+<!-- APIM policy for prompt injection detection -->
+<policies>
+  <inbound>
+    <set-variable name="prompt" value="@{
+      JObject body = context.Request.Body.As<JObject>(preserveContent: true);
+      return body?["messages"]?.Last?["content"]?.ToString() ?? "";
+    }" />
+    
+    <!-- Check for injection patterns -->
+    <choose>
+      <when condition="@{
+        var prompt = context.Variables.GetValueOrDefault("prompt", "").ToLower();
+        var patterns = new[] {
+          "ignore previous",
+          "ignore instructions",
+          "system prompt",
+          "dan mode",
+          "jailbreak",
+          "do anything now"
+        };
+        return patterns.Any(p => prompt.Contains(p));
+      }">
+        <return-response>
+          <set-status code="400" reason="Potential Injection Detected" />
+          <set-header name="Content-Type">
+            <value>application/json</value>
+          </set-header>
+          <set-body>{
+            "error": "Request contains potentially malicious patterns",
+            "code": "PROMPT_INJECTION_DETECTED"
+          }</set-body>
+        </return-response>
+      </when>
+    </choose>
+  </inbound>
+</policies>
+```
+
+### Jailbreak Attempts Monitoring
+
+| Indicator | Detection | Response |
+|-----------|-----------|----------|
+| **Role-playing** | "You are DAN..." | Block + Log |
+| **Hypotheticals** | "In a fictional scenario..." | Flag + Review |
+| **Encoding tricks** | Base64, ROT13 | Decode + Scan |
+| **Long prompts** | Unusually large | Rate limit |
+
+### Data Exfiltration Prevention
+
+```
+Data Exfiltration Controls:
+
+┌─────────────────────────────────────────────────────────────┐
+│                 PREVENTION LAYERS                            │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Layer 1: Output Filtering                                   │
+│  • PII detection in responses                                │
+│  • Content Safety for sensitive data                         │
+│  • Response size limits                                      │
+│                                                              │
+│  Layer 2: Request Monitoring                                 │
+│  • Unusual request patterns                                  │
+│  • High-volume data requests                                 │
+│  • Suspicious encoding                                       │
+│                                                              │
+│  Layer 3: Access Controls                                    │
+│  • Need-to-know data access                                  │
+│  • Audit all data access                                     │
+│  • Time-bound access grants                                  │
+│                                                              │
+│  Layer 4: Network Controls                                   │
+│  • Egress filtering                                          │
+│  • Private endpoints only                                    │
+│  • No direct internet access                                 │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Model Poisoning Protection
+
+| Attack Vector | Protection | Implementation |
+|--------------|-----------|----------------|
+| **Training Data Poisoning** | Data validation | Pre-training sanitization |
+| **Fine-tuning Injection** | Input filtering | Prompt injection detection |
+| **Supply Chain** | Model provenance | Signed models, SBOM |
+
+## Security Monitoring
+
+### Microsoft Sentinel Integration
+
+```
+Sentinel Workbook for AI Security:
+
+┌─────────────────────────────────────────────────────────────┐
+│              AI SECURITY DASHBOARD                           │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Alerts by Category (Last 24h)                              │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
+│  │   Prompt    │ │    PII      │ │   Anomaly   │           │
+│  │  Injection  │ │  Detection  │ │   Detected  │           │
+│  │     12      │ │     45      │ │     3       │           │
+│  └─────────────┘ └─────────────┘ └─────────────┘           │
+│                                                              │
+│  Threat Timeline                                             │
+│  [Timeline visualization of security events]                 │
+│                                                              │
+│  Top Risky Users                                             │
+│  1. user@company.com - 5 alerts                             │
+│  2. api-key-1234 - 3 alerts                                 │
+│  3. service-principal-x - 2 alerts                          │
+│                                                              │
+│  Recent Incidents                                            │
+│  • High-volume data access detected (2h ago)                │
+│  • Potential jailbreak attempt blocked (4h ago)             │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Security Alert Configuration
+
+| Alert Type | Severity | Threshold | Response |
+|------------|----------|-----------|----------|
+| **Prompt Injection** | High | Any detection | Block + Alert |
+| **PII in Response** | Medium | Confidence > 80% | Redact + Log |
+| **Rate Limit Exceeded** | Low | 10x baseline | Throttle |
+| **Unusual Access Pattern** | Medium | Z-score > 3 | Flag + Review |
+| **Failed Auth** | Medium | 5 attempts/min | Block IP |
+
+### Incident Response Playbooks
+
+```
+Incident Response Flow:
+
+Detection
+    │
+    ▼
+┌───────────┐
+│  Triage   │
+│  Severity │
+└─────┬─────┘
+      │
+      ▼
+   ┌──┴───┐
+   │      │
+   ▼      ▼
+┌─────┐ ┌─────┐
+│ Low │ │ High│
+└──┬──┘ └──┬──┘
+   │       │
+   ▼       ▼
+┌────────┐ ┌────────┐
+│ Auto-  │ │ SOC    │
+│ Remed. │ │ Team   │
+└────────┘ └────────┘
+                │
+                ▼
+           ┌────────┐
+           │Contain │
+           │Eradicate│
+           │Recover  │
+           └────────┘
+```
+
+### Threat Hunting for AI Workloads
+
+| Hunt Target | Technique | Query |
+|-------------|-----------|-------|
+| **Shadow AI** | Network traffic analysis | Unusual AI API calls |
+| **Data Exfiltration** | Large response patterns | Response size > 10KB |
+| **Prompt Injection** | Content analysis | Injection keywords |
+| **Compromised Keys** | Access pattern anomaly | Unusual geography |
+
+## Vulnerability Management
+
+### AI Model Vulnerabilities
+
+| Vulnerability | Risk | Mitigation |
+|--------------|------|------------|
+| **Model Inversion** | Training data reconstruction | Differential privacy |
+| **Membership Inference** | Determine if data in training | Output filtering |
+| **Model Extraction** | Steal model functionality | Rate limiting |
+| **Adversarial Examples** | Input manipulation | Input validation |
+
+### Dependency Scanning
+
+```yaml
+# GitHub Actions dependency scanning
+name: Security Scan
+on: [push, pull_request]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+```
+
+### Penetration Testing Guidance
+
+| Test Type | Frequency | Scope |
+|-----------|-----------|-------|
+| **Vulnerability Scan** | Weekly | All infrastructure |
+| **Penetration Test** | Quarterly | External interfaces |
+| **Red Team Exercise** | Annually | Full environment |
+| **AI Red Teaming** | Per model | Model safety testing |
+
+### Responsible AI Red Teaming
+
+```
+AI Red Team Activities:
+
+1. JAILBREAK TESTING
+   • Attempt to bypass safety filters
+   • Test policy enforcement
+   • Verify content safety integration
+
+2. PROMPT INJECTION
+   • Direct injection attempts
+   • Indirect injection via documents
+   • System prompt extraction
+
+3. OUTPUT SAFETY
+   • Generate harmful content
+   • Test PII handling
+   • Verify bias mitigation
+
+4. PRIVACY TESTING
+   • Training data extraction
+   • Membership inference
+   • Model memorization
+```
+
+## Security Benchmarks
+
+### CIS Azure Foundations Alignment
+
+| CIS Control | AI Landing Zone Implementation |
+|-------------|-------------------------------|
+| **1.1** | Maintain current contact details | Azure AD tenant info |
+| **2.1** | Ensure MFA is enabled | Conditional Access policies |
+| **3.1** | Ensure storage accounts are encrypted | SSE enabled |
+| **4.1** | Ensure audit logging is enabled | Diagnostic settings |
+| **5.1** | Ensure no SQL databases allow ingress | Private endpoints |
+
+### Microsoft Cloud Security Benchmark
+
+| Domain | Coverage |
+|--------|----------|
+| **Network Security** | NSGs, firewalls, private endpoints |
+| **Identity Management** | Entra ID, RBAC, MFA |
+| **Privileged Access** | PIM, JIT, break-glass |
+| **Data Protection** | Encryption, DLP, classification |
+| **Asset Management** | Inventory, tagging, CMDB |
+| **Logging and Threat Detection** | Sentinel, Defender |
+
+### NIST Cybersecurity Framework Mapping
+
+| Function | AI Landing Zone Controls |
+|----------|-------------------------|
+| **Identify** | Asset inventory, data classification |
+| **Protect** | Access controls, encryption, training |
+| **Detect** | Monitoring, anomaly detection |
+| **Respond** | Incident response, containment |
+| **Recover** | Backups, disaster recovery |
+
+## Next Steps
+
+- Review [Content Safety](./content-safety) for content moderation
+- Explore [PII Protection](./pii-protection) for data protection
+- Learn about [Compliance Mapping](./compliance-mapping) for regulatory alignment
+- See [Security Implementation](../ai-patterns/security-implementation) for deployment guidance
+- Review [Layer 4 Security Fabric](../architecture/layer-4-security-fabric) for comprehensive security overview
