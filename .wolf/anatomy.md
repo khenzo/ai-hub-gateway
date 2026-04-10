@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-04-01T08:33:04.694Z
-> Files: 246 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-04-10T10:59:36.790Z
+> Files: 256 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -22,6 +22,15 @@
 ## .claude/rules/
 
 - `openwolf.md` (~313 tok)
+
+## .planning/
+
+- `STATE.md` — Project Reference (~1637 tok)
+
+## .planning/phases/04-implementation-guides/
+
+- `04-01-SUMMARY.md` — Phase 4 Plan 1: Getting Started Guides Summary (~1314 tok)
+- `04-02-SUMMARY.md` — Dependency graph (~1304 tok)
 
 ## assets/
 
@@ -360,6 +369,19 @@
 
 - `managed-identity-apim.bicep` (~706 tok)
 - `managed-identity-usage.bicep` (~433 tok)
+
+## docs/getting-started/
+
+- `prerequisites.mdx` — Prerequisites (~5343 tok)
+- `quick-start.mdx` — Quick-Start Guide (~4704 tok)
+- `roles-and-responsibilities.mdx` — Roles and Responsibilities (~6903 tok)
+
+## docs/guides/
+
+- `bicep-modules.mdx` — Bicep Modules Reference (~6409 tok)
+- `deployment-checklist.mdx` — Deployment Checklist (~4842 tok)
+- `deployment-guide.mdx` — Deployment Guide (~6853 tok)
+- `validation-checklist.mdx` — Validation Checklist (~5147 tok)
 
 ## guides/
 
