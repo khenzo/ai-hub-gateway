@@ -2,16 +2,309 @@
   "version": 1,
   "created_at": "2026-04-01T08:33:04.624Z",
   "lifetime": {
-    "total_tokens_estimated": 0,
-    "total_reads": 0,
-    "total_writes": 0,
-    "total_sessions": 0,
-    "anatomy_hits": 0,
-    "anatomy_misses": 0,
-    "repeated_reads_blocked": 0,
-    "estimated_savings_vs_bare_cli": 0
+    "total_tokens_estimated": 110945,
+    "total_reads": 23,
+    "total_writes": 24,
+    "total_sessions": 2,
+    "anatomy_hits": 8,
+    "anatomy_misses": 14,
+    "repeated_reads_blocked": 13,
+    "estimated_savings_vs_bare_cli": 14575
   },
-  "sessions": [],
+  "sessions": [
+    {
+      "id": "session-2026-04-10-1243",
+      "started": "2026-04-10T10:43:54.599Z",
+      "ended": "2026-04-10T11:14:34.732Z",
+      "reads": [
+        {
+          "file": "/home/khenzo/.claude/get-shit-done/workflows/execute-phase.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/phases/04-implementation-guides/04-01-PLAN.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/STATE.md",
+          "tokens_estimated": 1637,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/config.json",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/CLAUDE.md",
+          "tokens_estimated": 57,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/ai-patterns/overview.mdx",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/phases/04-implementation-guides/04-02-PLAN.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/guides/network-approach.mdx",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/getting-started/prerequisites.mdx",
+          "tokens_estimated": 5343,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/.claude/get-shit-done/templates/summary.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/phases/04-implementation-guides/04-03-PLAN.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/guides/deployment-guide.mdx",
+          "tokens_estimated": 6853,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/ROADMAP.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/phases/04-implementation-guides/04-01-SUMMARY.md",
+          "tokens_estimated": 1314,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/phases/04-implementation-guides/04-02-SUMMARY.md",
+          "tokens_estimated": 1304,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/phases/04-implementation-guides/04-03-SUMMARY.md",
+          "tokens_estimated": 2324,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/mint.json",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs.json",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/getting-started/prerequisites.mdx",
+          "tokens_estimated": 5725,
+          "action": "create"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/getting-started/quick-start.mdx",
+          "tokens_estimated": 5040,
+          "action": "create"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/getting-started/roles-and-responsibilities.mdx",
+          "tokens_estimated": 7396,
+          "action": "create"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/phases/04-implementation-guides/04-01-SUMMARY.md",
+          "tokens_estimated": 1475,
+          "action": "create"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/phases/04-implementation-guides/04-01-SUMMARY.md",
+          "tokens_estimated": 31,
+          "action": "edit"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/STATE.md",
+          "tokens_estimated": 73,
+          "action": "edit"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/STATE.md",
+          "tokens_estimated": 15,
+          "action": "edit"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/guides/deployment-guide.mdx",
+          "tokens_estimated": 7343,
+          "action": "create"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/guides/bicep-modules.mdx",
+          "tokens_estimated": 6866,
+          "action": "create"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/guides/deployment-checklist.mdx",
+          "tokens_estimated": 5187,
+          "action": "create"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/guides/validation-checklist.mdx",
+          "tokens_estimated": 5515,
+          "action": "create"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/phases/04-implementation-guides/04-02-SUMMARY.md",
+          "tokens_estimated": 1490,
+          "action": "create"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/STATE.md",
+          "tokens_estimated": 87,
+          "action": "edit"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/STATE.md",
+          "tokens_estimated": 80,
+          "action": "edit"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/STATE.md",
+          "tokens_estimated": 241,
+          "action": "edit"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/STATE.md",
+          "tokens_estimated": 37,
+          "action": "edit"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/STATE.md",
+          "tokens_estimated": 20,
+          "action": "edit"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/guides/configuration-examples.mdx",
+          "tokens_estimated": 8375,
+          "action": "create"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/guides/troubleshooting.mdx",
+          "tokens_estimated": 7093,
+          "action": "create"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/guides/common-issues.mdx",
+          "tokens_estimated": 6064,
+          "action": "create"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/guides/best-practices.mdx",
+          "tokens_estimated": 7468,
+          "action": "create"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/phases/04-implementation-guides/04-03-SUMMARY.md",
+          "tokens_estimated": 2656,
+          "action": "create"
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/phases/04-implementation-guides/04-VERIFICATION.md",
+          "tokens_estimated": 3640,
+          "action": "create"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 18832,
+        "output_tokens_estimated": 81917,
+        "reads_count": 18,
+        "writes_count": 23,
+        "repeated_reads_blocked": 11,
+        "anatomy_lookups": 6
+      }
+    },
+    {
+      "id": "session-2026-04-10-1340",
+      "started": "2026-04-10T11:40:23.747Z",
+      "ended": "2026-04-10T13:21:53.872Z",
+      "reads": [
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/phases/04-implementation-guides/04-VERIFICATION.md",
+          "tokens_estimated": 3185,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/STATE.md",
+          "tokens_estimated": 1637,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/docs/mint.json",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/ROADMAP.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/phases/04-implementation-guides/04-04-PLAN.md",
+          "tokens_estimated": 2508,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/home/khenzo/projects/ai-hub-gateway/.planning/phases/04-implementation-guides/04-04-PLAN.md",
+          "tokens_estimated": 2866,
+          "action": "create"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 7330,
+        "output_tokens_estimated": 2866,
+        "reads_count": 5,
+        "writes_count": 1,
+        "repeated_reads_blocked": 2,
+        "anatomy_lookups": 2
+      }
+    }
+  ],
   "daemon_usage": [],
   "waste_flags": [],
   "optimization_report": {

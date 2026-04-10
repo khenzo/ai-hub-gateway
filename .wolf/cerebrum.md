@@ -11,7 +11,11 @@
 ## Key Learnings
 
 - **Project:** ai-hub-gateway-solution-accelerator
-- **Description:** <div align="center">
+- **Description:** Azure AI Landing Zone with Citadel Governance Hub - comprehensive documentation site using Mintlify
+- **Phase 4 completed:** All implementation guides created and navigation-wired
+  - 10 documentation files (297-983 lines each) now reachable via mint.json
+  - Navigation structure: Getting Started (7 pages), Architecture (8), Guides (8), Governance (6)
+  - Pattern: When content files are created in new directories (docs/getting-started/, docs/guides/), the mint.json navigation config must be updated to match
 
 ## Do-Not-Repeat
 

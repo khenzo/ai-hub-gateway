@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-04-10T10:59:36.790Z
-> Files: 256 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-04-10T13:09:59.326Z
+> Files: 263 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -31,6 +31,9 @@
 
 - `04-01-SUMMARY.md` — Phase 4 Plan 1: Getting Started Guides Summary (~1314 tok)
 - `04-02-SUMMARY.md` — Dependency graph (~1304 tok)
+- `04-03-SUMMARY.md` — Phase 4 Plan 3: Configuration Examples and Operational Documentation Summary (~2324 tok)
+- `04-04-PLAN.md` — Declares fs (~2508 tok)
+- `04-VERIFICATION.md` — Phase 4: Implementation Guides Verification Report (~3185 tok)
 
 ## assets/
 
@@ -378,9 +381,13 @@
 
 ## docs/guides/
 
+- `best-practices.mdx` — Best Practices (~6970 tok)
 - `bicep-modules.mdx` — Bicep Modules Reference (~6409 tok)
+- `common-issues.mdx` — Common Issues and FAQ (~5660 tok)
+- `configuration-examples.mdx` — Configuration Examples (~7817 tok)
 - `deployment-checklist.mdx` — Deployment Checklist (~4842 tok)
 - `deployment-guide.mdx` — Deployment Guide (~6853 tok)
+- `troubleshooting.mdx` — Troubleshooting Guide (~6620 tok)
 - `validation-checklist.mdx` — Validation Checklist (~5147 tok)
 
 ## guides/

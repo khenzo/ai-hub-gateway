@@ -1,11 +1,11 @@
 {
   "mode": "yolo",
-  "depth": "standard",
   "workflow": {
     "research": true,
     "plan_check": true,
     "verifier": true,
-    "auto_advance": true
+    "auto_advance": true,
+    "_auto_chain_active": false
   },
   "planning": {
     "commit_docs": true,
@@ -32,5 +32,6 @@
   "safety": {
     "always_confirm_destructive": true,
     "always_confirm_external_services": true
-  }
+  },
+  "granularity": "standard"
 }
