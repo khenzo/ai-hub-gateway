@@ -1,0 +1,749 @@
+---
+title: "AI Access Contracts"
+description: "Comprehensive guide to AI Access Contracts — contract structure, lifecycle management, enforcement mechanisms, and real-world examples"
+---
+
+# 📋 AI Access Contracts
+
+## Introduction
+
+**AI Access Contracts** are policy bundles that govern how applications, agents, and users interact with AI services. Unlike traditional API keys that only provide access, contracts encode complete governance policies including rate limits, content safety rules, cost controls, and audit requirements.
+
+## What Are AI Access Contracts?
+
+### Definition and Purpose
+
+An AI Access Contract is a declarative document that binds:
+
+- **Identity**: Who is accessing (user, application, agent)
+- **Policies**: What rules apply (rate limits, safety, cost)
+- **Resources**: Which AI services can be accessed
+- **Conditions**: When and where access is permitted
+
+### Contract vs. Traditional API Keys
+
+| Aspect | API Key | AI Access Contract |
+|--------|---------|-------------------|
+| **Scope** | Binary (access/no access) | Granular policies |
+| **Rate Limits** | Global or none | Per-contract quotas |
+| **Safety Controls** | External/optional | Built-in enforcement |
+| **Cost Attribution** | Difficult | Built-in tracking |
+| **Audit Trail** | Basic logging | Comprehensive telemetry |
+| **Lifecycle** | Manual rotation | Automated with expiry |
+
+### Benefits for Enterprise Governance
+
+1. **Policy Consistency**: Same contract applied across environments
+2. **Self-Service**: Developers request access through contracts
+3. **Cost Control**: Per-contract budgets prevent overruns
+4. **Compliance**: Built-in audit trails and policy enforcement
+5. **Flexibility**: Different contracts for different use cases
+
+## Contract Structure and Schema
+
+### Complete Contract Schema
+
+```json
+{
+  "$schema": "https://citadel.ai/schemas/access-contract-v1.json",
+  "contract": {
+    "metadata": {
+      "name": "string",
+      "version": "string",
+      "description": "string",
+      "owner": "string",
+      "createdAt": "ISO8601",
+      "expiresAt": "ISO8601",
+      "status": "active|suspended|revoked"
+    },
+    "identity": {
+      "type": "user|service|agent",
+      "principalId": "string",
+      "tenantId": "string",
+      "sponsor": "string (for agents)"
+    },
+    "access": {
+      "environments": ["dev", "staging", "prod"],
+      "services": ["azure-openai", "azure-ai-search"],
+      "models": ["gpt-4", "gpt-35-turbo"],
+      "regions": ["eastus", "westeurope"]
+    },
+    "policies": {
+      "rateLimit": {
+        "requestsPerMinute": 100,
+        "requestsPerHour": 1000,
+        "tokensPerDay": 1000000
+      },
+      "contentSafety": {
+        "enabled": true,
+        "severityThreshold": "medium",
+        "blockedCategories": ["hate", "violence", "self-harm"],
+        "promptShields": true
+      },
+      "dataHandling": {
+        "piiDetection": true,
+        "piiRedaction": true,
+        "sensitivityLabels": ["Internal", "Public"],
+        "dataResidency": "EU"
+      },
+      "costControl": {
+        "dailyBudget": 100.00,
+        "monthlyBudget": 2000.00,
+        "alertThresholds": [50, 80, 95]
+      }
+    },
+    "audit": {
+      "logLevel": "standard|verbose",
+      "retentionDays": 90,
+      "includeRequestBody": false,
+      "includeResponseBody": false,
+      "exportTargets": ["log-analytics", "storage"]
+    }
+  }
+}
+```
+
+### Contract Metadata
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| `name` | Human-readable identifier | `finance-team-production` |
+| `version` | Semantic version | `1.2.0` |
+| `owner` | Team or individual responsible | `finance-platform-team` |
+| `expiresAt` | Contract expiration date | `2024-12-31T23:59:59Z` |
+| `status` | Current contract state | `active` |
+
+### Identity and Authentication
+
+```json
+{
+  "identity": {
+    "type": "service",
+    "principalId": "12345678-1234-1234-1234-123456789012",
+    "tenantId": "contoso.onmicrosoft.com",
+    "authentication": {
+      "type": "managed-identity",
+      "clientId": "87654321-4321-4321-4321-210987654321"
+    }
+  }
+}
+```
+
+### Rate Limits and Quotas
+
+Flexible quota system:
+
+```json
+{
+  "policies": {
+    "rateLimit": {
+      "requestsPerSecond": 10,
+      "requestsPerMinute": 100,
+      "requestsPerHour": 1000,
+      "requestsPerDay": 10000,
+      "tokensPerMinute": 10000,
+      "tokensPerDay": 1000000,
+      "concurrentRequests": 5
+    }
+  }
+}
+```
+
+### Content Safety Policies
+
+```json
+{
+  "policies": {
+    "contentSafety": {
+      "enabled": true,
+      "severityThreshold": "medium",
+      "blockedCategories": [
+        "hate",
+        "sexual",
+        "violence",
+        "self-harm"
+      ],
+      "promptShields": {
+        "enabled": true,
+        "jailbreakDetection": true,
+        "indirectAttackDetection": true
+      },
+      "customBlocklist": [
+        "competitor-sensitive-term",
+        "internal-code-name"
+      ]
+    }
+  }
+}
+```
+
+### Data Handling Requirements
+
+```json
+{
+  "policies": {
+    "dataHandling": {
+      "piiDetection": true,
+      "piiRedaction": "mask",
+      "sensitivityLabels": ["Public", "Internal"],
+      "dataResidency": "EU",
+      "encryption": {
+        "inTransit": true,
+        "atRest": true,
+        "customerManagedKey": true
+      }
+    }
+  }
+}
+```
+
+## Contract Lifecycle
+
+### Creation and Approval Workflow
+
+```
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│   Request    │ →  │   Review     │ →  │   Approve    │ →  │   Create     │
+│              │    │              │    │              │    │              │
+│ Developer    │    │ Platform     │    │ Platform     │    │ Contract     │
+│ submits      │    │ Team reviews │    │ Lead         │    │ generated    │
+│ contract     │    │ policies     │    │ approves     │    │ with ID      │
+│ request      │    │              │    │              │    │              │
+└──────────────┘    └──────────────┘    └──────────────┘    └──────┬───────┘
+                                                                   │
+                                                                   ▼
+                                                          ┌──────────────┐
+                                                          │   Deploy     │
+                                                          │   to APIM    │
+                                                          └──────────────┘
+```
+
+### Deployment to APIM
+
+Contracts are deployed as APIM products with associated policies:
+
+```xml
+<!-- APIM Policy enforcing contract terms -->
+<policies>
+  <inbound>
+    <!-- Rate limiting from contract -->
+    <rate-limit calls="1000" renewal-period="3600" />
+    
+    <!-- Token quota from contract -->
+    <quota calls="10000" renewal-period="86400" />
+    
+    <!-- Content safety check -->
+    <send-request mode="new" response-variable-name="safety-check">
+      <set-url>{{content-safety-endpoint}}/text:analyze</set-url>
+      <set-method>POST</set-method>
+      <set-header name="Ocp-Apim-Subscription-Key">
+        <value>{{content-safety-key}}</value>
+      </set-header>
+    </send-request>
+    
+    <!-- Cost header injection for tracking -->
+    <set-header name="x-contract-id">
+      <value>{{contract-id}}</value>
+    </set-header>
+  </inbound>
+</policies>
+```
+
+### Activation and Monitoring
+
+Once deployed:
+
+1. **Activation**: Contract status changes to `active`
+2. **Key Distribution**: API keys or credentials provided to requester
+3. **Monitoring**: Usage tracked against contract quotas
+4. **Alerting**: Notifications at threshold breaches
+
+### Updates and Versioning
+
+Contract changes follow semantic versioning:
+
+| Change Type | Version Impact | Example |
+|-------------|----------------|---------|
+| **Patch** | Increase patch (1.0.0 → 1.0.1) | Description update |
+| **Minor** | Increase minor (1.0.0 → 1.1.0) | New optional policy |
+| **Major** | Increase major (1.0.0 → 2.0.0) | Breaking policy change |
+
+### Retirement and Revocation
+
+```
+Contract Retirement Process:
+
+1. Deprecation Notice (30 days before)
+   ↓
+2. Grace Period (existing requests honored)
+   ↓
+3. Suspension (no new requests)
+   ↓
+4. Revocation (all access blocked)
+   ↓
+5. Archive (logs retained, contract deleted)
+```
+
+## Contract Examples
+
+### Example 1: Basic Developer Contract
+
+For development and testing:
+
+```json
+{
+  "contract": {
+    "metadata": {
+      "name": "developer-sandbox",
+      "version": "1.0.0",
+      "description": "Low-cost contract for development and testing",
+      "owner": "developer@contoso.com",
+      "expiresAt": "2024-06-30T00:00:00Z",
+      "status": "active"
+    },
+    "identity": {
+      "type": "user",
+      "principalId": "user@contoso.com"
+    },
+    "access": {
+      "environments": ["dev"],
+      "services": ["azure-openai"],
+      "models": ["gpt-35-turbo"]
+    },
+    "policies": {
+      "rateLimit": {
+        "requestsPerMinute": 10,
+        "tokensPerDay": 50000
+      },
+      "contentSafety": {
+        "enabled": true,
+        "severityThreshold": "high"
+      },
+      "costControl": {
+        "dailyBudget": 5.00,
+        "monthlyBudget": 50.00
+      }
+    },
+    "audit": {
+      "logLevel": "standard",
+      "retentionDays": 30
+    }
+  }
+}
+```
+
+### Example 2: Production Workload Contract
+
+High-throughput production use:
+
+```json
+{
+  "contract": {
+    "metadata": {
+      "name": "customer-service-production",
+      "version": "2.1.0",
+      "description": "High-throughput contract for customer service chatbot",
+      "owner": "customer-service-team",
+      "expiresAt": "2025-12-31T00:00:00Z",
+      "status": "active"
+    },
+    "identity": {
+      "type": "service",
+      "principalId": "service-principal-guid",
+      "authentication": {
+        "type": "managed-identity"
+      }
+    },
+    "access": {
+      "environments": ["prod"],
+      "services": ["azure-openai", "azure-ai-search"],
+      "models": ["gpt-4", "gpt-4-turbo", "text-embedding-ada-002"],
+      "regions": ["eastus", "westeurope"]
+    },
+    "policies": {
+      "rateLimit": {
+        "requestsPerSecond": 50,
+        "requestsPerMinute": 1000,
+        "tokensPerMinute": 500000,
+        "tokensPerDay": 50000000,
+        "concurrentRequests": 20
+      },
+      "contentSafety": {
+        "enabled": true,
+        "severityThreshold": "medium",
+        "blockedCategories": ["hate", "sexual", "violence", "self-harm"],
+        "promptShields": {
+          "enabled": true,
+          "jailbreakDetection": true
+        }
+      },
+      "dataHandling": {
+        "piiDetection": true,
+        "piiRedaction": "mask",
+        "sensitivityLabels": ["Internal", "Confidential"]
+      },
+      "costControl": {
+        "dailyBudget": 500.00,
+        "monthlyBudget": 10000.00,
+        "alertThresholds": [50, 75, 90, 95]
+      }
+    },
+    "audit": {
+      "logLevel": "verbose",
+      "retentionDays": 365,
+      "includeRequestBody": false,
+      "exportTargets": ["log-analytics", "storage"]
+    }
+  }
+}
+```
+
+### Example 3: Sensitive Data Contract
+
+Enhanced protection for PII and sensitive data:
+
+```json
+{
+  "contract": {
+    "metadata": {
+      "name": "hr-sensitive-data",
+      "version": "1.0.0",
+      "description": "Enhanced protection for HR data processing",
+      "owner": "hr-platform-team",
+      "expiresAt": "2024-12-31T00:00:00Z",
+      "status": "active"
+    },
+    "identity": {
+      "type": "service",
+      "principalId": "hr-service-guid",
+      "authentication": {
+        "type": "certificate",
+        "thumbprint": "abc123..."
+      }
+    },
+    "access": {
+      "environments": ["prod"],
+      "services": ["azure-openai"],
+      "models": ["gpt-4"],
+      "regions": ["westeurope"]
+    },
+    "policies": {
+      "rateLimit": {
+        "requestsPerMinute": 50,
+        "tokensPerDay": 1000000
+      },
+      "contentSafety": {
+        "enabled": true,
+        "severityThreshold": "low",
+        "blockedCategories": ["hate", "sexual", "violence", "self-harm"],
+        "promptShields": {
+          "enabled": true,
+          "jailbreakDetection": true,
+          "indirectAttackDetection": true
+        }
+      },
+      "dataHandling": {
+        "piiDetection": true,
+        "piiRedaction": "remove",
+        "sensitivityLabels": ["Highly Confidential"],
+        "dataResidency": "EU",
+        "encryption": {
+          "inTransit": true,
+          "atRest": true,
+          "customerManagedKey": true
+        }
+      },
+      "costControl": {
+        "dailyBudget": 100.00,
+        "monthlyBudget": 2000.00
+      }
+    },
+    "audit": {
+      "logLevel": "verbose",
+      "retentionDays": 2555,
+      "includeRequestBody": true,
+      "includeResponseBody": false,
+      "exportTargets": ["log-analytics"]
+    }
+  }
+}
+```
+
+### Example 4: Multi-Tenant Contract
+
+Isolated usage tracking for SaaS scenarios:
+
+```json
+{
+  "contract": {
+    "metadata": {
+      "name": "saas-tenant-{tenantId}",
+      "version": "1.0.0",
+      "description": "Isolated contract per SaaS tenant",
+      "owner": "saas-platform-team",
+      "template": true
+    },
+    "identity": {
+      "type": "service",
+      "principalId": "{tenantServicePrincipal}",
+      "authentication": {
+        "type": "managed-identity"
+      }
+    },
+    "access": {
+      "environments": ["prod"],
+      "services": ["azure-openai"],
+      "models": ["gpt-35-turbo", "text-embedding-ada-002"]
+    },
+    "policies": {
+      "rateLimit": {
+        "requestsPerMinute": 100,
+        "tokensPerDay": 10000000
+      },
+      "contentSafety": {
+        "enabled": true,
+        "severityThreshold": "medium"
+      },
+      "costControl": {
+        "dailyBudget": 50.00,
+        "monthlyBudget": 1000.00,
+        "tenantIsolation": true
+      }
+    },
+    "audit": {
+      "logLevel": "verbose",
+      "retentionDays": 90,
+      "tenantTagging": true
+    }
+  }
+}
+```
+
+## Contract Enforcement Points
+
+### APIM Policy Configuration
+
+Contracts map to APIM products with associated policies:
+
+```xml
+<policies>
+  <inbound>
+    <!-- Base policy: Authentication -->
+    <base />
+    
+    <!-- Contract-specific rate limits -->
+    <rate-limit-by-key 
+      calls="{{contract.requestsPerHour}}"
+      renewal-period="3600"
+      counter-key="{{contract.id}}" />
+    
+    <!-- Token quota management -->
+    <quota-by-key 
+      calls="{{contract.tokensPerDay}}"
+      renewal-period="86400"
+      counter-key="{{contract.id}}" />
+    
+    <!-- Content safety integration -->
+    <choose>
+      <when condition="{{contract.contentSafetyEnabled}}">
+        <send-request mode="new" response-variable-name="safety-result">
+          <set-url>{{content-safety-endpoint}}/text:analyze</set-url>
+          <set-method>POST</set-method>
+        </send-request>
+        <choose>
+          <when condition="@(((IResponse)context.Variables["safety-result"]).StatusCode != 200)">
+            <return-response>
+              <set-status code="400" reason="Content Safety Violation" />
+            </return-response>
+          </when>
+        </choose>
+      </when>
+    </choose>
+    
+    <!-- Cost tracking headers -->
+    <set-header name="x-contract-id" exists-action="override">
+      <value>{{contract.id}}</value>
+    </set-header>
+    <set-header name="x-cost-center" exists-action="override">
+      <value>{{contract.costCenter}}</value>
+    </set-header>
+  </inbound>
+</policies>
+```
+
+### Runtime Validation
+
+Gateway validates contracts on each request:
+
+1. **Contract Exists**: Valid contract ID in request
+2. **Not Expired**: Current date before `expiresAt`
+3. **Status Active**: Contract status is `active`
+4. **Rate Limits**: Current usage under quotas
+5. **Content Safety**: Request passes safety checks
+6. **Budget Check**: Current spend under budget
+
+### Violation Handling
+
+| Violation Type | Response | Action |
+|----------------|----------|--------|
+| **Rate Limit Exceeded** | `429 Too Many Requests` | Log, notify owner, queue for review |
+| **Budget Exceeded** | `403 Forbidden` | Block, alert finance team |
+| **Content Safety** | `400 Bad Request` | Log, flag for review |
+| **Contract Expired** | `401 Unauthorized` | Prompt renewal |
+| **Invalid Authentication** | `401 Unauthorized` | Log security event |
+
+## JSON Schema for Contracts
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://citadel.ai/schemas/access-contract-v1.json",
+  "title": "AI Access Contract",
+  "type": "object",
+  "required": ["contract"],
+  "properties": {
+    "contract": {
+      "type": "object",
+      "required": ["metadata", "identity", "access", "policies"],
+      "properties": {
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+            "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+            "description": { "type": "string" },
+            "owner": { "type": "string" },
+            "createdAt": { "type": "string", "format": "date-time" },
+            "expiresAt": { "type": "string", "format": "date-time" },
+            "status": { 
+              "type": "string", 
+              "enum": ["draft", "pending", "active", "suspended", "revoked"]
+            }
+          },
+          "required": ["name", "version"]
+        },
+        "identity": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "enum": ["user", "service", "agent"] },
+            "principalId": { "type": "string", "format": "uuid" },
+            "tenantId": { "type": "string" },
+            "sponsor": { "type": "string" }
+          },
+          "required": ["type", "principalId"]
+        },
+        "access": {
+          "type": "object",
+          "properties": {
+            "environments": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["dev", "staging", "prod"] }
+            },
+            "services": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "models": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "policies": {
+          "type": "object",
+          "properties": {
+            "rateLimit": {
+              "type": "object",
+              "properties": {
+                "requestsPerSecond": { "type": "integer", "minimum": 1 },
+                "requestsPerMinute": { "type": "integer", "minimum": 1 },
+                "requestsPerHour": { "type": "integer", "minimum": 1 },
+                "requestsPerDay": { "type": "integer", "minimum": 1 },
+                "tokensPerMinute": { "type": "integer", "minimum": 1 },
+                "tokensPerDay": { "type": "integer", "minimum": 1 }
+              }
+            },
+            "contentSafety": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "severityThreshold": { 
+                  "type": "string", 
+                  "enum": ["low", "medium", "high"] 
+                }
+              }
+            },
+            "costControl": {
+              "type": "object",
+              "properties": {
+                "dailyBudget": { "type": "number", "minimum": 0 },
+                "monthlyBudget": { "type": "number", "minimum": 0 },
+                "alertThresholds": {
+                  "type": "array",
+                  "items": { "type": "integer", "minimum": 1, "maximum": 100 }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Contract Management Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        CONTRACT LIFECYCLE                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐       │
+│  │  DRAFT  │ → │ PENDING │ → │ ACTIVE  │ → │SUSPENDED│ → │ REVOKED │       │
+│  └─────────┘   └─────────┘   └─────────┘   └─────────┘   └─────────┘       │
+│       ↑                           │              ↑              │          │
+│       │                           │              │              │          │
+│       │                           ▼              │              ▼          │
+│       │                      ┌─────────┐         │         ┌─────────┐     │
+│       │                      │ EXPIRED │─────────┘         │ARCHIVED │     │
+│       │                      └─────────┘                   └─────────┘     │
+│       │                                                                    │
+│       └────────────────────────────────────────────────────────────────    │
+│                              (Update creates new version)                  │
+│                                                                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Best Practices
+
+### Contract Design
+
+1. **Start Restrictive**: Begin with lower limits, increase based on usage
+2. **Environment Segregation**: Separate contracts for dev/staging/prod
+3. **Time-Bound**: Set expiration to force periodic review
+4. **Cost Controls**: Always include budget limits with alerts
+5. **Safety First**: Enable content safety by default
+
+### Contract Governance
+
+1. **Naming Conventions**: Use consistent patterns (`team-environment-purpose`)
+2. **Version Control**: Store contract definitions in Git
+3. **Review Cadence**: Quarterly access reviews for all contracts
+4. **Automation**: Automate deployment through CI/CD
+5. **Monitoring**: Dashboard for contract usage and violations
+
+### Security Considerations
+
+1. **Least Privilege**: Minimum necessary permissions
+2. **Credential Rotation**: Automatic key rotation before expiry
+3. **Audit Trail**: Log all contract changes
+4. **Approval Workflow**: Multi-person approval for production
+5. **Emergency Revocation**: Ability to instantly revoke access
+
+## Next Steps
+
+- Learn about [policy enforcement mechanisms](./policy-enforcement)
+- Understand [identity management patterns](./identity-management)
+- Review the [Governance Hub architecture](../architecture/layer-1-governance-hub)
+- See [Agent 365 identity integration](../architecture/layer-3-agent-identity)
