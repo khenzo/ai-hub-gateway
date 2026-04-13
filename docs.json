@@ -104,7 +104,9 @@
           "docs/agent-factory/overview",
           "docs/agent-factory/intelligence-layers",
           "docs/agent-factory/builder-personas",
-          "docs/agent-factory/citadel-mapping"
+          "docs/agent-factory/citadel-mapping",
+          "docs/agent-factory/agentic-web-stack",
+          "docs/agent-factory/agentic-stack-diagrams"
         ]
       },
       {
