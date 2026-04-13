@@ -1,0 +1,157 @@
+---
+title: "Agentic Web Stack"
+description: "The 8 essential components of the agentic web stack and their placement within Citadel"
+---
+
+# Agentic Web Stack
+
+The **agentic web stack** defines the 8 essential capabilities that enterprise agent systems require to operate at scale. These components provide the foundation for communication, discovery, identity, tools, orchestration, observability, memory, and governance. Microsoft Agent Factory builds directly on this stack, with each capability mapping to a specific layer within the Citadel architecture.
+
+## Overview
+
+Enterprise agents are not isolated applications. They are part of an interconnected ecosystem that must communicate securely, discover capabilities dynamically, and operate under consistent governance. The agentic web stack provides a structured way to think about these requirements and ensures that every agent deployment has the foundational capabilities it needs.
+
+## The 8 Essential Components
+
+### Communication
+
+**Communication** is the protocol layer that enables agents to exchange messages, delegate tasks, and coordinate actions. Without standardized communication, agents become siloed and cannot participate in multi-agent workflows.
+
+**Key capabilities:**
+- A2A (Agent-to-Agent) protocol for cross-agent collaboration
+- MCP (Model Context Protocol) for structured tool and context exchange
+- Message routing, queuing, and retry logic
+- Rate limiting and traffic shaping at the gateway
+
+**Citadel placement:** **Layer 1 (Governance Hub)** — Azure API Management enforces authentication, rate limiting, and policy on all agent communication. Every message between agents or between agents and tools passes through the CGH gateway.
+
+**Primary service:** Azure API Management
+
+### Discovery
+
+**Discovery** enables agents to find other agents, understand their capabilities, and locate the tools they need to complete tasks. A well-designed discovery layer turns a collection of agents into a coherent ecosystem.
+
+**Key capabilities:**
+- Agent registries with capability metadata
+- Semantic discovery based on task descriptions
+- Versioning and lifecycle awareness
+- Dynamic capability directories
+
+**Citadel placement:** **Layer 2/3 (AI Control Plane + Agent Identity)** — The Foundry Control Plane tracks agent capabilities and evaluations, while Agent 365 maintains the authoritative identity registry for who can discover what.
+
+**Primary services:** Azure AI Foundry Control Plane, Microsoft Agent 365
+
+### Identity
+
+**Identity** provides every agent with a unique, governable identity. Agents must be identifiable, auditable, and subject to the same lifecycle and access controls as human employees.
+
+**Key capabilities:**
+- Unique agent identities and service principals
+- Sponsorship models linking agents to owners
+- Lifecycle management (provisioning, versioning, retirement)
+- Access packages and entitlement governance
+
+**Citadel placement:** **Layer 3 (Agent Identity)** — Agent 365 is the identity control plane for agents. It integrates with Microsoft Entra ID to extend existing identity governance to non-human identities.
+
+**Primary service:** Microsoft Entra ID / Agent 365
+
+### Tools
+
+**Tools** are the external capabilities that agents can invoke—APIs, functions, databases, enterprise systems, and third-party services. The tools layer makes these capabilities available to agents in a secure, discoverable, and governable way.
+
+**Key capabilities:**
+- MCP servers exposing enterprise APIs
+- Unified gateway for all tool invocations
+- API catalog and versioning via API Center
+- Runtime policy enforcement (auth, rate limits, content filtering)
+
+**Citadel placement:** **Layer 1 (Governance Hub)** — The CGH acts as the unified gateway for all tool invocations. Azure API Management + API Center provide the catalog, governance, and runtime enforcement layer.
+
+**Primary services:** Azure API Management, Azure API Center
+
+### Orchestration
+
+**Orchestration** is the coordination layer that manages multi-agent workflows, planning, delegation, and state. It turns individual agents into systems that can execute complex, multi-step business processes.
+
+**Key capabilities:**
+- Multi-agent workflow design and execution
+- Task planning and dynamic delegation
+- State management across long-running processes
+- Failure handling and recovery
+
+**Citadel placement:** **Layer 2 (AI Control Plane)** — The Foundry Control Plane provides execution traces and evaluations for orchestrated flows, enabling observability and quality control over complex agent interactions.
+
+**Primary services:** Azure AI Foundry, Azure AI Agent Framework
+
+### Observability
+
+**Observability** provides the telemetry, traces, evaluations, and compliance dashboards needed to understand how agents behave in production. Without observability, agents are opaque and difficult to govern.
+
+**Key capabilities:**
+- Execution traces for every agent run
+- Automated evaluations for quality and safety
+- Telemetry dashboards and alerting
+- Compliance and audit logging
+
+**Citadel placement:** **Layer 2 (AI Control Plane)** — The Foundry Control Plane captures agent behavior, execution traces, and quality metrics. Azure Monitor provides infrastructure and application telemetry.
+
+**Primary services:** Azure AI Foundry Control Plane, Azure Monitor
+
+### Memory
+
+**Memory** gives agents access to knowledge bases, conversation state, long-term context, and retrieval-augmented generation (RAG). It ensures that agents are grounded in enterprise knowledge and can remember prior interactions.
+
+**Key capabilities:**
+- Enterprise knowledge bases and RAG
+- Conversation state and session management
+- Long-term memory and context persistence
+- Permission-respecting knowledge retrieval
+
+**Citadel placement:** **Foundry IQ / Layer 2 + Layer 4** — Memory maps to Foundry IQ within the intelligence layer. Citadel Layer 2 evaluates retrieval quality and monitors knowledge base access, while Layer 4 governs data access and content safety.
+
+**Primary services:** Azure AI Foundry (knowledge bases), Azure AI Search
+
+### Governance
+
+**Governance** is the cross-cutting capability that ensures agents operate within policy, comply with regulations, and respect organizational boundaries. It touches every other component of the stack.
+
+**Key capabilities:**
+- Policy definition and automated enforcement
+- Content safety and PII protection
+- Compliance monitoring and audit trails
+- Threat detection and incident response
+
+**Citadel placement:** **All 4 Layers** — Governance spans the entire Citadel architecture. Layer 1 enforces runtime policies, Layer 2 monitors behavior, Layer 3 governs identity and access, and Layer 4 provides the security fabric.
+
+**Primary services:** Azure Policy, Azure AI Content Safety, Microsoft Purview, Microsoft Defender
+
+## Component-to-Citadel Mapping Table
+
+| Component | Citadel Layer | Primary Service | Purpose |
+|-----------|---------------|-----------------|---------|
+| Communication | Layer 1 | Azure API Management | Message routing and policy enforcement |
+| Discovery | Layer 2/3 | Foundry / Agent 365 | Capability and identity registry |
+| Identity | Layer 3 | Entra ID / Agent 365 | Agent lifecycle and access |
+| Tools | Layer 1 | APIM / API Center | Unified tool gateway |
+| Orchestration | Layer 2 | Azure AI Foundry | Multi-agent workflow management |
+| Observability | Layer 2 | Foundry Control Plane | Traces, evaluations, telemetry |
+| Memory | Layer 2/4 | Foundry / AI Search | Knowledge retrieval and state |
+| Governance | All Layers | Policy / Defender / Purview | Compliance and security |
+
+## Integration with Intelligence Layers
+
+The agentic web stack components consume the three intelligence layers to deliver contextual, grounded agent experiences. **Communication** and **Tools** route Work IQ and Fabric IQ requests through the governance hub. **Memory** and **Orchestration** leverage Foundry IQ to retrieve enterprise knowledge and coordinate multi-step workflows. **Observability** captures how agents consume all three IQ layers, while **Governance** ensures that access to Work IQ, Fabric IQ, and Foundry IQ is policy-compliant and auditable.
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Agentic Stack Diagrams" icon="sitemap" href="/agent-factory/agentic-stack-diagrams">
+    Visual architecture diagrams showing the agentic web stack on Citadel
+  </Card>
+  <Card title="Citadel Mapping" icon="castle" href="/agent-factory/citadel-mapping">
+    How Agent Factory maps to the Citadel 4-layer governance model
+  </Card>
+  <Card title="Intelligence Layers" icon="brain" href="/agent-factory/intelligence-layers">
+    Deep dive into Work IQ, Fabric IQ, and Foundry IQ
+  </Card>
+</CardGroup>
