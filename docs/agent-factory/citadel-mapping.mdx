@@ -110,6 +110,23 @@ Foundry IQ connects enterprise knowledge via MCP servers, internal data, and the
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+## Agentic Web Stack on Citadel
+
+The agentic web stack defines the 8 essential capabilities that enterprise agent systems require. Each capability maps directly to a Citadel layer.
+
+- **Communication** → Layer 1 (APIM)
+- **Discovery** → Layer 2/3 (Foundry / Agent 365)
+- **Identity** → Layer 3 (Agent 365)
+- **Tools** → Layer 1 (APIM / API Center)
+- **Orchestration** → Layer 2 (Foundry Control Plane)
+- **Observability** → Layer 2 (Foundry Control Plane)
+- **Memory** → Foundry IQ / Layer 2/4
+- **Governance** → All 4 layers
+
+<Card title="Agentic Web Stack" href="/agent-factory/agentic-web-stack" icon="layers">
+  Deep dive into each stack component and its Citadel placement
+</Card>
+
 ## Deployment Recommendations
 
 1. **Use Citadel Layer 1 to route all Agent Factory agent traffic**
@@ -141,5 +158,8 @@ Foundry IQ connects enterprise knowledge via MCP servers, internal data, and the
   </Card>
   <Card title="Builder Personas" icon="users" href="/agent-factory/builder-personas">
     Match personas to platforms across 4 enterprise scenarios
+  </Card>
+  <Card title="Agentic Web Stack" icon="layers" href="/agent-factory/agentic-web-stack">
+    Explore the 8 essential components of the agentic web stack
   </Card>
 </CardGroup>
