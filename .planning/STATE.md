@@ -111,6 +111,9 @@ Recent decisions affecting current work:
 - [Phase 05-integration-validation P03]: Structured troubleshooting by issue category (deployment, connectivity, performance, integration, security)
 - [Phase 05-integration-validation P03]: Designed runbooks for specific operational frequencies (daily, weekly, monthly, quarterly)
 - [Phase 05-integration-validation P03]: Used Mintlify grouped navigation for validation and operations sections
+- [Phase 07-agent-factory-foundation]: Synthesized white paper content into structured docs rather than copy-paste
+- [Phase 07-agent-factory-foundation]: Positioned Agent Factory tab between Architecture and Business Value for logical user journey
+- [Phase 07-agent-factory-foundation]: Used existing Mintlify CardGroup and ASCII diagram patterns for consistency
 
 ### Pending Todos
 
@@ -178,7 +181,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-04-13T11:08:22Z
-Stopped at: Completed 07-agent-factory-foundation Plan 07
+Stopped at: Phase 7 complete, ready to plan Phase 8
 Resume file: None
 
 ## Milestone Status
