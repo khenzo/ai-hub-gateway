@@ -1,0 +1,85 @@
+---
+title: "Employee Self-Service"
+description: "Deploy HR and IT support agents that answer routine questions instantly, freeing help desk staff for complex issues"
+---
+
+# Employee Self-Service
+
+The **Employee Self-Service** use case deploys intelligent agents that handle routine HR and IT support questions, freeing help desk staff to focus on complex issues that require human judgment. When built on Citadel, these agents operate with enterprise-grade governance, identity management, and data protection.
+
+## The Challenge
+
+Help desks are overwhelmed with routine questions. Employees can't easily find answers in policies and end up calling IT or HR for everything. Knowledge is scattered across SharePoint sites, policy documents, ticketing systems, and word of mouth.
+
+The impact is measurable and recurring:
+
+- **Long wait times** for simple questions that have documented answers
+- **Frustrated employees** who abandon self-service portals and default to email or phone
+- **Help desk staff** spending their days answering the same questions instead of resolving incidents
+- **Escalating costs** as ticket volume grows without a proportional increase in staff
+
+For many organizations, 60-70% of IT and HR inquiries are repeatable requests: password resets, policy clarifications, benefits questions, and equipment requests. The information exists, but finding it is harder than asking a person.
+
+## The Opportunity
+
+Deploy an agent that answers routine questions instantly, directly in the flow of work. Employees interact through Teams or Microsoft 365 Copilot—the interfaces they already use—without navigating multiple systems or waiting in queues.
+
+When the agent resolves the question, the interaction ends there. When the user needs more help, the agent creates a ticket automatically with full context, so the handoff to a human is seamless.
+
+The business outcomes are immediate:
+
+- **Help desk staff reclaim time** for strategic work and complex issues that require human judgment
+- **Employees get faster answers** with no context switching
+- **Organizations reduce ticket volume** and improve satisfaction scores
+- **IT operations teams can own the solution** without requiring dedicated developer resources
+
+## Builder Personas & Approaches
+
+| Persona | Approach | Tool |
+|---------|----------|------|
+| **Power User** | Build a self-service process agent in Copilot Studio using Work IQ for business flows and delegation paths. Configure connectors to a Foundry IQ knowledge base with ServiceNow, Workday, and select SharePoint sites. Add approval and ticketing workflows for complex queries. | M365 Copilot + Copilot Studio |
+| **Developer** | Build an agent with full control over conversation logic, integrate with systems via existing MCP servers and APIs, and deploy in Foundry for enterprise-grade scaling. Publish to Teams and Copilot UX layers with custom orchestration. | Foundry + Agent Framework |
+
+## IQ Layer Mapping
+
+Employee Self-Service agents draw on multiple intelligence layers to deliver contextual, accurate responses:
+
+- **Work IQ** provides employee context and delegation paths. It understands who the employee is, their team, their manager, and their relevant permissions. This enables the agent to answer questions like *"Who approves my travel request?"* or *"What is my team's policy on remote work?"* with answers scoped to the individual.
+- **Foundry IQ** grounds the agent in policy documents, knowledge bases, and institutional knowledge from SharePoint and internal systems. Rather than building separate connectors for each source, Foundry IQ provides reusable knowledge bases that respect existing user permissions.
+- **Fabric IQ** (optional) connects HR system data such as organizational hierarchies, headcount metrics, and workforce analytics when needed. This is most valuable when the agent needs to answer questions grounded in structured business data.
+
+## Citadel Placement
+
+Deploying Employee Self-Service agents on Citadel ensures they meet enterprise security and governance requirements from day one. Each Citadel layer plays a specific role:
+
+- **Layer 1 (Governance Hub / APIM)** routes all agent API calls, enforcing rate limiting, authentication, and runtime policy. All Copilot Studio and Foundry agent API calls should pass through the Citadel Governance Hub to enable unified cost attribution and policy enforcement.
+- **Layer 3 (Agent Identity / Agent 365)** manages agent identity, sponsorship, and lifecycle for every deployed agent. Register each Employee Self-Service agent with a unique identity and implement sponsorship models for agent permissions.
+- **Layer 4 (Security Fabric)** applies content filtering, data governance via Purview, and threat protection across all employee interactions. Use Purview to govern access to Work IQ, Foundry IQ, and Fabric IQ data sources, and apply Entra conditional access policies to agent service principals.
+
+## Customer Example
+
+A **global energy company** deployed Employee Self-Service using Copilot Studio and an organizational skilling program provided through the Microsoft Agent Factory. The agent integrates with ServiceNow for ticket creation and is grounded in policy documents through Foundry IQ. Employees interact through Teams.
+
+The solution was built and is maintained by their IT operations team—not a dedicated development group—demonstrating that high-impact agents don't require developer resources when the right tools are matched to the right people.
+
+## Buying Pattern Fit
+
+- **Primary audience:** Microsoft 365 E3/E5 customers with ServiceNow or Workday
+- **Key indicators:** Moderate to high help desk costs, poor employee satisfaction scores, or high ticket volume for routine questions
+- **Quick win:** Deploy a pilot for a single department (IT or HR) and measure ticket deflection within 30 days
+
+## Next Steps
+
+Explore related use cases and architecture guidance to continue building your agentic AI practice:
+
+<CardGroup>
+  <Card title="Data and Analytics Agents" icon="chart-bar" href="/agent-factory/use-case-data-analytics">
+    Natural language queries grounded in business data
+  </Card>
+  <Card title="Builder Personas" icon="users" href="/agent-factory/builder-personas">
+    Match personas to platforms across enterprise scenarios
+  </Card>
+  <Card title="Citadel Mapping" icon="castle" href="/agent-factory/citadel-mapping">
+    See how Agent Factory maps to the 4-layer Citadel model
+  </Card>
+</CardGroup>
