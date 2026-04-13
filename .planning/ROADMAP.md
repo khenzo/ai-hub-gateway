@@ -69,7 +69,7 @@ Plans:
 
 Plans:
 - [x] 11-01: Document MCP server integration and tool invocation patterns
-- [ ] 11-02: Document A2A cross-agent collaboration and interoperability
+- [x] 11-02: Document A2A cross-agent collaboration and interoperability
 
 #### Phase 12: Agent Security & Observability
 **Goal**: Integrate the Agent Factory security blueprint and observability best practices into the existing governance and operations sections.
@@ -94,5 +94,5 @@ Plans:
 | 8. Agentic Web Stack Architecture | v1.1 | 2/2 | Complete | 2026-04-13 |
 | 9. Agentic AI Design Patterns | v1.1 | 2/2 | Complete | 2026-04-13 |
 | 10. Enterprise Use Cases | v1.1 | 2/2 | Complete | 2026-04-13 |
-| 11. Open Standards Integration | v1.1 | 1/2 | In Progress | - |
+| 11. Open Standards Integration | v1.1 | 2/2 | Complete | 2026-04-13 |
 | 12. Agent Security & Observability | v1.1 | 0/2 | Not started | - |
