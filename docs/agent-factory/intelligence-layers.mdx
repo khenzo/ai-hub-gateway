@@ -1,0 +1,130 @@
+---
+title: "Agent Factory Intelligence Layers"
+description: "Work IQ, Fabric IQ, and Foundry IQ — the contextual intelligence layers that power enterprise AI agents"
+---
+
+# Intelligence Layers
+
+The **Microsoft Agent Factory** is built on three interconnected intelligence layers that provide agents with the enterprise context they need to operate effectively and responsibly. No other vendor offers this integrated intelligence stack.
+
+## Work IQ
+
+**Work IQ understands how employees work.** It draws on signals from Microsoft 365—emails, calendar, documents, Teams chats, and collaboration patterns—to build a rich understanding of each employee's work context.
+
+### Primary Sources
+
+| Source | Context Provided |
+|--------|------------------|
+| **Outlook** | Meetings, priorities, commitments, travel |
+| **Teams** | Conversations, project channels, meeting transcripts |
+| **SharePoint/OneDrive** | Documents authored, shared, and accessed |
+| **Planner/To Do** | Tasks, deadlines, dependencies |
+
+### Agent Value
+
+When an employee asks an agent *"what should I prioritize today?"*, Work IQ provides the context to answer based on their actual work—not generic productivity advice. It enables:
+
+- Personal prioritization and task routing
+- Intelligent meeting preparation
+- Delegation path awareness
+- Context-aware responses in the flow of work
+
+## Fabric IQ
+
+**Fabric IQ understands how the business operates.** It provides a unified, always-current view of business data from Power BI, Dataverse, Azure SQL, and other sources in a way that understands your business terms, how your processes work, and what steps agents can take to improve operations.
+
+### Primary Sources
+
+| Source | Context Provided |
+|--------|------------------|
+| **Power BI** | Metrics, KPIs, dashboards, reports |
+| **Dataverse** | Business entities, relationships, workflows |
+| **Azure SQL** | Operational data, transactional history |
+| **Microsoft Fabric** | Semantic layer, business terms, metrics |
+
+### Agent Value
+
+Fabric IQ acts as the **semantic layer** for agent operations. It enables agents to:
+
+- Make operational decisions grounded in real metrics
+- Understand business terminology and relationships
+- Query data accurately using natural language
+- Generate reports and alerts autonomously
+
+## Foundry IQ
+
+**Foundry IQ connects all knowledge across the enterprise.** It serves as a fully managed knowledge system that grounds agents in structured and unstructured content from Work IQ, Fabric IQ, enterprise data (including via Model Context Protocol), and even the public web.
+
+### Primary Sources
+
+| Source | Context Provided |
+|--------|------------------|
+| **Work IQ** | Employee context, organizational knowledge |
+| **Fabric IQ** | Business data, metrics, operational context |
+| **Enterprise Data (MCP)** | Connected systems, APIs, databases |
+| **Public Web** | External research, news, competitive intelligence |
+
+### Agent Value
+
+Foundry IQ delivers the **knowledge foundation** for enterprise agents:
+
+- **RAG simplification**: Reusable knowledge bases for retrieval-augmented generation across all sources
+- **Permission-respecting access**: Knowledge retrieval honors existing user permissions
+- **Unified grounding**: No need to build separate connectors for each knowledge source
+- **Enterprise-wide coverage**: SOPs, manuals, policies, and institutional knowledge
+
+## How the Layers Work Together
+
+| Layer | Context Type | Primary Sources | Agent Value |
+|-------|--------------|-----------------|-------------|
+| **Work IQ** | Employee context | M365, Teams, Outlook | Personal prioritization, routing |
+| **Fabric IQ** | Business context | Power BI, Dataverse, SQL | Operational decisions, metrics |
+| **Foundry IQ** | Enterprise knowledge | All sources + MCP + web | Grounded answers, SOPs, manuals |
+
+The intelligence layers do not operate in isolation. They feed into each other and into the builder platforms that create and deploy agents.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     INTELLIGENCE LAYERS                          │
+│                                                                  │
+│   ┌─────────┐         ┌─────────┐         ┌─────────────────┐   │
+│   │ Work IQ │────────▶│         │         │                 │   │
+│   │ (M365)  │         │         │         │                 │   │
+│   └─────────┘         │  Foundry│         │  Builder        │   │
+│                       │   IQ    │────────▶│  Platforms      │   │
+│   ┌─────────┐         │(Knowledge│        │                 │   │
+│   │Fabric IQ│────────▶│  Base)  │         │ Copilot Studio  │   │
+│   │ (Data)  │         │         │         │ Foundry         │   │
+│   └─────────┘         │         │         │ GitHub Copilot  │   │
+│                       └─────────┘         └─────────────────┘   │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Customer Example: Manufacture of Power Equipment
+
+For a large industrial equipment manufacturer, the challenge wasn't data—it was knowing what matters right now across plants, shifts, and systems.
+
+**Scenario:** A line operator asks an agent, *"What's causing this deviation at station 23, and what should I do?"*
+
+**How the intelligence layers respond:**
+
+1. **Work IQ** knows the operator and their shift history
+2. **Fabric IQ** correlates machines and line operations
+3. **Foundry IQ** pulls the SOP and manuals on the best next action
+
+**Result:** The agent provides clear answers about the missed maintenance procedure and how the operator can resolve the alarm. That's closing the intelligence gap to reduce downtime and accelerate decisions.
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Builder Personas" icon="users" href="/agent-factory/builder-personas">
+    See how different personas leverage the intelligence layers across 4 scenarios
+  </Card>
+  <Card title="Citadel Mapping" icon="castle" href="/agent-factory/citadel-mapping">
+    Understand how intelligence layers map to the Citadel governance model
+  </Card>
+  <Card title="Agent Factory Overview" icon="factory" href="/agent-factory/overview">
+    Return to the Agent Factory operating model overview
+  </Card>
+</CardGroup>
