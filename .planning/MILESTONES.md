@@ -1,5 +1,29 @@
 # Milestones
 
+## v1.1 AI Agent Factory Integration (Shipped: 2026-04-13)
+
+**Phases completed:** 6 phases (7-12), 11 plans
+**Timeline:** April 13, 2026 (1 day)
+**Documentation files:** 31 files changed, 3,497 lines added
+**Git range:** dbaf4b6 → 570ed84
+
+**Key accomplishments:**
+1. Documented Agent Factory overview with intelligence layers (Work IQ, Fabric IQ, Foundry IQ) and builder personas, mapped to Citadel 4-layer architecture
+2. Created comprehensive agentic web stack documentation covering all 8 essential components with Citadel layer mappings and ASCII architecture diagrams
+3. Documented five core agentic AI design patterns (tool-use, reflection, planning, multi-agent, ReAct) with enterprise customer examples
+4. Mapped four Agent Factory enterprise use cases (employee self-service, data analytics, sales engagement, customer support) to AI Landing Zone architecture
+5. Created MCP and A2A open standards integration guides with gateway patterns, tool invocation flows, and cross-agent collaboration
+6. Integrated agent security blueprint (5 qualities, 6-step sequence, Citadel layer mapping) and agent observability best practices into governance framework
+
+**Delivered:** Agent Factory integration layer on top of Citadel/AI Landing Zone — full agentic AI documentation suite from architecture to security and observability
+
+**Archived:**
+- `.planning/milestones/v1.1-ROADMAP.md` — Full phase details
+
+**Git tag:** `v1.1`
+
+---
+
 ## v1.0 MVP (Shipped: 2026-04-13)
 
 **Phases completed:** 6 phases, 17 plans
@@ -17,24 +41,6 @@
 **Delivered:** Complete documentation hub for AI Landing Zones with Citadel Governance Hub on Azure
 
 **Archived:**
-- `.planning/milestones/v1.0-ROADMAP.md` - Full phase details
-- `.planning/milestones/v1.0-REQUIREMENTS.md` - Requirements traceability (not created - no REQUIREMENTS.md existed)
+- `.planning/milestones/v1.0-ROADMAP.md` — Full phase details
 
 **Git tag:** `v1.0`
-
----
-
-## v1.1 AI Agent Factory Integration (In Progress)
-
-**Phases:** 6 phases (7-12), 12 plans
-**Focus:** Integrate Microsoft Agent Factory concepts into the existing AI Landing Zone and Citadel documentation
-
-**Planned accomplishments:**
-1. Document Agent Factory overview and map intelligence layers to Citadel architecture
-2. Define agentic web stack architecture aligned with the 4-layer model
-3. Document five core agentic AI design patterns with implementation guidance
-4. Map enterprise use cases (self-service, analytics, sales, support) to AI Landing Zone
-5. Document MCP and A2A open standards integration patterns
-6. Integrate agent security blueprint and observability best practices into governance
-
-**Depends on:** v1.0 MVP (Citadel architecture and AI Landing Zone foundation)
