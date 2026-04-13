@@ -1,0 +1,162 @@
+---
+title: "Agent Security Blueprint"
+description: "A layered approach to building safe, secure, and trustworthy AI agents on Citadel"
+---
+
+# Agent Security Blueprint
+
+Building AI agents that operate at enterprise scale requires more than capable models. It requires trust. Citadel extends its governance foundation with a set of agent-specific security controls that address the unique risks introduced when agents act autonomously on behalf of users and systems.
+
+<Note>
+  This page covers agent-specific security controls. For the enterprise-level baseline — including identity types, access contracts, and compliance frameworks — see [Security and Compliance](/governance/security-compliance) and [Identity Management](/governance/identity-management).
+</Note>
+
+## Why Now: The Security Imperative
+
+CISOs, security teams, and developers face a new class of challenges as agents move from prototype to production:
+
+- **Prompt injection**: Adversarial instructions embedded in tool responses, email triggers, or document content can hijack agent behavior — not just user-supplied input.
+- **Data exfiltration**: Agents with broad tool access can inadvertently expose sensitive data if outputs are not governed by classification policies.
+- **Shadow agents**: Without unique identity and lifecycle tracking, organizations lose visibility into which agents are active across the tenant, creating unmanaged attack surface.
+
+These pressures are driving the shift-left phenomenon. Security, safety, and governance responsibilities move earlier into the developer workflow. Teams cannot wait until deployment to secure agents — protections must be built in from day one.
+
+## Five Qualities of Safe Agents
+
+From enterprise adoption patterns, five qualities characterize trustworthy agents:
+
+| Quality | What It Means |
+|---|---|
+| **Identity** | Every agent has a unique, traceable identity across its full lifecycle |
+| **Data Protection** | Sensitive information is classified and governed to prevent oversharing |
+| **Built-in Controls** | Harm filters, threat mitigations, and groundedness checks reduce unsafe outcomes |
+| **Evaluations** | Agents are tested with automated safety evaluations and adversarial prompts before deployment |
+| **Continuous Oversight** | Telemetry connects to enterprise security and compliance tools for investigation and response |
+
+These qualities do not guarantee absolute safety, but they are essential for building agents that meet enterprise standards.
+
+## Citadel Implementation
+
+### Identity: Entra Agent ID
+
+<Note>
+  **Preview / Coming Soon:** Entra Agent ID is currently in preview as of September 2025. Availability and feature scope may change before general availability.
+</Note>
+
+Every agent created in Azure AI Foundry will be assigned a unique **Entra Agent ID**, giving organizations visibility into all active agents across a tenant and helping to eliminate shadow agents. Entra Agent ID establishes a distinct traceable identity for each agent across its full lifecycle — creation, execution, and decommissioning.
+
+For existing identity types (user-delegated, service principal, and managed identity for agents), see [Identity Management](/governance/identity-management).
+
+### Data Protection
+
+Citadel supports a bring-your-own Azure resources (BYOR) model for data protection. Agents in Azure AI Foundry Agent Service can use your own:
+
+- **File storage** — agent-processed files remain in your tenant boundary
+- **Search index** — retrieval over your data under your governance controls
+- **Conversation history storage** — session state retained within your compliance perimeter
+
+**Network isolation** is enforced with private virtual networks and subnet delegation for Foundry Agent Service. This ensures agents operate within a tightly scoped network boundary and interact with sensitive data under enterprise terms.
+
+**Microsoft Purview** sensitivity labels and DLP policies extend to agent workloads. Protections applied to data carry through into agent outputs, so classification decisions made by compliance teams are honored at runtime.
+
+For network isolation architecture and patterns, see [Layer 4: Security Fabric](/architecture/layer-4-security-fabric).
+
+### Built-in Controls
+
+<Warning>
+  **Extended Attack Surface:** The cross-prompt injection classifier scans not just user input — it also scans tool responses, email triggers, document content, and other untrusted sources. Traditional input-only defenses miss the majority of injection vectors in agentic workflows.
+</Warning>
+
+Azure AI Foundry provides industry-first agent controls:
+
+- **Cross-prompt injection classifier**: Detects and neutralizes malicious instructions injected via tool responses, email triggers, and other untrusted sources — not just prompts
+- **Prompt Shields**: Guards against adversarial prompt manipulation
+- **Harm and risk filters**: Block unsafe model outputs across harm categories
+- **Groundedness checks**: Detect hallucinations and ungrounded claims in agent responses
+- **Protected material detection**: Flag outputs that reproduce copyrighted or protected content
+- **Misaligned tool call prevention**: Block high-risk actions and sensitive data loss via tool misuse
+
+For filter configuration options and content safety policy management, see [Content Safety](/governance/content-safety).
+
+### Evaluations
+
+Evaluations provide a continuous feedback loop across the agent lifecycle:
+
+- **Harm and risk checks** and **groundedness scoring** run before deployment and in production
+- **Azure AI Red Teaming Agent** simulates adversarial prompts at scale to probe behavior and surface vulnerabilities
+- **PyRIT toolkit** enables automated adversarial testing for multi-agent workflows — validating not just individual responses but full collaboration chains under attack conditions
+
+Teams can run evaluations before promoting agents to production, and continuously in live environments to detect behavioral drift.
+
+### Continuous Oversight
+
+**Microsoft Defender XDR** receives telemetry from Foundry agents, enabling security operations teams to investigate prompt injection attempts, risky tool calls, and unusual agent behavior using their established workflows and tooling.
+
+**Governance collaborators** Credo AI and Saidot integrate with Foundry to map evaluation results to regulatory frameworks including the EU AI Act and NIST AI Risk Management Framework. This makes it practical for compliance teams to demonstrate responsible AI practices and maintain regulatory alignment.
+
+## Blueprint in Action: 6-Step Sequence
+
+<Steps>
+  <Step title="Assign Entra Agent ID at Creation">
+    Register every new agent with Entra Agent ID to establish visibility and prevent sprawl before the agent handles any data or executes any tasks.
+  </Step>
+  <Step title="Apply Content Filters and Cross-Prompt Injection Classifier">
+    Configure Prompt Shields, harm and risk filters, groundedness checks, and the cross-prompt injection classifier. Ensure the classifier scans all untrusted input sources — not just user prompts.
+  </Step>
+  <Step title="Configure Data Protection">
+    Apply Microsoft Purview sensitivity labels and DLP policies. Configure BYOR Azure resources so data remains in your tenant. Enable VNet isolation with private endpoints and subnet delegation.
+  </Step>
+  <Step title="Run Evaluations and Red Team Before Production">
+    Execute harm and risk checks, groundedness scoring, and protected material scans. Run the Azure AI Red Teaming Agent and PyRIT to simulate adversarial conditions across full multi-agent workflows.
+  </Step>
+  <Step title="Deploy with Defender XDR Telemetry Enabled">
+    Ensure Foundry telemetry streams into Microsoft Defender XDR. Validate that alerts for prompt injection, risky tool calls, and anomalous behavior are routed to your security operations center.
+  </Step>
+  <Step title="Continuous Governance Review">
+    Integrate with Credo AI or Saidot to map evaluation data to EU AI Act and NIST AI RMF controls. Establish a regular governance review cadence to surface behavioral drift and maintain regulatory alignment.
+  </Step>
+</Steps>
+
+## Citadel Layer Mapping
+
+Each element of the blueprint maps to its governing layer in the Citadel architecture:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    SECURITY BLUEPRINT ON CITADEL                            │
+│                                                                             │
+│  Blueprint Element              Citadel Layer                               │
+│  ─────────────────────────────────────────────                             │
+│  Entra Agent ID                 Layer 3: Agent Identity                     │
+│  Cross-Prompt Injection         Layer 4: Security Fabric                    │
+│  Prompt Shields / Filters       Layer 4: Security Fabric                    │
+│  Data Protection (Purview)      Layer 1: Governance Hub                     │
+│  Network Isolation (VNet)       Layer 4: Security Fabric                    │
+│  Evaluations / Red Teaming      Layer 2: AI Control Plane                   │
+│  Defender XDR Integration       Layer 4: Security Fabric                    │
+│  Governance (Credo AI/Saidot)   Layer 1: Governance Hub                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Enterprise Proof Points
+
+**EY** uses Azure AI Foundry's leaderboards and evaluations to compare models by quality, cost, and safety metrics — enabling them to scale AI solutions with greater confidence before promoting agents to production environments.
+
+**Accenture** is testing the Microsoft AI Red Teaming Agent to simulate adversarial prompts at scale. Their teams validate not just individual agent responses, but full multi-agent workflows under attack conditions before going live — a critical step for enterprise-grade reliability.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Agent Observability" icon="chart-line" href="/agent-factory/agent-observability">
+    Runtime monitoring, telemetry, and operational runbooks for production agents
+  </Card>
+  <Card title="Identity Management" icon="id-card" href="/governance/identity-management">
+    Agent identity types, access contracts, and Entra ID integration
+  </Card>
+  <Card title="Security Fabric" icon="shield" href="/architecture/layer-4-security-fabric">
+    Network isolation, threat detection, and Defender integration architecture
+  </Card>
+  <Card title="Content Safety" icon="filter" href="/governance/content-safety">
+    Content filter configuration, harm categories, and safety policy management
+  </Card>
+</CardGroup>
