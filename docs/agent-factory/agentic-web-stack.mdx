@@ -1,11 +1,12 @@
 ---
 title: "Agentic Web Stack"
 description: "The 8 essential components of the agentic web stack and their placement within Citadel"
+icon: layers
 ---
 
 # Agentic Web Stack
 
-The **agentic web stack** defines the 8 essential capabilities that enterprise agent systems require to operate at scale. These components provide the foundation for communication, discovery, identity, tools, orchestration, observability, memory, and governance. Microsoft Agent Factory builds directly on this stack, with each capability mapping to a specific layer within the Citadel architecture.
+The **agentic web stack** defines the 8 essential capabilities that enterprise agent systems require to operate at scale. These components provide the foundation for communication, discovery, identity, tools, orchestration, observability, memory, and governance — and map directly to specific layers within the Citadel architecture, regardless of which agent frameworks or models are used.
 
 ## Overview
 
@@ -39,7 +40,7 @@ Enterprise agents are not isolated applications. They are part of an interconnec
 
 **Citadel placement:** **Layer 2/3 (AI Control Plane + Agent Identity)** — The Foundry Control Plane tracks agent capabilities and evaluations, while Agent 365 maintains the authoritative identity registry for who can discover what.
 
-**Primary services:** Azure AI Foundry Control Plane, Microsoft Agent 365
+**Primary services:** AI Control Plane (Foundry), Agent Identity Registry
 
 ### Identity
 
@@ -51,9 +52,9 @@ Enterprise agents are not isolated applications. They are part of an interconnec
 - Lifecycle management (provisioning, versioning, retirement)
 - Access packages and entitlement governance
 
-**Citadel placement:** **Layer 3 (Agent Identity)** — Agent 365 is the identity control plane for agents. It integrates with Microsoft Entra ID to extend existing identity governance to non-human identities.
+**Citadel placement:** **Layer 3 (Agent Identity)** — The agent identity registry is the control plane for non-human identities. It integrates with enterprise identity providers (Entra ID or others) to extend existing identity governance to agents.
 
-**Primary service:** Microsoft Entra ID / Agent 365
+**Primary service:** Entra ID / Agent Identity Registry
 
 ### Tools
 
@@ -81,7 +82,7 @@ Enterprise agents are not isolated applications. They are part of an interconnec
 
 **Citadel placement:** **Layer 2 (AI Control Plane)** — The Foundry Control Plane provides execution traces and evaluations for orchestrated flows, enabling observability and quality control over complex agent interactions.
 
-**Primary services:** Azure AI Foundry, Azure AI Agent Framework
+**Primary services:** AI Control Plane (Foundry), LangGraph / agent orchestration frameworks
 
 ### Observability
 
@@ -107,7 +108,7 @@ Enterprise agents are not isolated applications. They are part of an interconnec
 - Long-term memory and context persistence
 - Permission-respecting knowledge retrieval
 
-**Citadel placement:** **Foundry IQ / Layer 2 + Layer 4** — Memory maps to Foundry IQ within the intelligence layer. Citadel Layer 2 evaluates retrieval quality and monitors knowledge base access, while Layer 4 governs data access and content safety.
+**Citadel placement:** **Enterprise Knowledge Intelligence / Layer 2 + Layer 4** — Memory maps to the enterprise knowledge layer. Citadel Layer 2 evaluates retrieval quality and monitors knowledge base access, while Layer 4 governs data access and content safety.
 
 **Primary services:** Azure AI Foundry (knowledge bases), Azure AI Search
 
@@ -140,7 +141,7 @@ Enterprise agents are not isolated applications. They are part of an interconnec
 
 ## Integration with Intelligence Layers
 
-The agentic web stack components consume the three intelligence layers to deliver contextual, grounded agent experiences. **Communication** and **Tools** route Work IQ and Fabric IQ requests through the governance hub. **Memory** and **Orchestration** leverage Foundry IQ to retrieve enterprise knowledge and coordinate multi-step workflows. **Observability** captures how agents consume all three IQ layers, while **Governance** ensures that access to Work IQ, Fabric IQ, and Foundry IQ is policy-compliant and auditable.
+The agentic web stack components consume the three intelligence layers to deliver contextual, grounded agent experiences. **Communication** and **Tools** route workspace and business data requests through the governance hub. **Memory** and **Orchestration** leverage enterprise knowledge intelligence to retrieve institutional knowledge and coordinate multi-step workflows. **Observability** captures how agents consume all three intelligence layers, while **Governance** ensures that all access is policy-compliant and auditable.
 
 ## Next Steps
 

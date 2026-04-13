@@ -1,0 +1,151 @@
+---
+title: "Agent Harness & Tools"
+description: "Harness engineering for production agents: tool-gated execution, middleware hooks, HITL approval, and execution sandboxes"
+icon: shield-check
+---
+
+# Agent Harness & Tools
+
+**Harness engineering** controls *how the model interacts with the outside world*. A harness is the execution environment surrounding the model — tool interfaces, middleware, safety controls, sandbox environments, and state management. It is the runtime system for the agent.
+
+The core philosophy: **trust the LLM to reason, enforce at the tool layer**. You cannot reliably prevent prompt injection at the model level. You can ensure that a successful injection cannot escape the sandbox, traverse the filesystem, or exfiltrate credentials.
+
+<Warning>
+The same tools that make agents useful make them dangerous. An agent with `execute` access can run any shell command. An agent with `write_file` access can overwrite any file in its working directory. An agent with network access can exfiltrate data. These are not theoretical risks — OWASP's 2025 Top 10 for LLM Applications lists prompt injection as the number one vulnerability, found in over 73% of production deployments.
+</Warning>
+
+## Tool-Gated Execution
+
+The foundational harness principle:
+
+> **The model never executes anything directly. It only requests tools.**
+
+Every external action — reading files, running commands, writing code, calling APIs — must pass through a tool interface. This gives the harness complete control over validation, logging, approval, and execution boundaries. The model decides *what* to do; the harness controls *where and how* it executes.
+
+## The Four-Layer Security Model
+
+Each layer catches threats the previous one might miss:
+
+```
+┌──────────────────────────────────────────────────────┐
+│                  Agent Tool Call                      │
+│                        ↓                             │
+│  ┌─────────────────────────────────────────────────┐ │
+│  │  Layer 1: Path Validation                        │ │
+│  │  Block .. traversal · Enforce allowed prefixes   │ │
+│  │  Restrict to working directory                   │ │
+│  └──────────────────────┬──────────────────────────┘ │
+│                         ↓                             │
+│  ┌─────────────────────────────────────────────────┐ │
+│  │  Layer 2: HITL Middleware (wrap_tool_call hook)  │ │
+│  │  Approval dialog · Per-session allow-lists       │ │
+│  │  Auto-approval learning · Command allow-list     │ │
+│  └──────────────────────┬──────────────────────────┘ │
+│                         ↓                             │
+│  ┌─────────────────────────────────────────────────┐ │
+│  │  Layer 3: Execution Isolation                    │ │
+│  │  Subprocess sandboxing · Resource limits         │ │
+│  │  Working directory restrictions                  │ │
+│  └──────────────────────┬──────────────────────────┘ │
+│                         ↓                             │
+│  ┌─────────────────────────────────────────────────┐ │
+│  │  Layer 4: Remote Sandbox                         │ │
+│  │  TTL & auto-cleanup · No secrets in sandbox      │ │
+│  │  Network egress controls                         │ │
+│  └──────────────────────┬──────────────────────────┘ │
+│                         ↓                             │
+│                  Secure Execution                     │
+└──────────────────────────────────────────────────────┘
+```
+
+**Layer 1 — Path validation.** Validates every file path before execution. Blocks directory traversal (`..`) and enforces allowed path prefixes. An agent configured to work in `/project` cannot read `/etc/passwd`, regardless of what a prompt injection tells it.
+
+**Layer 2 — HITL middleware.** The Human-in-the-Loop middleware intercepts tool calls and presents them for approval. It operates via a `wrap_tool_call` hook, running last in the middleware chain so it sees the final, fully-processed tool call before execution. Per-session allow-lists let users approve a command pattern once and have it auto-approved for the rest of the session.
+
+**Layer 3 — Execution isolation.** Shell commands run in subprocesses with working directory restrictions. The agent's `execute` tool operates within a defined boundary — not with the full permissions of the host process.
+
+**Layer 4 — Remote sandboxes.** For production deployments, agent code executes in isolated environments with TTL-based cleanup, network egress controls, and no credential access inside the sandbox.
+
+## Middleware as Agent Control Plane
+
+Middleware provides the orchestration layer of the harness. Each tool call flows through a chain of middleware hooks:
+
+```
+Model
+  → Tool Request
+  → Path Validation
+  → HITL Middleware
+  → Execution Sandbox
+  → Tool Result
+  → Summarization Middleware
+  → Model
+```
+
+This architecture lets developers inject behavior into the agent lifecycle without modifying the model. Examples: approval workflows, telemetry collection, result filtering, prompt injection detection, cost monitoring.
+
+## The Sandbox as Tool Pattern
+
+The recommended production pattern is **Sandbox as Tool** — the agent runs on your infrastructure and sends execution requests to a sandbox via provider API. Your credentials never enter the sandbox. Sandbox failures do not affect agent state.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  RECOMMENDED: Sandbox as Tool                            │
+│                                                          │
+│  Your Infrastructure (agent runs here)                   │
+│  API keys stay here · Agent state stays here             │
+│       ↓ tool call                                        │
+│  Provider API  (Modal / Daytona / Runloop)               │
+│       ↓                                                  │
+│  Remote Sandbox  (code executes here, no secrets inside) │
+│       ↓ result                                           │
+│  Your Infrastructure (result returned)                   │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Sandbox providers:**
+
+| Provider | Strength | Best For |
+|----------|----------|----------|
+| **Modal** | gVisor isolation, deny-by-default network, GPU support | CPU/GPU-intensive tasks, strong security posture |
+| **Daytona** | Lifecycle automation, auto-stop/archive/delete | Persistent dev boxes with cost controls |
+| **Runloop** | Disposable, ephemeral, destroyed after use | Short-lived tasks, complete isolation between runs |
+
+**Network egress controls** are required even with remote sandboxes: block outbound connections to arbitrary hosts, allow-list only the specific APIs the agent needs, monitor for unexpected outbound traffic patterns.
+
+## Citadel Integration
+
+The harness architecture maps directly onto the Citadel 4-layer model:
+
+| Harness Layer | Citadel Layer | Integration |
+|---------------|---------------|-------------|
+| Tool gateway (all tool calls) | **Layer 1 (Governance Hub)** | APIM enforces auth, rate limiting, and policy on every tool invocation |
+| HITL middleware & audit trails | **Layer 2 (AI Control Plane)** | Execution traces capture every tool call for observability and compliance |
+| Agent identity for tool access | **Layer 3 (Agent Identity)** | Tool access scoped to agent's registered permissions and access packages |
+| Sandbox isolation & PII filtering | **Layer 4 (Security Fabric)** | Content safety applied to tool outputs; threat detection monitors agent behavior |
+
+**MCP as the tool gateway:** The Model Context Protocol (MCP) provides a standardized interface for exposing enterprise APIs as agent tools. Combined with **Layer 1 (Governance Hub)**, APIM acts as the unified MCP gateway — enforcing policy on every tool call regardless of which framework issued it.
+
+## Production Best Practices
+
+- **Layer your defenses.** Use path validation as the baseline, add HITL for development and sensitive operations, deploy remote sandboxes for production workloads. Each layer catches what the previous one misses.
+- **Keep credentials on the host.** Define authentication tools that run in your host environment and let agents call those tools by name without ever seeing the credentials.
+- **Configure sandbox lifecycles.** Set TTL values for automatic cleanup. Assign one sandbox per conversation thread. Explicitly shut down sandboxes when conversations end.
+- **Use skills to manage context.** Do not dump all tool documentation into the system prompt. Break tool knowledge into skills with specific descriptions and let progressive disclosure handle token budgeting.
+- **Monitor tool outputs.** Treat all sandbox-generated content as untrusted. Use middleware to redact sensitive patterns before results reach the model.
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Context Engineering" icon="brain-circuit" href="/agent-factory/context-engineering">
+    Working memory, agent skills, and progressive context disclosure
+  </Card>
+  <Card title="Agent Security Blueprint" icon="shield" href="/agent-factory/agent-security-blueprint">
+    Full security architecture for enterprise agent deployments
+  </Card>
+  <Card title="MCP Integration" icon="plug" href="/agent-factory/mcp-integration">
+    Exposing enterprise APIs as MCP tools through the Citadel gateway
+  </Card>
+  <Card title="Citadel Mapping" icon="castle" href="/agent-factory/citadel-mapping">
+    How Agent Factory maps to the 4-layer governance model
+  </Card>
+</CardGroup>

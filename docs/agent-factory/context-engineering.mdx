@@ -1,0 +1,193 @@
+---
+title: "Context Engineering for Deep Agents"
+description: "Managing the agent context window as a dynamic memory hierarchy: working memory, progressive skill disclosure, and automatic summarization"
+icon: brain-circuit
+---
+
+# Context Engineering
+
+**Context engineering** is the discipline of structuring what an LLM sees and when it sees it. It treats the context window as a **managed memory hierarchy** rather than a static prompt — the critical difference between an agent that breaks after twenty tool calls and one that sustains multi-hour tasks involving hundreds of tool calls.
+
+## The Context Management Problem
+
+Consider an agent reviewing a 200-page codebase. At tool call forty, something shifts. The agent starts re-analyzing files it already reviewed. By tool call fifty, it has forgotten the original goal entirely.
+
+The model is not broken — the context window is full. Every tool call adds its result to the conversation history. After forty calls, critical early instructions have been pushed so far back in the token sequence that the model can barely attend to them.
+
+This is the context management problem, and it affects every long-running agent.
+
+## The Three-Tier Memory Hierarchy
+
+Context engineering addresses this by treating agent memory like a classical computing memory hierarchy:
+
+```
+┌──────────────────────────────────────────────────────┐
+│           AGENT MEMORY HIERARCHY                      │
+│                                                       │
+│  ┌─────────────────────────────────────────────────┐ │
+│  │  Immediate Context  (LLM context window)         │ │
+│  │  Current reasoning step · Active instructions    │ │
+│  └──────────────────────────┬──────────────────────┘ │
+│                             │ write / read            │
+│  ┌──────────────────────────▼──────────────────────┐ │
+│  │  Working Memory  (filesystem / external store)   │ │
+│  │  Intermediate notes · Research findings          │ │
+│  └──────────────────────────┬──────────────────────┘ │
+│                             │ summarize / archive     │
+│  ┌──────────────────────────▼──────────────────────┐ │
+│  │  Archived History  (offloaded summaries)         │ │
+│  │  Long-term session trace · Key decisions         │ │
+│  └─────────────────────────────────────────────────┘ │
+│                                                       │
+│  ┌─────────────────────────────────────────────────┐ │
+│  │  Agent Skills  (loaded on demand)                │ │
+│  │  Domain procedures · Workflow knowledge          │ │
+│  └─────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────┘
+```
+
+| Tier | Analogy | Mechanism |
+|------|---------|-----------|
+| Immediate Context | CPU registers | LLM context window |
+| Working Memory | RAM | Filesystem / external store |
+| Archived History | Disk | Offloaded summaries |
+| Agent Skills | OS procedures | On-demand skill files |
+
+## Filesystem-Backed Working Memory
+
+The most counterintuitive insight in modern agent design: **read_file and write_file are not primarily file I/O tools — they are working memory**.
+
+When an agent investigates a topic, it writes its findings to an external file, freeing context window space for the next step. When it needs earlier findings for synthesis, it reads them back. The context window becomes a scratchpad, not a warehouse.
+
+**Three offloading patterns:**
+
+**Deliberate offloading** — The agent explicitly writes intermediate results to files. A well-prompted agent writes research findings, code analysis, and draft sections as it works. Each write frees context space for the next step.
+
+**Automatic summarization** — A SummarizationMiddleware monitors total conversation size. When it exceeds a threshold (~80K characters), older messages are offloaded to archive files and replaced with concise summaries preserving key decisions while discarding verbose intermediate steps.
+
+**Result eviction** — When a single tool result is very large, the system evicts it to an overflow location and leaves a reference in the conversation. This prevents any single tool call from consuming a disproportionate share of the context window.
+
+**Why it matters:** A traditional ReAct agent can handle perhaps 20-30 tool calls before context overflow degrades performance. An agent using filesystem-backed working memory can sustain hundreds of tool calls because it continuously offloads and retrieves information as needed.
+
+**Citadel placement:** Working memory storage is governed by **Layer 4 (Security Fabric)** — data written to agent working memory must respect the same data governance policies as any enterprise data store. **Layer 1 (Governance Hub)** enforces retention and cleanup policies via APIM.
+
+## Progressive Skill Disclosure
+
+Working memory solves tool output bloat. Progressive skill disclosure solves instruction bloat.
+
+A production agent might need to know how to deploy to Kubernetes, write SQL migrations, follow a code style guide, and run a test suite. If all of that goes into the system prompt, thousands of tokens are burned before the agent reads the user's message — and most will be irrelevant to any given task.
+
+### The Agent Skill File (SKILL.md)
+
+A skill is a structured file with two parts:
+
+```yaml
+---
+name: api-documentation
+description: >
+  Procedures for generating and updating API documentation.
+  Covers OpenAPI spec generation, changelog formatting,
+  and publishing to the developer portal.
+license: MIT
+allowed-tools:
+  - read_file
+  - write_file
+---
+
+# API Documentation Procedures
+
+## Generating OpenAPI Specs
+...
+```
+
+The `description` field (capped at ~1,024 characters) is the key — it must be specific enough for the agent to know exactly when this skill applies.
+
+### Three-Tier Loading
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Agent Starts                                            │
+│       ↓                                                  │
+│  Tier 1: Frontmatter only (always loaded at startup)     │
+│  → name + description for ALL skills (a few hundred tok) │
+│       ↓                                                  │
+│  User prompt matches skill description?                  │
+│       ↓ YES                    ↓ NO                      │
+│  Tier 2: Full SKILL.md        Skip (zero tokens)         │
+│  → Full instructions                                     │
+│       ↓                                                  │
+│  Needs reference files?                                  │
+│       ↓ YES                    ↓ NO                      │
+│  Tier 3: On-demand files      Execute with Tier 2        │
+│  → scripts/ templates/                                   │
+└─────────────────────────────────────────────────────────┘
+```
+
+An agent with fifty skills available consumes only a few hundred tokens at startup. Only the two or three skills relevant to the current task ever enter the context window. **The agent knows many things but only loads what it needs.**
+
+### Skills vs Memory
+
+| | Memory | Skills |
+|--|--------|--------|
+| **When loaded** | Always — in system prompt | On demand — when task matches |
+| **What it holds** | Persistent facts, preferences, conventions | Task-specific procedures, workflows |
+| **Use for** | "Always remember this" | "Know how to do this when asked" |
+
+## Automatic Context Compression
+
+As conversations grow, earlier steps are summarized and archived. The system preserves *decisions* while discarding *process noise*. This keeps the context window focused on:
+
+- Goals (what the agent is trying to accomplish)
+- Conclusions (what it has learned)
+- Key facts (what it must not forget)
+
+Rather than verbose reasoning traces and redundant tool outputs.
+
+## Context Engineering vs Harness Engineering
+
+These two disciplines address complementary layers of the agent architecture:
+
+| Discipline | Focus | Mechanisms |
+|------------|-------|------------|
+| **Context Engineering** | What the model sees | Filesystem memory, skills, summarization |
+| **Harness Engineering** | How the model acts | Tools, middleware, sandboxes |
+| **Model Reasoning** | Plans and decisions | LLM + orchestration engine |
+
+Context engineering ensures the model always sees the right information. Harness engineering ensures the model cannot escape its operational boundaries. Together they form the production readiness layer for enterprise agents.
+
+**Citadel placement:** Context engineering operates within **Layer 2 (AI Control Plane)** — execution traces capture how agents use their context window, skills loaded, and memory access patterns. This observability is essential for debugging long-running agents and ensuring they stay on task.
+
+## Citadel Integration
+
+Context engineering integrates with all four Citadel governance layers:
+
+| Context Engineering Layer | Citadel Layer | Integration |
+|---------------------------|---------------|-------------|
+| Working memory storage | **Layer 4 (Security Fabric)** | Data governance policies govern agent working memory; retention and cleanup enforced at the storage layer |
+| Execution traces & skill loading | **Layer 2 (AI Control Plane)** | Observability captures context decisions — skills loaded, memory access patterns, summarization events |
+| Agent identity for memory access | **Layer 3 (Agent Identity)** | Memory access scoped to agent's registered permissions; prevents cross-agent data leakage |
+| Skill discovery and policy | **Layer 1 (Governance Hub)** | APIM governs which skill repositories agents can query; policy controls skill availability by environment |
+
+## Best Practices
+
+- **Write before you forget.** Prompt agents to write findings to working memory after each significant step, creating a natural gather-save-advance rhythm.
+- **Use skills for procedures, memory for facts.** Don't put workflow instructions in the always-loaded system prompt.
+- **Trust summarization.** Resist the urge to manually manage context. Configure the agent to take deliberate notes rather than relying on the model to remember everything.
+- **Match skill descriptions to task language.** Vague descriptions produce poor matches. Specific descriptions let the agent know exactly when a skill applies.
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Agent Harness & Tools" icon="shield-check" href="/agent-factory/agent-harness">
+    Harness engineering: tool-gated execution, middleware hooks, and production security
+  </Card>
+  <Card title="Agent Observability" icon="chart-line" href="/agent-factory/agent-observability">
+    Monitoring and tracing long-running agents in production
+  </Card>
+  <Card title="Design Patterns" icon="wand-2" href="/agent-factory/design-patterns">
+    Tool use, reflection, and planning patterns for enterprise agents
+  </Card>
+  <Card title="Agent Factory Overview" icon="robot" href="/agent-factory/overview">
+    Return to the Enterprise Agent Factory operating model
+  </Card>
+</CardGroup>

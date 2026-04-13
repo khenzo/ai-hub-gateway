@@ -1,18 +1,19 @@
 ---
 title: "Agent Factory on Citadel"
-description: "Architecture mapping between Microsoft Agent Factory and the Citadel 4-layer governance model"
+description: "Architecture mapping between the open Enterprise Agent Factory and the Citadel 4-layer governance model"
+icon: castle
 ---
 
 # Agent Factory on Citadel
 
-The **Microsoft Agent Factory** and the **Citadel 4-Layer Architecture** are complementary frameworks. Agent Factory provides the intelligence layers, builder platforms, and operating model for creating enterprise AI agents. Citadel provides the governance, security, and observability foundation required to deploy those agents at scale.
+The **Enterprise Agent Factory** and the **Citadel 4-Layer Architecture** are complementary frameworks. The Agent Factory provides the intelligence layers, builder toolchains, and operating model for creating enterprise AI agents. Citadel provides the governance, security, and observability foundation required to deploy those agents at scale — independent of which frameworks or models are used.
 
 ## Mapping Overview
 
-Citadel is designed to be the **governance and security foundation** for Microsoft Agent Factory deployments. Together, they enable organizations to:
+Citadel is designed to be the **governance and security foundation** for any agentic deployment. Together, they enable organizations to:
 
-- Build agents with the right tools for every persona
-- Ground them in enterprise intelligence (Work IQ, Fabric IQ, Foundry IQ)
+- Build agents with the right tools for every persona and framework
+- Ground them in enterprise intelligence (Workspace, Business Data, Enterprise Knowledge)
 - Deploy them with consistent governance, identity, and security
 - Observe and manage them as first-class enterprise workloads
 
@@ -20,107 +21,106 @@ Citadel is designed to be the **governance and security foundation** for Microso
 
 | Citadel Layer | Agent Factory Component | Integration Point |
 |---------------|------------------------|-------------------|
-| **Layer 1: Governance Hub** | APIM Gateway, API Center | Foundry + Copilot Studio agents route through CGH |
-| **Layer 2: AI Control Plane** | Foundry Control Plane, evaluations | Agent Factory observability and compliance brain |
-| **Layer 3: Agent Identity** | Agent 365 | Unified agent identity, sponsorship, lifecycle |
-| **Layer 4: Security Fabric** | Defender, Purview, Entra | Protects agent workloads across all IQ layers |
+| **Layer 1: Governance Hub** | APIM Gateway, API Center | All agent API traffic, MCP server calls, and tool invocations route through CGH |
+| **Layer 2: AI Control Plane** | Foundry Control Plane, evaluations | Agent observability, execution traces, and quality evaluations |
+| **Layer 3: Agent Identity** | Identity & lifecycle registry | Unique agent identities, sponsorship models, access packages |
+| **Layer 4: Security Fabric** | Defender, Purview, Entra | Protects agent workloads and governs access to all intelligence sources |
 
 Each Citadel layer maps directly to a critical component of the Agent Factory operating model, ensuring that agent innovation does not outpace governance.
 
 ## Intelligence Layers in the Landing Zone
 
-### Work IQ → Layer 1 Gateway Enforcement
+### Workspace Intelligence → Layer 1 + Layer 4
 
-Work IQ draws on Microsoft 365 signals (emails, calendar, Teams). When agents access this employee context:
+Workspace Intelligence draws on signals from collaboration systems (email, calendar, messaging). When agents access this employee context:
 
-- **Layer 1 (Governance Hub)** enforces runtime policies via APIM
-- **Layer 4 (Security Fabric)** ensures Purview governs data access and Entra validates permissions
-- All Work IQ agent traffic routes through the CGH for unified policy enforcement
+- **Layer 1 (Governance Hub)** enforces runtime policies via APIM on all workspace API calls
+- **Layer 4 (Security Fabric)** governs data access and validates permissions before any workspace data reaches an agent
 
-### Fabric IQ → Layer 2 Observability
+### Business Data Intelligence → Layer 2 Observability
 
-Fabric IQ provides business data context from Power BI, Dataverse, and Azure SQL:
+Business Data Intelligence provides operational context from data warehouses, BI platforms, and databases:
 
-- **Layer 2 (AI Control Plane)** captures data access telemetry through the Foundry Control Plane
+- **Layer 2 (AI Control Plane)** captures data access telemetry through the control plane
 - Evaluations monitor what intelligence agents consume and how they reason over it
-- Compliance dashboards track Fabric IQ access patterns across the agent fleet
+- Compliance dashboards track data access patterns across the agent fleet
 
-### Foundry IQ → Layer 1 + Layer 2
+### Enterprise Knowledge Intelligence → Layer 1 + Layer 2
 
-Foundry IQ connects enterprise knowledge via MCP servers, internal data, and the public web:
+Enterprise Knowledge Intelligence connects institutional knowledge via MCP servers, internal docs, and the web:
 
 - **Layer 1 (Governance Hub)** acts as the gateway for all MCP server traffic, enforcing authentication, rate limiting, and content filtering
-- **Layer 2 (AI Control Plane)** evaluates knowledge retrieval quality and monitors knowledge base access
-- Permission-respecting knowledge bases integrate with Layer 3 (Agent Identity) for user-scoped access
+- **Layer 2 (AI Control Plane)** evaluates knowledge retrieval quality and monitors access patterns
+- Permission-respecting knowledge bases integrate with **Layer 3 (Agent Identity)** for user-scoped access
 
-## Builder Platforms & Deployment Patterns
+## Builder Toolchains & Deployment Patterns
 
-### Copilot Studio Agents
+### Low-Code / No-Code Agents
 
-**Deployment pattern:** Lightweight, M365-integrated, governed via Layer 1
+**Deployment pattern:** Lightweight, integration-friendly, governed via Layer 1
 
-- Route all Copilot Studio agent API calls through the Citadel Governance Hub (APIM)
-- Use Layer 3 (Agent 365) for agent identity and lifecycle management
+- Route all agent API calls through the Citadel Governance Hub (APIM)
+- Use Layer 3 for agent identity and lifecycle management
 - Apply Layer 4 content filtering and data governance policies
 
 **Best for:** Power users building self-service, HR/IT support, and sales enablement agents
 
-### Foundry + Agent Framework
+### Framework-Based Agents (LangChain, LangGraph, Claude Agent SDK, OpenAI Agents SDK, Microsoft Agent Framework)
 
 **Deployment pattern:** Enterprise-scale, custom orchestration, full 4-layer governance
 
-- Deploy Foundry Hub in a Citadel spoke with VNet peering to the CGH
+- Deploy agent runtimes in a Citadel spoke with VNet peering to the CGH
 - Route all model inference through APIM for runtime policy enforcement
-- Use the Foundry Control Plane (Layer 2) for end-to-end observability and evaluations
-- Integrate with Agent 365 (Layer 3) for identity, sponsorship, and access packages
+- Use the control plane (Layer 2) for end-to-end observability and evaluations
+- Integrate with Layer 3 for identity, sponsorship, and access packages
+- Use APIM as the MCP gateway for all tool invocations
 
-**Best for:** Developers building complex, multi-step agents with custom integrations
+**Best for:** Developers building complex, multi-step agents with custom integrations and open frameworks
 
 ## Architecture Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                     AGENT FACTORY ON CITADEL                                │
+│                    ENTERPRISE AGENT FACTORY ON CITADEL                       │
 │                                                                              │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │                         INTELLIGENCE LAYER                            │   │
-│  │   ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐             │   │
-│  │   │ Work IQ │   │Fabric IQ│   │Foundry IQ│  │ Agent   │             │   │
-│  │   │(M365)   │   │(Data)   │   │(Knowledge│  │ 365     │             │   │
-│  │   └────┬────┘   └────┬────┘   └────┬────┘   │(Identity│             │   │
-│  │        │             │             │        │/Control)│             │   │
-│  │        └─────────────┴─────────────┘        └────┬────┘             │   │
-│  └──────────────────────────────────────────────────┼──────────────────┘   │
-│                                                     │                        │
-│  ┌──────────────────────────────────────────────────┼──────────────────┐    │
-│  │              CITADEL 4-LAYER ARCHITECTURE        │                  │    │
-│  │                                                  ▼                  │    │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐ │    │
-│  │  │ Layer 1     │  │ Layer 2     │  │ Layer 3     │  │ Layer 4    │ │    │
-│  │  │ Governance  │  │ AI Control  │  │ Agent       │  │ Security   │ │    │
-│  │  │ Hub         │  │ Plane       │  │ Identity    │  │ Fabric     │ │    │
-│  │  │ (APIM)      │  │ (Foundry)   │  │ (Agent 365) │  │ (Defender) │ │    │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘ │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
+│  │                         INTELLIGENCE LAYERS                           │   │
+│  │  ┌─────────────┐  ┌──────────────────┐  ┌─────────────────────────┐  │   │
+│  │  │  Workspace  │  │  Business Data   │  │  Enterprise Knowledge   │  │   │
+│  │  │ Intelligence│  │  Intelligence    │  │  Intelligence + MCP     │  │   │
+│  │  └──────┬──────┘  └────────┬─────────┘  └────────────┬────────────┘  │   │
+│  │         └─────────────────┴────────────────────────────┘             │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                                     │                                        │
+│  ┌──────────────────────────────────▼───────────────────────────────────┐   │
+│  │              CITADEL 4-LAYER ARCHITECTURE                             │   │
+│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────────┐  │   │
+│  │  │  Layer 1   │  │  Layer 2   │  │  Layer 3   │  │   Layer 4      │  │   │
+│  │  │ Governance │  │ AI Control │  │   Agent    │  │   Security     │  │   │
+│  │  │    Hub     │  │   Plane    │  │  Identity  │  │   Fabric       │  │   │
+│  │  │  (APIM)    │  │ (Observ.)  │  │ (Registry) │  │ (Defender+     │  │   │
+│  │  │            │  │            │  │            │  │  Purview+Entra)│  │   │
+│  │  └────────────┘  └────────────┘  └────────────┘  └────────────────┘  │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
 │                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                    BUILDER PLATFORMS                                 │    │
-│  │   Copilot Studio  │  Azure AI Foundry  │  GitHub Copilot            │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │                         BUILDER TOOLCHAINS                              │   │
+│  │  Low-Code  │  LangChain/LangGraph  │  Claude Agent SDK  │  OpenAI Agents SDK  │  MS Agent Framework  │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Agentic Web Stack on Citadel
 
-The agentic web stack defines the 8 essential capabilities that enterprise agent systems require. Each capability maps directly to a Citadel layer.
+The agentic web stack defines 8 essential capabilities that enterprise agent systems require. Each maps to a Citadel layer:
 
 - **Communication** → Layer 1 (APIM)
-- **Discovery** → Layer 2/3 (Foundry / Agent 365)
-- **Identity** → Layer 3 (Agent 365)
+- **Discovery** → Layer 2/3 (Control Plane / Identity Registry)
+- **Identity** → Layer 3 (Agent Identity)
 - **Tools** → Layer 1 (APIM / API Center)
-- **Orchestration** → Layer 2 (Foundry Control Plane)
-- **Observability** → Layer 2 (Foundry Control Plane)
-- **Memory** → Foundry IQ / Layer 2/4
+- **Orchestration** → Layer 2 (AI Control Plane)
+- **Observability** → Layer 2 (AI Control Plane)
+- **Memory** → Enterprise Knowledge layer / Layer 2
 - **Governance** → All 4 layers
 
 <Card title="Agentic Web Stack" href="/agent-factory/agentic-web-stack" icon="layers">
@@ -129,23 +129,23 @@ The agentic web stack defines the 8 essential capabilities that enterprise agent
 
 ## Deployment Recommendations
 
-1. **Use Citadel Layer 1 to route all Agent Factory agent traffic**
-   - All Copilot Studio and Foundry agent API calls should pass through the CGH APIM gateway
-   - This enables unified rate limiting, cost attribution, and policy enforcement
+1. **Route all agent traffic through Layer 1 (APIM)**
+   - All framework-based and low-code agent API calls should pass through the CGH gateway
+   - Enables unified rate limiting, cost attribution, and policy enforcement across all toolchains
 
-2. **Use Layer 2 for Foundry Control Plane observability on agent outputs**
-   - Enable execution traces and AI evaluations for all Foundry-hosted agents
-   - Configure compliance dashboards to monitor Agent Factory workloads
+2. **Use Layer 2 for agent observability**
+   - Enable execution traces for all agent runs
+   - Configure evaluations to monitor output quality and safety
 
-3. **Use Layer 3 (Agent 365) for identity and lifecycle of all agents**
-   - Register every agent with a unique identity
-   - Implement sponsorship models and access packages for agent permissions
-   - Use lifecycle management for versioning and retirement
+3. **Register every agent with Layer 3 (Agent Identity)**
+   - Unique identity per agent, regardless of framework
+   - Implement sponsorship models and lifecycle management
+   - Use access packages for scoped permissions
 
-4. **Use Layer 4 for threat detection and data governance across IQ sources**
-   - Deploy Defender for threat intelligence on agent workloads
-   - Use Purview to govern access to Work IQ, Fabric IQ, and Foundry IQ data sources
-   - Apply Entra conditional access policies to agent service principals
+4. **Use Layer 4 for threat detection and data governance**
+   - Apply content safety policies to all agent inputs and outputs
+   - Govern access to intelligence sources (workspace, business data, enterprise knowledge)
+   - Enforce PII protection across all data flows
 
 ## Next Steps
 
@@ -153,11 +153,11 @@ The agentic web stack defines the 8 essential capabilities that enterprise agent
   <Card title="Citadel 4-Layer Model" icon="castle" href="/architecture/citadel-4-layer-model">
     Deep dive into the governance hub, control plane, identity, and security fabric
   </Card>
-  <Card title="Foundry Integration" icon="cloud" href="/ai-patterns/foundry-integration">
-    Azure AI Foundry integration patterns with the AI Landing Zone
+  <Card title="Agent Harness & Tools" icon="shield-check" href="/agent-factory/agent-harness">
+    Tool-gated execution and harness engineering for production agents
   </Card>
   <Card title="Builder Personas" icon="users" href="/agent-factory/builder-personas">
-    Match personas to platforms across 4 enterprise scenarios
+    Match personas to toolchains across 4 enterprise scenarios
   </Card>
   <Card title="Agentic Web Stack" icon="layers" href="/agent-factory/agentic-web-stack">
     Explore the 8 essential components of the agentic web stack
