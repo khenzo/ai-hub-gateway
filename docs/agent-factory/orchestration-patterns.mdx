@@ -1,0 +1,150 @@
+---
+title: "Agent Orchestration Patterns"
+description: "Multi-agent collaboration and ReAct adaptive reasoning patterns for enterprise agentic AI"
+---
+
+# Agent Orchestration Patterns
+
+The orchestration patterns—**multi-agent collaboration** and **ReAct adaptive reasoning**—represent the advanced capabilities that enable enterprise agents to work together and solve problems dynamically. No single agent can do it all, and effective enterprise solutions weave together multiple patterns under clear governance.
+
+## Pattern 4: Multi-Agent
+
+Enterprises create value through teams of specialists. The multi-agent pattern mirrors this by connecting networks of specialized agents—each focused on different workflow stages—under an orchestrator. This modular design enables agility, scalability, and easy evolution while keeping responsibilities and governance clear.
+
+### Key Capabilities
+
+- Connect specialized agents across workflow stages
+- Scale from single agent to agent teams
+- Maintain clear responsibility boundaries
+- Enable modular evolution of agent capabilities
+
+### Citadel Placement
+
+**Layer 2 (AI Control Plane)** provides orchestration traces and evaluations. **Layer 1 (Governance Hub / APIM)** routes inter-agent communication securely. **Layer 3 (Agent Identity)** ensures each agent has a valid identity.
+
+### Azure Services
+
+- Azure AI Foundry Agent Service
+- Azure Service Bus
+- Azure API Management
+
+### Customer Example
+
+**JM Family** adopted a multi-agent approach with BAQA Genie, deploying agents for requirements, story writing, coding, documentation, and QA. Coordinated by an orchestrator, their development cycles became standardized and automated—cutting requirements and test design from weeks to days and saving up to **60% of QA time**.
+
+## Orchestration Patterns
+
+Multi-agent systems can be organized in several ways depending on the workflow characteristics and governance requirements. Here are the five primary orchestration approaches:
+
+### Sequential Orchestration
+
+Agents refine a document or output step by step. Each agent handles one stage and passes results to the next.
+
+**Best for:** Approval workflows, content refinement pipelines.
+
+### Concurrent Orchestration
+
+Agents run in parallel and merge results.
+
+**Best for:** Multi-source research, independent subtask execution.
+
+### Group Chat / Maker-Checker
+
+Agents debate and validate outputs together.
+
+**Best for:** High-stakes decisions, compliance review, code review.
+
+### Dynamic Handoff
+
+Real-time triage or routing based on context.
+
+**Best for:** IT support, customer service escalation.
+
+### Magentic Orchestration
+
+A manager agent coordinates all subtasks until completion.
+
+**Best for:** Complex projects with many dependencies.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                  MULTI-AGENT ORCHESTRATION                       │
+│                                                                  │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
+│  │ Sequential  │  │ Concurrent  │  │ Group Chat /            │  │
+│  │ (Step by    │  │ (Parallel   │  │ Maker-Checker           │  │
+│  │  step)      │  │  merge)     │  │ (Debate + validate)     │  │
+│  └─────────────┘  └─────────────┘  └─────────────────────────┘  │
+│                                                                  │
+│  ┌─────────────┐  ┌─────────────────────────────────────────┐  │
+│  │ Dynamic     │  │ Magentic                                │  │
+│  │ Handoff     │  │ (Manager agent coordinates sub-agents)  │  │
+│  │ (Triage)    │  │                                         │  │
+│  └─────────────┘  └─────────────────────────────────────────┘  │
+│                                                                  │
+│              All routed through Citadel Layer 1 (APIM)         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Pattern 5: ReAct (Reason + Act)
+
+The ReAct pattern enables agents to solve problems in real time, especially when static plans fall short. ReAct agents alternate between reasoning and action—taking a step, observing results, and deciding what to do next.
+
+### Key Capabilities
+
+- Adapt to ambiguity and evolving requirements
+- Alternate between reasoning and action iteratively
+- Adjust strategy based on observed results
+- Escalate to humans when scope is exceeded
+
+### Citadel Placement
+
+**Layer 2 (AI Control Plane)** captures step-level traces and reasoning chains. **Layer 4 (Security Fabric)** monitors each action for policy compliance.
+
+### Azure Services
+
+- Azure AI Foundry Agent Service
+- Azure Monitor
+- Application Insights
+
+### Customer Example
+
+In enterprise IT support, a virtual agent powered by ReAct can diagnose issues in real time: it asks clarifying questions, checks system logs, tests possible solutions, and adjusts its strategy as new information becomes available. If the issue grows more complex or falls outside its scope, the agent escalates to a human specialist with a detailed summary.
+
+### Implementation Guidance
+
+Use the Azure AI Foundry Control Plane traces to observe and debug ReAct reasoning loops. Step-level telemetry reveals where an agent is cycling, stalling, or deviating from expected behavior—making it possible to tune prompts, tools, and escalation thresholds with precision.
+
+## Pattern Comparison
+
+| Pattern | Core Capability | Citadel Layer | Primary Azure Service | Best For |
+|---------|-----------------|---------------|----------------------|----------|
+| Multi-Agent | Coordinate specialized agents | Layer 2 | Foundry Agent Service | Complex workflows requiring multiple skills |
+| Sequential | Step-by-step handoff | Layer 1/2 | APIM + Logic Apps | Approval and refinement pipelines |
+| Concurrent | Parallel execution | Layer 2 | Foundry Agent Service | Multi-source research |
+| ReAct | Adaptive reasoning + action | Layer 2 | Foundry Agent Service | Ambiguous or dynamic problem solving |
+
+## Citadel Integration for Orchestration
+
+Enterprise orchestration requires more than connecting agents—it requires governing how they communicate, who they are, and what they are allowed to do. Citadel provides this foundation across all four layers:
+
+- **Layer 1 (APIM)** secures inter-agent communication via A2A and MCP protocols, enforcing authentication, rate limiting, and policy on every message exchanged between agents.
+- **Layer 2 (Foundry Control Plane)** provides traceability across multi-agent workflows, capturing orchestration traces, evaluations, and step-level reasoning chains so teams can observe and optimize behavior.
+- **Layer 3 (Agent Identity)** ensures every agent in the team is authenticated and authorized, preventing unauthorized agents from joining orchestrated workflows.
+- **Layer 4 (Security Fabric)** monitors orchestrated actions for compliance, blocking or flagging behaviors that violate enterprise policy before they reach production systems.
+
+## Next Steps
+
+Explore related patterns and architecture guidance to continue building your agentic AI practice:
+
+<CardGroup>
+  <Card title="Design Patterns" icon="wand-2" href="/agent-factory/design-patterns">
+    Tool use, reflection, and planning patterns mapped to Citadel
+  </Card>
+  <Card title="Agentic Web Stack" icon="layers" href="/agent-factory/agentic-web-stack">
+    The 8 essential components that power enterprise agent systems
+  </Card>
+  <Card title="Citadel Mapping" icon="castle" href="/agent-factory/citadel-mapping">
+    See how Agent Factory maps to the Citadel 4-layer governance model
+  </Card>
+</CardGroup>
