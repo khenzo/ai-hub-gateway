@@ -59,14 +59,15 @@ _For full details, see `.planning/milestones/v1.1-ROADMAP.md`_
 Plans:
 - [ ] 13-01-PLAN.md — Audit intelligence-layers & builder-personas (confirm compliant); add OpenAI Agents SDK + Microsoft Agent Framework to overview.mdx & citadel-mapping.mdx; fix (Foundry) ASCII label
 
-#### Phase 14: Deep Agents Architecture
+#### Phase 14: Deep Agents Architecture ✅
 **Goal**: Add two new deep-architecture pages — Agent Harness & Tools (tool-gated execution, middleware chain, HITL hooks, 4-layer security, sandbox providers) and Context Engineering (filesystem working memory, progressive skill disclosure, three-tier loading, automatic summarization) — derived from source PDFs.
 **Depends on**: Phase 13
 **Requirements**: FR-03
 **Plans**: 1 plan
+**Status**: COMPLETED 2026-04-13
 
 Plans:
-- [ ] 14-01-PLAN.md — Verify and patch agent-harness.mdx and context-engineering.mdx against FR-03; add formal Citadel Integration section to context-engineering.mdx; confirm docs.json ordering
+- [x] 14-01-PLAN.md — Verify and patch agent-harness.mdx and context-engineering.mdx against FR-03; add formal Citadel Integration section to context-engineering.mdx; confirm docs.json ordering
 
 #### Phase 15: Navigation & Integration
 **Goal**: Update docs/docs.json navigation to integrate new pages into the Agent Factory group in the correct order, ensure cross-links and Citadel integration references are consistent across all updated pages.
@@ -95,6 +96,6 @@ Plans:
 | 10. Enterprise Use Cases | v1.1 | 2/2 | Complete | 2026-04-13 |
 | 11. Open Standards Integration | v1.1 | 2/2 | Complete | 2026-04-13 |
 | 12. Agent Security & Observability | v1.1 | 2/2 | Complete | 2026-04-13 |
-| 13. Open Platform Transformation | v1.2 | 0/1 | Planned | — |
-| 14. Deep Agents Architecture | v1.2 | 0/1 | Planned | — |
-| 15. Navigation & Integration | v1.2 | 0/1 | Planned | — |
+| 13. Open Platform Transformation | v1.2 | 1/1 | Complete | 2026-04-13 |
+| 14. Deep Agents Architecture | v1.2 | 1/1 | Complete | 2026-04-13 |
+| 15. Navigation & Integration | 1/1 | Complete   | 2026-04-13 | — |
