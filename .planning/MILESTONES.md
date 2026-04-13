@@ -44,3 +44,29 @@
 - `.planning/milestones/v1.0-ROADMAP.md` — Full phase details
 
 **Git tag:** `v1.0`
+
+## v1.2 Open Platform Agent Factory (Shipped: 2026-04-13)
+
+**Phases completed:** 3 phases (13-15), 3 plans
+**Timeline:** April 13, 2026 (same day as v1.1)
+**Documentation files:** 2 new pages added (agent-harness.mdx, context-engineering.mdx)
+**Git range:** 570ed84 → eabfc93
+
+**Key accomplishments:**
+1. Transformed Agent Factory from Microsoft-specific to open-platform narrative — removed Work IQ/Fabric IQ/Foundry IQ branding, replaced with framework-agnostic intelligence layers
+2. Added OpenAI Agents SDK and Microsoft Agent Framework alongside LangChain/LangGraph/Claude SDK as equal citizen toolchains in all references
+3. Created **Agent Harness & Tools** deep architecture page — tool-gated execution, middleware chains, HITL hooks, 4-layer security model, sandbox provider comparisons
+4. Created **Context Engineering** deep architecture page — three-tier memory hierarchy, filesystem working memory, progressive skill disclosure, automatic summarization
+5. Integrated all 14 Agent Factory pages into unified docs.json navigation with consistent Citadel 4-layer cross-references
+6. Verified all internal cross-links and passing Mintlify build validation
+
+**Delivered:** Open-platform agentic factory documentation with deep agent engineering patterns (harness, context, tools) aligned to Citadel 4-layer architecture
+
+**Archived:**
+- `.planning/milestones/v1.2-ROADMAP.md` — Full phase details
+- `.planning/milestones/v1.2-REQUIREMENTS.md` — Requirements with outcomes
+
+**Git tag:** `v1.2`
+
+---
+

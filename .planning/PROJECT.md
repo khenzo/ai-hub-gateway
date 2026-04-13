@@ -28,6 +28,11 @@ A comprehensive documentation hub for implementing AI Landing Zones with Citadel
 - ✓ Document 8 essential agentic web stack components — v1.1
 - ✓ Document five core agentic AI design patterns (tool-use, reflection, planning, multi-agent, ReAct) — v1.1
 - ✓ Map four enterprise use cases to AI Landing Zone (employee self-service, data analytics, sales, support) — v1.1
+- ✓ Remove Microsoft-specific branding from Agent Factory pages — v1.2
+- ✓ Maintain generic open-platform framing with framework-agnostic toolchains — v1.2
+- ✓ Add deep agent architecture content (Agent Harness & Tools, Context Engineering) — v1.2
+- ✓ Maintain Citadel + AI Landing Zone integration across all Agent Factory pages — v1.2
+- ✓ Navigation consistency for 14-page Agent Factory group in docs.json — v1.2
 
 ### Active
 
@@ -51,10 +56,10 @@ A comprehensive documentation hub for implementing AI Landing Zones with Citadel
 
 ### Current State
 
-**Shipped v1.1** with 31 additional files across 6 phases (Phases 7-12), building on the v1.0 foundation of 156 MDX/Markdown files.
+**Shipped v1.2** with open-platform transformation of the Agent Factory layer (Phases 13-15). Building on v1.0 foundation (156 files) and v1.1 Agent Factory integration (31 files).
 **Tech stack:** Mintlify, MDX, Node.js 18+
-**Documentation coverage:** Complete end-to-end coverage from Getting Started through Operations, now extended with full Agent Factory integration layer
-**Primary deliverables:** Agent Factory architecture, design patterns, enterprise use cases, MCP/A2A integration, agent security blueprint, and observability best practices
+**Documentation coverage:** Complete end-to-end coverage from Getting Started through Operations, with Agent Factory now framework-agnostic (LangChain, LangGraph, Claude SDK, OpenAI Agents SDK, Microsoft Agent Framework)
+**Primary deliverables:** Open-platform Agent Factory narrative, Agent Harness & Tools deep architecture, Context Engineering deep architecture, full docs.json navigation integration for 14 Agent Factory pages
 
 ### Source Materials
 
@@ -115,13 +120,15 @@ This documentation synthesizes content from three primary sources:
    - Defender for AI threat protection
    - Purview for data governance and PII protection
 
-## Next Milestone Goals (v1.2)
+## Next Milestone Goals (v1.3)
 
 - Add performance and scaling guidance for high-scale agentic deployments
 - Create video/visual supplements for complex Agent Factory architectures
 - Expand troubleshooting runbooks based on deployment feedback
 - Add multi-agent orchestration implementation examples with code samples
 - Consider adding Terraform deployment patterns as alternative to Bicep
+- Add Agent Factory cost and sizing guidance for enterprise deployments
+- Deeper A2A federation patterns for cross-organization agent collaboration
 
 ## Constraints
 
@@ -147,8 +154,29 @@ This documentation synthesizes content from three primary sources:
 | Synthesize over copy-paste | White paper content restructured into Mintlify docs rather than copied verbatim | ✓ Good — avoids duplication, creates maintainable single-source docs |
 | Cross-link governance pages | Agent security blueprint references existing governance pages instead of duplicating | ✓ Good — maintains single source of truth, reduces maintenance burden |
 | Pattern doc structure | Each design pattern uses Definition → Capabilities → Citadel Placement → Azure Services → Example → Guidance | ✓ Good — consistent scannable format across all patterns |
+| Open-platform rebranding | Framework-agnostic narrative removes vendor lock-in and serves broader enterprise audience | ✓ Good — documentation now equally covers LangChain, LangGraph, Claude SDK, OpenAI Agents SDK, and Microsoft Agent Framework |
+| Deep architecture pages | Harness engineering and context engineering are advanced topics that differentiate this documentation from basic tutorials | ✓ Good — both pages exceed length minimums and include formal Citadel integration sections |
+| Tool-gated execution principle | "Model never executes anything directly" is the core safety pattern for agentic systems | ✓ Good — clearly articulated with middleware chain and sandbox provider comparisons |
+| Cross-link over duplicate | Citadel integration references use cross-links rather than repeating architecture content | ✓ Good — keeps Agent Factory pages focused while preserving 4-layer alignment |
 
 ---
+
+<details>
+<summary>Archive: Pre-v1.2 Project State</summary>
+
+*Last updated: 2026-04-13 after v1.1 milestone completion*
+
+**Current State (v1.1):**
+Shipped v1.1 with 31 additional files across 6 phases (Phases 7-12), building on the v1.0 foundation of 156 MDX/Markdown files.
+Primary deliverables: Agent Factory architecture, design patterns, enterprise use cases, MCP/A2A integration, agent security blueprint, and observability best practices.
+
+**Previous Next Milestone Goals (v1.2):**
+- Add performance and scaling guidance for high-scale agentic deployments
+- Create video/visual supplements for complex Agent Factory architectures
+- Expand troubleshooting runbooks based on deployment feedback
+- Add multi-agent orchestration implementation examples with code samples
+- Consider adding Terraform deployment patterns as alternative to Bicep
+</details>
 
 <details>
 <summary>Archive: Pre-v1.0 Project State</summary>
@@ -173,4 +201,4 @@ All outcomes were marked "— Pending" before v1.0 shipment.
 </details>
 
 ---
-*Last updated: 2026-04-13 after v1.1 milestone completion*
+*Last updated: 2026-04-14 after v1.2 milestone completion*

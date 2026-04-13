@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Open Platform Agent Factory
-status: active
-stopped_at: Completed 15-01-PLAN.md
-last_updated: "2026-04-13T22:19:26.000Z"
-last_activity: "2026-04-13 — Phase 15 Navigation & Integration completed"
+status: completed
+stopped_at: Milestone v1.2 archived
+last_updated: "2026-04-14T00:25:00.000Z"
+last_activity: "2026-04-14 — Archived v1.2 milestone and tagged release"
 progress:
   total_phases: 3
   completed_phases: 3
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** Enable organizations to deploy enterprise-grade AI infrastructure with confidence
-**Current focus:** Planning next milestone (v1.2) — run `/gsd:new-milestone`
+**Current focus:** Planning next milestone (v1.3) — run `/gsd:new-milestone`
 
 ## Current Position
 
@@ -232,7 +232,7 @@ Resume file: None
 - Archived to `.planning/milestones/v1.1-ROADMAP.md`
 - Git tag: `v1.1`
 
-**Milestone v1.2: Open Platform Agent Factory — COMPLETE**
+**Milestone v1.2: Open Platform Agent Factory — ARCHIVED**
 - 3 phases defined (Phases 13-15)
 - 3 total plans executed
 - Focus: Transform Agent Factory to open-platform narrative with deep agent architecture
