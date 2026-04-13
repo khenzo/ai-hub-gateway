@@ -1,0 +1,84 @@
+---
+title: "Customer Support and Product Feedback"
+description: "Deploy agents that handle frontline support, triage issues, and close the loop from customer voice to engineering action"
+---
+
+# Customer Support and Product Feedback
+
+The **Customer Support and Product Feedback** use case deploys intelligent agents that handle frontline support, triage issues with context, and create engineering follow-up automatically—closing the gap between what customers say and what engineering ships. When built on Citadel, these agents operate with enterprise-grade governance, identity management, and content safety across all customer interactions.
+
+## The Challenge
+
+Support teams handle inquiries around the clock, but the real value isn't just resolving tickets—it's closing the loop. Feature requests and bug reports come through support channels, get logged somewhere, and then stall. Engineering teams don't have visibility into what customers are actually asking for. Customers don't see their feedback reflected in the product.
+
+The consequences erode trust over time:
+
+- **Feedback loops stall** as valuable customer insight disappears into ticketing backlogs
+- **Engineering lacks visibility** into the issues and requests customers raise most often
+- **Support agents repeat the same work** manually routing issues instead of focusing on complex cases
+- **Customer trust erodes** when the gap between "customer said something" and "engineering acted on it" grows too wide
+
+For many product companies, the bottleneck isn't support capacity. It's the friction between customer-facing teams and the engineering backlog that should be informed by them.
+
+## The Opportunity
+
+Deploy agents that handle frontline support grounded in product knowledge, account data, and resolution history. When a customer reports an issue or requests a feature, the agent triages, enriches with context, and creates a GitHub issue automatically. On the engineering side, coding agents draft implementation plans and propose code changes, accelerating the path from customer voice to product improvement.
+
+The business outcomes include:
+
+- **Support capacity unlocked** for complex cases that require human judgment
+- **Engineering action accelerated** with fully contextualized issues and drafted plans
+- **Customer trust rebuilt** as feedback visibly drives product outcomes
+- **Cross-functional teams can own the solution** without requiring dedicated developer resources for every integration
+
+## Builder Personas & Approaches
+
+| Persona | Approach | Tool |
+|---------|----------|------|
+| **Power User** | Build support agents in Copilot Studio grounded in product docs via Foundry IQ. Configure triage workflows that enrich issues with customer context from Fabric IQ and create GitHub issues for engineering follow-up. | Copilot Studio + Power Platform + GitHub Connector |
+| **Developer** | Build agents that monitor GitHub issues, draft implementation plans, propose code changes, and route to human reviewers. Integrate coding agents into CI/CD workflows and use Work IQ to match issues to the right engineers. | Foundry + Agent Framework + GitHub Copilot |
+
+## IQ Layer Mapping
+
+Customer support and product feedback agents rely on the intelligence layers to bridge customer conversations and engineering action:
+
+- **Foundry IQ** grounds the agent in product documentation, known issues, and institutional knowledge. It ensures that when a customer reports unexpected behavior, the agent can check documented resolutions, workarounds, and release notes before escalating.
+- **Fabric IQ** connects customer account data and usage patterns. This enables the agent to verify configurations, identify account-specific context, and enrich GitHub issues with data that helps engineers reproduce and prioritize.
+- **Work IQ** enables routing escalations to the right engineers based on expertise and availability. It understands who has solved similar issues, who owns relevant code areas, and whose calendar has capacity—so handoffs land with the person most likely to resolve them quickly.
+
+## Citadel Placement
+
+Deploying customer support agents on Citadel ensures every customer-facing and engineering interaction is governed, observable, and secure:
+
+- **Layer 1 (Governance Hub / APIM)** routes all agent API calls to support platforms and GitHub, enforcing authentication, rate limiting, and runtime policy. All Copilot Studio and Foundry agent API calls should pass through the Citadel Governance Hub for unified cost attribution and policy enforcement.
+- **Layer 2 (AI Control Plane)** captures evaluation metrics and response quality telemetry through the Foundry Control Plane. Monitor support agent resolution accuracy, response appropriateness, and escalation patterns to drive continuous improvement.
+- **Layer 3 (Agent Identity / Agent 365)** manages agent identity and access management across both support and engineering agents. Register each agent with a unique identity and implement sponsorship models for permissions when accessing customer data and code repositories.
+- **Layer 4 (Security Fabric)** applies threat detection and content safety on all customer-facing outputs. Use Purview to govern access to Work IQ, Fabric IQ, and Foundry IQ data sources, and deploy content filtering to ensure safe, appropriate support responses.
+
+## Customer Example
+
+A **SaaS platform company** deployed a support agent that handles product questions and bug reports with the help of a Microsoft expert. When a customer reports unexpected behavior, the agent checks known issues in Foundry IQ, verifies the customer's configuration data in Fabric IQ, and either resolves immediately or creates a GitHub issue with full context.
+
+On the engineering side, a coding agent reviews incoming issues nightly, drafts investigation plans for bugs, and proposes implementation approaches for feature requests—ready for engineer review each morning. Time from customer report to engineering action dropped from weeks to days.
+
+## Buying Pattern Fit
+
+- **Primary audience:** SaaS or product companies using GitHub for engineering workflow
+- **Key indicators:** Support volume that justifies automation, backlog of customer feedback not reaching engineering, or churn tied to product responsiveness
+- **Quick win:** Deploy a support agent for a single product area and measure ticket deflection and GitHub issue quality within 30 days
+
+## Next Steps
+
+Explore related use cases and architecture guidance to continue building your agentic AI practice:
+
+<CardGroup>
+  <Card title="Employee Self-Service" icon="headset" href="/agent-factory/use-case-employee-self-service">
+    HR and IT support agents that answer routine questions instantly
+  </Card>
+  <Card title="Orchestration Patterns" icon="network-wired" href="/agent-factory/orchestration-patterns">
+    Multi-agent collaboration and workflow orchestration patterns
+  </Card>
+  <Card title="Citadel Mapping" icon="castle" href="/agent-factory/citadel-mapping">
+    See how Agent Factory maps to the 4-layer Citadel model
+  </Card>
+</CardGroup>
