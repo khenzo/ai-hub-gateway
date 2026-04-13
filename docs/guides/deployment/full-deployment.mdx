@@ -97,7 +97,7 @@ Use the below checklist to plan your deployment configuration:
   </Accordion>
 </AccordionGroup>
 
-Leverage deployment parameter files (<a href="/bicep/infra/main.bicepparam" target="_blank">main.bicepparam</a>) to capture these decisions for each environment.
+Leverage deployment parameter files (<a href="https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/blob/citadel-v1/bicep/infra/main.bicepparam" target="_blank">main.bicepparam</a>) to capture these decisions for each environment.
 
 ### Required Resource Providers
 
@@ -188,7 +188,7 @@ cd ai-hub-citadel-deployment # it may differ if you used git clone
 azd init --template Azure-Samples/ai-hub-gateway-solution-accelerator -e ai-hub-citadel-dev --branch citadel-v1
 
 # or use git clone:
-# git clone https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator.git
+# git clone -b citadel-v1 https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator.git
 # git checkout citadel-v1
 ```
 
@@ -208,10 +208,10 @@ Always keep a separate copy of your customized parameter files with different na
 
 | File | Purpose | Use Case |
 |------|---------|----------|
-| <a href="/bicep/infra/main.bicepparam" target="_blank">main.bicepparam</a> | Environment variables | Used in azd deployments, CI/CD (Default values come from here) |
-| <a href="/bicep/infra/main.parameters.dev.bicepparam" target="_blank">main.parameters.dev.bicepparam</a> | Development | Dev/test environments |
-| <a href="/bicep/infra/main.parameters.prod.bicepparam" target="_blank">main.parameters.prod.bicepparam</a> | Production | Production workloads |
-| <a href="/bicep/infra/main.parameters.complete.bicepparam" target="_blank">main.parameters.complete.bicepparam</a> | Reference | All parameters documented |
+| <a href="https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/blob/citadel-v1/bicep/infra/main.bicepparam" target="_blank">main.bicepparam</a> | Environment variables | Used in azd deployments, CI/CD (Default values come from here) |
+| <a href="https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/blob/citadel-v1/bicep/infra/main.parameters.dev.bicepparam" target="_blank">main.parameters.dev.bicepparam</a> | Development | Dev/test environments |
+| <a href="https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/blob/citadel-v1/bicep/infra/main.parameters.prod.bicepparam" target="_blank">main.parameters.prod.bicepparam</a> | Production | Production workloads |
+| <a href="https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/blob/citadel-v1/bicep/infra/main.parameters.complete.bicepparam" target="_blank">main.parameters.complete.bicepparam</a> | Reference | All parameters documented |
 
 #### Parameter File Structure
 
@@ -264,8 +264,8 @@ Benefits:
 - ✅ Quick naming across environments
 - ✅ Unique names prevent conflicts
 - ✅ Includes environment hash for traceability
-  </Accordion>
-  <Accordion title="Option B: Custom Names">
+</Accordion>
+<Accordion title="Option B: Custom Names">
 ```bicep
 param resourceGroupName = 'rg-ai-gov-citadel-prod-eastus'
 param apimServiceName = 'apim-ai-gov-citadel-prod'
@@ -276,7 +276,7 @@ Benefits:
 - ✅ Human-readable names
 - ✅ Matches organizational naming standards
 - ✅ Easier to locate in portal
-  </Accordion>
+</Accordion>
 </AccordionGroup>
 
 #### Tagging Strategy
@@ -345,7 +345,7 @@ param functionAppSubnetName = 'snet-citadel-functions'
 - ✅ Citadel manages all enterprise AI traffic
 - ✅ Direct spoke-to-hub connectivity
 - ✅ Simplified network topology
-  </Accordion>
+</Accordion>
   <Accordion title="Approach 2: Hub-Spoke (Citadel as Dedicated Spoke)">
 Citadel deployed in a **dedicated spoke** with firewall in between.
 
@@ -365,7 +365,7 @@ param dnsSubscriptionId = '<hub-subscription-id>'
 - ✅ Isolated AI workloads from general traffic
 - ✅ Separate cost centers/subscriptions
 - ✅ Compliance requirements for network isolation
-  </Accordion>
+</Accordion>
 </AccordionGroup>
 
 Detailed networking guide: [Network Architecture](/guides/architecture/networking)

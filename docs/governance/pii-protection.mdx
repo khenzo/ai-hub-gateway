@@ -270,7 +270,7 @@ public class MultiLanguagePiiDetector
 |----------|---------------|----------------|----------|
 | **Full Redaction** | "John's SSN is 123-45-6789" | "John's SSN is [REDACTED]" | High-sensitivity PII |
 | **Partial Masking** | "john.doe@email.com" | "j***.***@email.com" | Email addresses |
-| **Token Replacement** | "123-45-6789" | "<SSN_001>" | Analytics, training |
+| **Token Replacement** | "123-45-6789" | `<SSN\_001>` | Analytics, training |
 | **Hashing** | "john.doe@email.com" | "a1b2c3d4..." | Pseudonymization |
 
 ```xml

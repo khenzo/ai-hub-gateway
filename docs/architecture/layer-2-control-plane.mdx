@@ -93,21 +93,26 @@ Manage agent ecosystem at scale:
 
 Ready-to-use dashboards provide both platform-wide overviews and agent-specific drill-downs:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│              AI Control Plane Dashboard                     │
-├─────────────────────────────────────────────────────────────┤
-│  Platform Metrics:                                          │
-│  • Overall usage: 15,000 requests                           │
-│  • Token consumption: 4.2M tokens (~£180)                   │
-│  • Average latency: 1.5s                                    │
-│  • Uptime: 99.2%                                            │
-├─────────────────────────────────────────────────────────────┤
-│  Agent-Specific:                                            │
-│  • Sales Q&A Bot: 1.8s avg, 2 safety flags                  │
-│  • Legal Analyzer: 2.1s avg, 0 issues                       │
-│  • HR Assistant: 1.4s avg, 1 alert                          │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    GW["AI Gateway<br/>(Layer 1)"]
+    subgraph Platform["Platform-Level Observability"]
+        APM["Central APM"]
+        UA["Usage Tracking"]
+        EA["AI Evaluations"]
+        AL["Enterprise Alerts"]
+    end
+    subgraph AgentObs["Agent-Level Observability"]
+        ET["Execution Traces"]
+        PM["Performance Monitoring"]
+        AD["Advanced Debugging"]
+    end
+    DB["Compliance Dashboards"]
+
+    GW --> Platform
+    GW --> AgentObs
+    Platform --> DB
+    AgentObs --> DB
 ```
 
 ## Integration with Partner Ecosystem
@@ -190,5 +195,5 @@ Evaluation Pipeline:
 
 - Learn about [Layer 3: Agent Identity](./layer-3-agent-identity) for agent lifecycle management
 - Explore [Foundry Control Plane Integration](../implementation/integration/foundry-control-plane) for implementation guidance
-- Review [AI Evaluations](../operations/ai-evaluations) for quality assurance
+- Review [AI Evaluations](/operations/monitoring) for quality assurance
 - Review [monitoring dashboards](../operations/monitoring) for operational visibility

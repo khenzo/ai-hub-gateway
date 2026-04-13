@@ -42,18 +42,14 @@ Built on **Azure API Management**, the Unified AI Gateway is the central control
 
 #### Gateway Features
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    AI Gateway (APIM)                        │
-├─────────────────────────────────────────────────────────────┤
-│  Request Flow:                                              │
-│  1. Authentication (Entra ID, API Keys)                     │
-│  2. Rate Limiting (token quotas, request limits)            │
-│  3. Content Safety (prompt shields, filtering)              │
-│  4. Routing (smart load balancing, failover)                │
-│  5. Logging (usage telemetry, audit trails)                 │
-│  6. Response (with safety checks, PII masking)              │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    Req(["Incoming Request"]) --> A["1. Authentication<br/>Entra ID · API Keys"]
+    A --> B["2. Rate Limiting<br/>Token quotas · Request limits"]
+    B --> C["3. Content Safety<br/>Prompt shields · Filtering"]
+    C --> D["4. Routing<br/>Load balancing · Failover"]
+    D --> E["5. Logging<br/>Usage telemetry · Audit trails"]
+    E --> Resp(["6. Response<br/>Safety checks · PII masking"])
 ```
 
 ### 📖 Universal Registry (Azure API Center)
@@ -115,28 +111,17 @@ Deployed multiple times, one for each business unit or use case:
 - Teams work autonomously without interference
 - Each spoke connects back to the hub for governance and observability
 
-```
-                    ┌─────────────────────┐
-                    │  Governance Hub     │
-                    │  (Central Control)  │
-                    │                     │
-                    │  • AI Gateway       │
-                    │  • API Center       │
-                    │  • Monitoring       │
-                    │  • Policy Engine    │
-                    └──────────┬──────────┘
-                               │
-         ┌─────────────────────┼─────────────────────┐
-         │                     │                     │
-         ▼                     ▼                     ▼
-┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
-│  Spoke 1        │   │  Spoke 2        │   │  Spoke N        │
-│  (Finance)      │   │  (Sales)        │   │  (Operations)   │
-│                 │   │                 │   │                 │
-│  • AI Agents    │   │  • AI Agents    │   │  • AI Agents    │
-│  • Workloads    │   │  • Workloads    │   │  • Workloads    │
-│  • Data         │   │  • Data         │   │  • Data         │
-└─────────────────┘   └─────────────────┘   └─────────────────┘
+```mermaid
+graph TB
+    subgraph Hub["Governance Hub (Central Control)"]
+        GW["AI Gateway"]
+        AC["API Center"]
+        Mon["Monitoring"]
+        PE["Policy Engine"]
+    end
+    Hub --> S1["Spoke 1 (Finance)<br/>AI Agents · Workloads · Data"]
+    Hub --> S2["Spoke 2 (Sales)<br/>AI Agents · Workloads · Data"]
+    Hub --> SN["Spoke N (Operations)<br/>AI Agents · Workloads · Data"]
 ```
 
 ## Governance & Security Pillar Alignment
@@ -189,12 +174,12 @@ Layer 1 directly implements the **Governance & Security Pillar** of the Foundry 
 For detailed deployment guidance, see:
 
 - [AI Hub Gateway Repository](https://aka.ms/ai-hub-gateway) — Reference implementation
-- [Quick Deployment Guide](../deployment/quickstart) — Fast path to deployment
-- [Network Approach](../deployment/network-approach) — Networking patterns
-- [Access Contracts](../deployment/access-contracts) — Agent onboarding
+- [Quick Deployment Guide](/getting-started/quick-start) — Fast path to deployment
+- [Network Approach](/guides/network-approach) — Networking patterns
+- [Access Contracts](/governance/access-contracts) — Agent onboarding
 
 ## Next Steps
 
 - Explore [Layer 2: AI Control Plane](./layer-2-control-plane) for observability and compliance
-- Learn about [Citadel Access Contracts](../deployment/access-contracts) for agent onboarding
-- Review [networking patterns](../deployment/network-approach) for hub-spoke deployment
+- Learn about [Citadel Access Contracts](/governance/access-contracts) for agent onboarding
+- Review [networking patterns](/guides/network-approach) for hub-spoke deployment

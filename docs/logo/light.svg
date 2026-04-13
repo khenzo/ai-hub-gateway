@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" fill="none">
+  <!-- Shield icon -->
+  <path d="M16 8 L32 4 L48 8 L48 28 C48 40 32 50 32 50 C32 50 16 40 16 28 Z" fill="#0078D4"/>
+  <!-- Inner shield highlight -->
+  <path d="M20 12 L32 8.5 L44 12 L44 28 C44 37 32 45 32 45 C32 45 20 37 20 28 Z" fill="#2B94E0" opacity="0.45"/>
+  <!-- Checkmark / AI spark inside shield -->
+  <path d="M25 27 L30 33 L40 20" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Wordmark -->
+  <text x="58" y="28" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700" fill="#0F1117" letter-spacing="0.3">Citadel</text>
+  <text x="58" y="46" font-family="Inter, Segoe UI, sans-serif" font-size="13" font-weight="400" fill="#4B5563" letter-spacing="0.5">AI Landing Zone</text>
+</svg>

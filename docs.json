@@ -1,6 +1,7 @@
 {
   "name": "AI Landing Zone Documentation",
   "description": "Enterprise-grade AI infrastructure deployment guide",
+  "theme": "mint",
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
@@ -9,161 +10,162 @@
   "colors": {
     "primary": "#0078D4",
     "light": "#0078D4",
-    "dark": "#0078D4",
-    "anchors": {
-      "from": "#0078D4",
-      "to": "#005A9E"
-    }
+    "dark": "#005A9E"
   },
   "topbarLinks": [
     {
       "name": "GitHub",
-      "url": "https://github.com/example/ai-landing-zone"
+      "url": "https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/tree/citadel-v1"
     }
   ],
   "topbarCtaButton": {
-    "name": "Get Started",
-    "url": "/getting-started/introduction"
+    "name": "Deploy",
+    "url": "https://aka.ms/ai-hub-gateway"
   },
-  "navigation": [
+  "tabs": [
     {
-      "group": "Getting Started",
-      "pages": [
-        "getting-started/introduction",
-        "getting-started/quickstart",
-        "getting-started/prerequisites",
-        "getting-started/concepts"
-      ]
+      "name": "Getting Started",
+      "url": "getting-started"
     },
     {
-      "group": "Architecture",
-      "pages": [
-        "architecture/overview",
-        "architecture/core-components",
-        "architecture/networking",
-        "architecture/security"
-      ]
+      "name": "Architecture",
+      "url": "architecture"
     },
     {
-      "group": "AI Landing Zone Patterns",
-      "pages": [
-        "ai-patterns/overview",
-        "ai-patterns/apim-reference",
-        "ai-patterns/foundry-integration",
-        "ai-patterns/access-contracts",
-        "ai-patterns/governance-policies"
-      ]
+      "name": "Business Value",
+      "url": "business-value"
     },
     {
-      "group": "Guides",
-      "pages": [
-        "guides/index",
-        {
-          "group": "Deployment",
-          "pages": [
-            "guides/deployment/quick-start",
-            "guides/deployment/full-deployment",
-            "guides/deployment/parameters"
-          ]
-        },
-        {
-          "group": "Architecture",
-          "pages": [
-            "guides/architecture/networking",
-            "guides/architecture/llm-routing"
-          ]
-        },
-        {
-          "group": "Features",
-          "pages": [
-            "guides/features/pii-masking",
-            "guides/features/throttling-handling",
-            "guides/features/llm-backend-onboarding"
-          ]
-        },
-        {
-          "group": "Operations",
-          "pages": [
-            "guides/operations/citadel-sizing",
-            "guides/operations/estimation-guide",
-            "guides/operations/power-bi-dashboard",
-            "guides/operations/usage-analytics",
-            "guides/operations/scripts-reference"
-          ]
-        },
-        {
-          "group": "Development",
-          "pages": [
-            "guides/development/shared-resources",
-            "guides/development/testing-tools"
-          ]
-        },
-        {
-          "group": "Reference",
-          "pages": [
-            "guides/reference/entraid-auth",
-            "guides/reference/governance-benefits"
-          ]
-        }
-      ]
+      "name": "Implementation",
+      "url": "implementation"
     },
     {
-      "group": "Implementation",
-      "pages": [
-        "implementation/deployment",
-        "implementation/configuration",
-        "implementation/best-practices",
-        "implementation/examples"
-      ]
+      "name": "Guides",
+      "url": "guides"
     },
     {
-      "group": "Operations",
-      "pages": [
-        "operations/runbooks",
-        "operations/monitoring",
-        "operations/troubleshooting",
-        "operations/maintenance"
-      ]
+      "name": "Governance",
+      "url": "governance"
     },
     {
-      "group": "Resources",
-      "pages": [
-        "resources/faq",
-        "resources/glossary",
-        "resources/contributing",
-        "resources/api-reference"
-      ]
+      "name": "Operations",
+      "url": "operations"
     }
   ],
   "anchors": [
     {
-      "name": "FAQ",
-      "icon": "circle-question",
-      "url": "resources/faq"
+      "name": "Azure Documentation",
+      "icon": "microsoft",
+      "url": "https://learn.microsoft.com/azure"
     },
     {
-      "name": "Glossary",
-      "icon": "book",
-      "url": "resources/glossary"
+      "name": "AI Landing Zones",
+      "icon": "azure",
+      "url": "https://github.com/Azure/AI-Landing-Zones"
     },
     {
-      "name": "API Reference",
-      "icon": "code",
-      "url": "resources/api-reference"
+      "name": "Foundry Citadel",
+      "icon": "shield",
+      "url": "https://aka.ms/foundry-citadel"
     }
   ],
-  "search": {
-    "prompt": "Search documentation..."
-  },
-  "modeToggle": {
-    "default": "light"
-  },
-  "feedback": {
-    "thumbsRating": true,
-    "suggestEdit": true
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "docs/getting-started/introduction",
+          "docs/getting-started/concepts",
+          "docs/getting-started/prerequisites",
+          "docs/getting-started/quick-start",
+          "docs/getting-started/roles-and-responsibilities"
+        ]
+      },
+      {
+        "group": "Architecture",
+        "pages": [
+          "docs/architecture/overview",
+          "docs/architecture/citadel-4-layer-model",
+          "docs/architecture/hub-spoke-overview",
+          "docs/ai-patterns/apim-reference",
+          "docs/architecture/layer-1-governance-hub",
+          "docs/architecture/layer-3-agent-identity",
+          "docs/architecture/network-topology",
+          "docs/architecture/layer-4-security-fabric"
+        ]
+      },
+      {
+        "group": "Business Value",
+        "pages": [
+          "docs/business-value/index",
+          "docs/business-value/executive-summary",
+          "docs/business-value/roi-framework",
+          "docs/business-value/compliance-value"
+        ]
+      },
+      {
+        "group": "Implementation",
+        "pages": [
+          "docs/implementation/index",
+          {
+            "group": "Integrations",
+            "pages": [
+              "docs/implementation/integration/index",
+              "docs/implementation/integration/foundry-control-plane"
+            ]
+          },
+          {
+            "group": "Validation",
+            "pages": [
+              "docs/implementation/validation/index",
+              "docs/implementation/validation/pre-deployment-checklist",
+              "docs/implementation/validation/post-deployment-validation",
+              "docs/implementation/validation/troubleshooting"
+            ]
+          }
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "docs/guides/deployment-guide",
+          "docs/guides/bicep-modules",
+          "docs/guides/deployment-checklist",
+          "docs/guides/validation-checklist",
+          "docs/guides/configuration-examples",
+          "docs/guides/troubleshooting",
+          "docs/guides/common-issues",
+          "docs/guides/best-practices"
+        ]
+      },
+      {
+        "group": "Governance",
+        "pages": [
+          "docs/governance/governance-overview",
+          "docs/governance/access-contracts",
+          "docs/governance/policy-enforcement",
+          "docs/governance/identity-management",
+          "docs/governance/content-safety",
+          "docs/governance/pii-protection"
+        ]
+      },
+      {
+        "group": "Operations",
+        "pages": [
+          "docs/operations/index",
+          {
+            "group": "Runbooks",
+            "pages": [
+              "docs/operations/runbooks/index",
+              "docs/operations/runbooks/common-issues"
+            ]
+          }
+        ]
+      }
+    ]
   },
   "footerSocials": {
-    "github": "https://github.com/example/ai-landing-zone",
-    "linkedin": "https://linkedin.com/company/example"
+    "github": "https://github.com/Azure-Samples",
+    "linkedin": "https://linkedin.com/company/microsoft"
   }
 }

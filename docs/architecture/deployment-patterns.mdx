@@ -1,6 +1,5 @@
 ---
 title: Deployment Patterns
-description: Hub network vs spoke network deployment patterns for Citadel Governance Hub
 description: 'Choose the right deployment pattern for your Citadel Governance Hub - deploy within hub network or as dedicated spoke'
 ---
 
@@ -26,45 +25,24 @@ In this pattern, Citadel Governance Hub is deployed within the existing hub virt
 
 ### Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                     ENTERPRISE HUB VIRTUAL NETWORK                       │
-│                                                                          │
-│   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │                     CITADEL GOVERNANCE HUB                       │   │
-│   │                                                                  │   │
-│   │   ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │   │
-│   │   │ AI Gateway   │  │ Policy Engine│  │  Observability       │  │   │
-│   │   │ (APIM)       │  │ (Content     │  │  • Log Analytics     │  │   │
-│   │   │              │  │  Safety)     │  │  • App Insights      │  │   │
-│   │   │ • Routing    │  │              │  │  • Cosmos DB         │  │   │
-│   │   │ • Rate Limit │  │ • Safety     │  │                      │  │   │
-│   │   │ • Auth       │  │   Checks     │  │                      │  │   │
-│   │   └──────┬───────┘  └──────────────┘  └──────────────────────┘  │   │
-│   │          │                                                       │   │
-│   └──────────┼───────────────────────────────────────────────────────┘   │
-│              │                                                           │
-│   ┌──────────┴───────────────────────────────────────────────────────┐   │
-│   │                      SHARED SERVICES                              │   │
-│   │   ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │   │
-│   │   │ Azure AD DS  │  │   DNS        │  │  Azure Firewall      │  │   │
-│   │   │              │  │              │  │  (Shared)            │  │   │
-│   │   └──────────────┘  └──────────────┘  └──────────────────────┘  │   │
-│   └──────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-       │
-       │  VNet Peering
-       ▼
-┌─────────────────────────────────┐
-│      AGENT SPOKE NETWORK         │
-│   ┌─────────────────────────┐   │
-│   │    Agent Workloads      │   │
-│   │   ┌─────────────────┐   │   │
-│   │   │ 🤖 AI Agents    │───┘   │
-│   │   └─────────────────┘       │
-│   └─────────────────────────┘   │
-└─────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph HubVNet["Enterprise Hub Virtual Network"]
+        subgraph CGH["Citadel Governance Hub"]
+            GW["AI Gateway (APIM)<br/>Routing · Rate Limit · Auth"]
+            PE["Policy Engine (Content Safety)<br/>Safety Checks"]
+            OB["Observability<br/>Log Analytics · App Insights · Cosmos DB"]
+        end
+        subgraph SS["Shared Services"]
+            AD["Azure AD DS"]
+            DNS["DNS"]
+            FW["Azure Firewall (Shared)"]
+        end
+    end
+    subgraph Spoke["Agent Spoke Network"]
+        AW["Agent Workloads<br/>🤖 AI Agents"]
+    end
+    HubVNet -->|VNet Peering| Spoke
 ```
 
 ### Traffic Flow
@@ -198,58 +176,27 @@ In this pattern, Citadel Governance Hub is deployed in a dedicated spoke VNet th
 
 ### Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                     ENTERPRISE HUB VIRTUAL NETWORK                       │
-│                                                                          │
-│   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │                      SHARED SERVICES                             │   │
-│   │                                                                  │   │
-│   │   ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │   │
-│   │   │ Azure AD DS  │  │   DNS        │  │  AZURE FIREWALL      │  │   │
-│   │   │              │  │   Servers    │  │                      │  │   │
-│   │   │ • Identity   │  │              │  │  • Traffic Inspect   │  │   │
-│   │   │ • AD Connect │  │ • Forwarding │  │  • Threat Intel      │  │   │
-│   │   └──────────────┘  └──────────────┘  └──────────────────────┘  │   │
-│   │                                                                  │   │
-│   │                              │                                   │   │
-│   └──────────────────────────────┼───────────────────────────────────┘   │
-│                                  │                                       │
-│                           VNet Peering                                  │
-│                                  │                                       │
-└──────────────────────────────────┼───────────────────────────────────────┘
-                                   │
-                                   ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                CITADEL GOVERNANCE HUB (DEDICATED SPOKE)                  │
-│                                                                          │
-│   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │                     GATEWAY SPOKE VNET                           │   │
-│   │                                                                  │   │
-│   │   ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │   │
-│   │   │ AI Gateway   │  │ Policy Engine│  │  Observability       │  │   │
-│   │   │ (APIM)       │  │ (Content     │  │  • Log Analytics     │  │   │
-│   │   │              │  │  Safety)     │  │  • App Insights      │  │   │
-│   │   │ • Routing    │  │              │  │  • Cosmos DB         │  │   │
-│   │   │ • Rate Limit │  │ • Safety     │  │                      │  │   │
-│   │   │ • Auth       │  │   Checks     │  │                      │  │   │
-│   │   └──────┬───────┘  └──────────────┘  └──────────────────────┘  │   │
-│   │          │                                                       │   │
-│   └──────────┼───────────────────────────────────────────────────────┘   │
-│              │                                                           │
-└──────────────┼───────────────────────────────────────────────────────────┘
-               │
-               │  VNet Peering
-               ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      AGENT SPOKE NETWORKS                                │
-│                                                                          │
-│   ┌───────────────────┐  ┌───────────────────┐  ┌───────────────────┐  │
-│   │  Finance Spoke    │  │  HR Spoke         │  │  Legal Spoke      │  │
-│   │  🤖 AI Agents     │  │  🤖 AI Agents     │  │  🤖 AI Agents     │  │
-│   └───────────────────┘  └───────────────────┘  └───────────────────┘  │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph HubVNet["Enterprise Hub Virtual Network"]
+        subgraph SS["Shared Services"]
+            AD["Azure AD DS<br/>Identity · AD Connect"]
+            DNS["DNS Servers<br/>Forwarding"]
+            FW["Azure Firewall<br/>Traffic Inspect · Threat Intel"]
+        end
+    end
+    subgraph CGH["Citadel Governance Hub (Dedicated Spoke)"]
+        GW["AI Gateway (APIM)<br/>Routing · Rate Limit · Auth"]
+        PE["Policy Engine (Content Safety)"]
+        OB["Observability<br/>Log Analytics · App Insights · Cosmos DB"]
+    end
+    subgraph AgentSpokes["Agent Spoke Networks"]
+        FIN["Finance Spoke<br/>🤖 AI Agents"]
+        HR["HR Spoke<br/>🤖 AI Agents"]
+        LEG["Legal Spoke<br/>🤖 AI Agents"]
+    end
+    HubVNet -->|VNet Peering| CGH
+    CGH -->|VNet Peering| AgentSpokes
 ```
 
 ### Traffic Flow
@@ -424,24 +371,16 @@ Use this matrix to choose the right deployment pattern:
 
 ### Decision Tree
 
-```
-Start
-  │
-  ├── Do you require firewall inspection of ALL AI traffic?
-  │   ├── YES → Spoke Network Pattern
-  │   └── NO
-  │       │
-  │       ├── Do you have strict compliance requirements (SOC 2, HIPAA)?
-  │       │   ├── YES → Spoke Network Pattern
-  │       │   └── NO
-  │       │       │
-  │       │       ├── Does your hub VNet have available address space?
-  │       │       │   ├── YES → Hub Network Pattern (Simpler)
-  │       │       │   └── NO → Spoke Network Pattern
-  │       │       │
-  │       │       └── Is low latency critical?
-  │       │           ├── YES → Hub Network Pattern
-  │       │           └── NO → Either pattern works
+```mermaid
+flowchart TD
+    A{Require firewall inspection<br/>of ALL AI traffic?} -->|YES| Spoke["Spoke Network Pattern"]
+    A -->|NO| B{Strict compliance<br/>SOC 2 / HIPAA?}
+    B -->|YES| Spoke
+    B -->|NO| C{Hub VNet has<br/>available address space?}
+    C -->|YES| D{Low latency critical?}
+    C -->|NO| Spoke
+    D -->|YES| Hub["Hub Network Pattern"]
+    D -->|NO| Either["Either pattern works"]
 ```
 
 ## Migration Between Patterns

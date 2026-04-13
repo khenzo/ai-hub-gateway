@@ -143,38 +143,22 @@ Entra integrates with Defender to identify unregistered agents:
 
 The Security Fabric enables coordinated response across components:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                   Security Fabric                           │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │  Defender   │  │   Purview   │  │    Entra    │         │
-│  │  (Threats)  │  │  (Data)     │  │  (Identity) │         │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘         │
-│         │                │                │                │
-│         └────────────────┼────────────────┘                │
-│                          │                                 │
-│                          ▼                                 │
-│         ┌──────────────────────────────────┐               │
-│         │    Unified Security Operations   │               │
-│         │                                  │               │
-│         │  • Cross-signal correlation      │               │
-│         │  • Coordinated response          │               │
-│         │  • Single pane of glass          │               │
-│         │  • Automated remediation         │               │
-│         └──────────────────────────────────┘               │
-│                          │                                 │
-│                          ▼                                 │
-│         ┌──────────────────────────────────┐               │
-│         │    Layer Integration             │               │
-│         │                                  │               │
-│         │  → Layer 1: Gateway protection   │               │
-│         │  → Layer 2: Compliance signals   │               │
-│         │  → Layer 3: Identity governance  │               │
-│         └──────────────────────────────────┘               │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    DEF["🛡️ Defender<br/>Threats &amp; Posture"]
+    PUR["📚 Purview<br/>Data Governance"]
+    ENT["🔐 Entra<br/>Identity"]
+    USO["Unified Security Operations<br/>Cross-signal correlation · Coordinated response<br/>Single pane of glass · Automated remediation"]
+    L1["→ Layer 1: Gateway protection"]
+    L2["→ Layer 2: Compliance signals"]
+    L3["→ Layer 3: Identity governance"]
+
+    DEF --> USO
+    PUR --> USO
+    ENT --> USO
+    USO --> L1
+    USO --> L2
+    USO --> L3
 ```
 
 ### End-to-End Visibility and Audit Trails
@@ -226,21 +210,16 @@ Security is built into every layer:
 
 ## Security Signal Flow
 
-```
-Security Signals Across Layers:
-
-Layer 1 (Gateway) ──┐
-                    ├──→ Security Fabric ──→ Unified Response
-Layer 2 (Control) ──┤    (Defender/Purview/Entra)
-                    │
-Layer 3 (Identity) ─┤         │
-                    │         ▼
-Layer 4 (Security) ─┘    Coordinated Action
-                              │
-         ┌────────────────────┼────────────────────┐
-         │                    │                    │
-         ▼                    ▼                    ▼
-    Block Threat       Apply Policy         Revoke Access
+```mermaid
+graph LR
+    L1["Layer 1<br/>Gateway"] --> SF["Security Fabric<br/>Defender · Purview · Entra"]
+    L2["Layer 2<br/>Control Plane"] --> SF
+    L3["Layer 3<br/>Identity"] --> SF
+    L4["Layer 4<br/>Security"] --> SF
+    SF --> UR["Unified Response"]
+    UR --> BT["Block Threat"]
+    UR --> AP["Apply Policy"]
+    UR --> RA["Revoke Access"]
 ```
 
 ## Benefits
@@ -265,5 +244,5 @@ Layer 4 (Security) ─┘    Coordinated Action
 ## Next Steps
 
 - Review [Layer Integration](./layer-integration) for cross-layer dependencies
-- Learn about [security monitoring](../operations/security-monitoring)
-- Explore [compliance automation](../operations/compliance-automation)
+- Learn about [security monitoring](/operations/monitoring)
+- Explore [compliance automation](/operations/runbooks/index)

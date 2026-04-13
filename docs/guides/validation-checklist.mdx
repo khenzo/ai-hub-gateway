@@ -168,7 +168,7 @@ Run each validation command from an appropriate location:
 
 | # | Validation | Command / Method | Expected Result | Status | Notes |
 |---|-----------|-----------------|-----------------|--------|-------|
-| 4.1.1 | APIM logs flowing to Log Analytics | `az monitor log-analytics query --workspace <workspace-id> --analytics-query "ApiManagementGatewayLogs | count"` | Count > 0 | `[ ]` | After sending test requests |
+| 4.1.1 | APIM logs flowing to Log Analytics | `az monitor log-analytics query --workspace YOUR_WORKSPACE_ID --analytics-query "ApiManagementGatewayLogs | count"` | Count > 0 | `[ ]` | After sending test requests |
 | 4.1.2 | Azure OpenAI logs flowing to Log Analytics | `AzureDiagnostics | where ResourceProvider == "MICROSOFT.COGNITIVESERVICES" | count` | Count > 0 | `[ ]` | |
 | 4.1.3 | Application Insights receiving telemetry | Check Application Insights Live Metrics | Active traces visible | `[ ]` | |
 | 4.1.4 | Key Vault audit logs enabled | `AzureDiagnostics | where ResourceProvider == "MICROSOFT.KEYVAULT" | count` | Count > 0 | `[ ]` | |
@@ -282,7 +282,7 @@ For unresolved failures, consult the [Troubleshooting Guide](/guides/troubleshoo
 After successful validation:
 
 <CardGroup cols={2}>
-  <Card title="Configuration Guide" icon="gear" href="/guides/configuration-guide">
+  <Card title="Configuration Guide" icon="gear" href="/guides/configuration-examples">
     Environment-specific configuration and customization
   </Card>
   <Card title="Troubleshooting Guide" icon="wrench" href="/guides/troubleshooting">

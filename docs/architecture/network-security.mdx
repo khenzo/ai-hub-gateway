@@ -1,6 +1,5 @@
 ---
 title: Network Security
-description: Defense in depth network security for Citadel Governance Hub
 description: 'Implement defense in depth security with NSGs, Azure Firewall, private endpoints, and comprehensive monitoring'
 ---
 
@@ -10,46 +9,17 @@ Citadel Governance Hub implements a defense-in-depth security model for network 
 
 ## Defense in Depth Strategy
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    DEFENSE IN DEPTH LAYERS                               │
-│                                                                          │
-│  Layer 7 │  ┌────────────────────────────────────────────────────────┐  │
-│          │  │  AI Content Safety, PII Detection, Policy Engine       │  │
-│          │  │  (Application Layer Security)                          │  │
-│          │  └────────────────────────────────────────────────────────┘  │
-│          │                           │                                  │
-│  Layer 6 │  ┌────────────────────────────────────────────────────────┐  │
-│          │  │  API Authentication, Authorization, Rate Limiting      │  │
-│          │  │  (API Gateway Security)                                │  │
-│          │  └────────────────────────────────────────────────────────┘  │
-│          │                           │                                  │
-│  Layer 5 │  ┌────────────────────────────────────────────────────────┐  │
-│          │  │  Private Endpoints, Private Link, Service Tags         │  │
-│          │  │  (Private Connectivity)                                │  │
-│          │  └────────────────────────────────────────────────────────┘  │
-│          │                           │                                  │
-│  Layer 4 │  ┌────────────────────────────────────────────────────────┐  │
-│          │  │  Azure Firewall, NSG Rules, Application Security Groups│  │
-│          │  │  (Network Segmentation)                                │  │
-│          │  └────────────────────────────────────────────────────────┘  │
-│          │                           │                                  │
-│  Layer 3 │  ┌────────────────────────────────────────────────────────┐  │
-│          │  │  VNet Peering, Subnet Isolation, UDRs                  │  │
-│          │  │  (Network Isolation)                                   │  │
-│          │  └────────────────────────────────────────────────────────┘  │
-│          │                           │                                  │
-│  Layer 2 │  ┌────────────────────────────────────────────────────────┐  │
-│          │  │  DDoS Protection, Network Virtual Appliances           │  │
-│          │  │  (Perimeter Security)                                  │  │
-│          │  └────────────────────────────────────────────────────────┘  │
-│          │                           │                                  │
-│  Layer 1 │  ┌────────────────────────────────────────────────────────┐  │
-│          │  │  Encryption (TLS 1.2+), Certificate Management         │  │
-│          │  │  (Transport Security)                                  │  │
-│          │  └────────────────────────────────────────────────────────┘  │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    L7["Layer 7 — Application Security<br/>AI Content Safety · PII Detection · Policy Engine"]
+    L6["Layer 6 — API Gateway Security<br/>Authentication · Authorization · Rate Limiting"]
+    L5["Layer 5 — Private Connectivity<br/>Private Endpoints · Private Link · Service Tags"]
+    L4["Layer 4 — Network Segmentation<br/>Azure Firewall · NSG Rules · App Security Groups"]
+    L3["Layer 3 — Network Isolation<br/>VNet Peering · Subnet Isolation · UDRs"]
+    L2["Layer 2 — Perimeter Security<br/>DDoS Protection · Network Virtual Appliances"]
+    L1["Layer 1 — Transport Security<br/>Encryption (TLS 1.2+) · Certificate Management"]
+
+    L7 --> L6 --> L5 --> L4 --> L3 --> L2 --> L1
 ```
 
 ## Network Security Groups (NSGs)
@@ -409,45 +379,24 @@ resource privateDnsZoneGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneG
 
 For hybrid scenarios with on-premises connectivity:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         ON-PREMISES                              │
-│  ┌──────────────┐                                               │
-│  │ DNS Servers  │◀─────────────────────────────────────┐        │
-│  │ • Forwarders │                                      │        │
-│  └──────────────┘                                      │        │
-│         │                                              │        │
-│         │                                              │        │
-│  ┌──────▼───────┐        ┌──────────────┐             │        │
-│  │   Agents     │        │ ExpressRoute │             │        │
-│  │              │◀──────▶│ or VPN GW    │             │        │
-│  └──────────────┘        └──────┬───────┘             │        │
-│                                 │                     │        │
-└─────────────────────────────────┼─────────────────────┼────────┘
-                                  │                     │
-                                  ▼                     │
-┌───────────────────────────────────────────────────────────────┐ │
-│                     AZURE (Hub VNet)                           │ │
-│                                                                │ │
-│   ┌──────────────┐    ┌──────────────────┐                    │ │
-│   │   Gateway    │◀──▶│  Private DNS     │◀───────────────────┘ │
-│   │   Subnet     │    │  Zone Resolver   │                      │
-│   └──────────────┘    └──────────────────┘                      │
-│          │                                                      │
-│          │                                                      │
-│   ┌──────▼──────────────────────────────────────────────────┐   │
-│   │              PRIVATE DNS ZONES                           │   │
-│   │  • privatelink.cognitiveservices.azure.com              │   │
-│   │  • privatelink.vaultcore.azure.net                      │   │
-│   │  • privatelink.documents.azure.com                      │   │
-│   └──────────────────────────────────────────────────────────┘   │
-│                                  │                               │
-│                                  ▼                               │
-│   ┌──────────────────────────────────────────────────────────┐   │
-│   │              PRIVATE ENDPOINTS                            │   │
-│   │  • Cosmos DB  • Key Vault  • Storage  • AI Services      │   │
-│   └──────────────────────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph OnPrem["On-Premises"]
+        DNS["DNS Servers (Forwarders)"]
+        Agents["Agents"]
+        ERGW["ExpressRoute / VPN GW"]
+    end
+    subgraph Azure["Azure (Hub VNet)"]
+        GWS["Gateway Subnet"]
+        PDNS["Private DNS Zone Resolver"]
+        PDZ["Private DNS Zones<br/>cognitiveservices · vaultcore · documents"]
+        PE["Private Endpoints<br/>Cosmos DB · Key Vault · Storage · AI Services"]
+    end
+    Agents <--> ERGW
+    ERGW --> GWS
+    GWS <--> PDNS
+    DNS <-->|DNS forwarding| PDNS
+    PDNS --> PDZ --> PE
 ```
 
 ## DDoS Protection

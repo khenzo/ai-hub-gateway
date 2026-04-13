@@ -33,34 +33,18 @@ The four layers are not isolated silos—they form an integrated architecture wh
 
 ## Layer Interactions
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    🛡️ Layer 4: Security Fabric               │
-│         (Defender, Purview, Entra - Unified Protection)       │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   🟢 Layer 3: Agent Identity                 │
-│              (Entra ID - Identity & Lifecycle)               │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  🔶 Layer 2: AI Control Plane                │
-│       (Foundry Control Plane - Observability & Compliance)   │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  🔷 Layer 1: Governance Hub                  │
-│     (API Management - Runtime Enforcement & Gateway)         │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                    ┌─────────┴─────────┐
-                    │   AI Agents &     │
-                    │   Applications    │
-                    └───────────────────┘
+```mermaid
+graph TB
+    L4["🛡️ Layer 4: Security Fabric<br/>Defender · Purview · Entra — Unified Protection"]
+    L3["🟢 Layer 3: Agent Identity<br/>Entra ID — Identity &amp; Lifecycle"]
+    L2["🔶 Layer 2: AI Control Plane<br/>Foundry Control Plane — Observability &amp; Compliance"]
+    L1["🔷 Layer 1: Governance Hub<br/>API Management — Runtime Enforcement &amp; Gateway"]
+    AG["AI Agents &amp; Applications"]
+
+    L4 --> L3
+    L3 --> L2
+    L2 --> L1
+    L1 --> AG
 ```
 
 ## Benefits of the Layered Approach
@@ -141,5 +125,5 @@ For comprehensive documentation of each layer, see:
 ## Next Steps
 
 - Learn about [Layer 1: Governance Hub](./layer-1-governance-hub) — the runtime enforcement foundation
-- Explore [networking patterns](../deployment/network-approach) for hub-spoke deployment
-- Review [deployment guides](../deployment/quickstart) to implement the architecture
+- Explore [networking patterns](/guides/network-approach) for hub-spoke deployment
+- Review [deployment guides](/getting-started/quick-start) to implement the architecture

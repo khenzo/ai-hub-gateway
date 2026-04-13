@@ -33,31 +33,22 @@ The **Citadel 4-Layer Architecture** is not a collection of isolated silos—it 
 
 ### Detailed Dependency Mapping
 
-```
-                         ┌─────────────────────────┐
-                         │  Layer 4: Security      │
-                         │     (Foundational)      │
-                         └───────────┬─────────────┘
-                                     │
-        ┌────────────────────────────┼────────────────────────────┐
-        │                            │                            │
-        ▼                            ▼                            ▼
-┌───────────────┐          ┌───────────────┐          ┌───────────────┐
-│ Layer 3:      │          │ Layer 1:      │          │ Layer 2:      │
-│ Agent         │◄────────►│ Governance    │◄────────►│ AI Control    │
-│ Identity      │ Identity │ Hub           │ Telemetry│ Plane         │
-└───────┬───────┘ Context  └───────┬───────┘ Data     └───────┬───────┘
-        │                          │                          │
-        │                          │                          │
-        └──────────────────────────┴──────────────────────────┘
-                                   │
-                                   ▼
-                    ┌──────────────────────────┐
-                    │  Cross-Layer Workflows   │
-                    │  • Agent Onboarding      │
-                    │  • Threat Response       │
-                    │  • Compliance Monitoring │
-                    └──────────────────────────┘
+```mermaid
+graph TB
+    L4["Layer 4: Security Fabric<br/>(Foundational)"]
+    L3["Layer 3: Agent Identity"]
+    L1["Layer 1: Governance Hub"]
+    L2["Layer 2: AI Control Plane"]
+    CW["Cross-Layer Workflows<br/>Agent Onboarding · Threat Response · Compliance Monitoring"]
+
+    L4 --> L3
+    L4 --> L1
+    L4 --> L2
+    L3 <-->|Identity Context| L1
+    L1 <-->|Telemetry Data| L2
+    L3 --> CW
+    L1 --> CW
+    L2 --> CW
 ```
 
 ## Layer 1 Integration Patterns
@@ -402,6 +393,6 @@ This integration pattern enables:
 
 ## Next Steps
 
-- Review [deployment guides](../deployment/quickstart) to implement the architecture
-- Explore [networking patterns](../deployment/network-approach) for layer connectivity
+- Review [deployment guides](/getting-started/quick-start) to implement the architecture
+- Explore [networking patterns](/guides/network-approach) for layer connectivity
 - Learn about [operations](../operations/monitoring) for managing integrated layers

@@ -125,40 +125,18 @@ Fine-grained permissions based on agent attributes:
 
 ## Agent Identity Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                  Agent 365 Identity Platform                │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
-│  │   Agent A   │    │   Agent B   │    │   Agent C   │     │
-│  │  (Finance)  │    │   (Sales)   │    │  (Support)  │     │
-│  │             │    │             │    │             │     │
-│  │ • Object ID │    │ • Object ID │    │ • Object ID │     │
-│  │ • Sponsor   │    │ • Sponsor   │    │ • Sponsor   │     │
-│  │ • Access    │    │ • Access    │    │ • Access    │     │
-│  │   Package   │    │   Package   │    │   Package   │     │
-│  └──────┬──────┘    └──────┬──────┘    └──────┬──────┘     │
-│         │                  │                  │            │
-│         └──────────────────┼──────────────────┘            │
-│                            │                               │
-│                            ▼                               │
-│         ┌──────────────────────────────────┐               │
-│         │      Microsoft Entra ID          │               │
-│         │  • Service Principals            │               │
-│         │  • Access Policies               │               │
-│         │  • Lifecycle Workflows           │               │
-│         └──────────────────────────────────┘               │
-│                            │                               │
-│                            ▼                               │
-│         ┌──────────────────────────────────┐               │
-│         │   Governance & Compliance        │               │
-│         │  • Access Reviews                │               │
-│         │  • Audit Logs                    │               │
-│         │  • Compliance Reports            │               │
-│         └──────────────────────────────────┘               │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    A["Agent A (Finance)<br/>Object ID · Sponsor · Access Package"]
+    B["Agent B (Sales)<br/>Object ID · Sponsor · Access Package"]
+    C["Agent C (Support)<br/>Object ID · Sponsor · Access Package"]
+    EID["Microsoft Entra ID<br/>Service Principals · Access Policies · Lifecycle Workflows"]
+    GC["Governance &amp; Compliance<br/>Access Reviews · Audit Logs · Compliance Reports"]
+
+    A --> EID
+    B --> EID
+    C --> EID
+    EID --> GC
 ```
 
 ## Integration with Other Layers
@@ -230,11 +208,11 @@ Fine-grained permissions based on agent attributes:
 For technical implementation details, see:
 
 - [Microsoft Entra Agent Identity Documentation](https://learn.microsoft.com/en-us/entra/id-governance/agent-id-governance-overview)
-- [Agent Lifecycle Management](../operations/agent-lifecycle)
-- [Access Package Configuration](../deployment/access-packages)
+- [Agent Lifecycle Management](/operations/runbooks/index)
+- [Access Package Configuration](/governance/access-contracts)
 
 ## Next Steps
 
 - Explore [Layer 4: Security Fabric](./layer-4-security-fabric) for unified protection
-- Learn about [agent onboarding](../deployment/agent-onboarding) workflows
-- Review [compliance monitoring](../operations/compliance-monitoring) capabilities
+- Learn about [agent onboarding](/getting-started/quick-start) workflows
+- Review [compliance monitoring](/operations/monitoring) capabilities

@@ -4,9 +4,9 @@
   "description": "Enterprise-grade AI infrastructure deployment guide documentation",
   "private": true,
   "scripts": {
-    "dev": "mintlify dev",
-    "build": "mintlify build",
-    "start": "mintlify dev"
+    "dev": "cd docs && mintlify dev",
+    "build": "cd docs && mintlify build",
+    "start": "cd docs && mintlify dev"
   },
   "devDependencies": {
     "mintlify": "^4.0.0"

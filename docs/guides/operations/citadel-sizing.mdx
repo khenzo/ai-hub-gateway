@@ -115,25 +115,25 @@ When determining the appropriate size for the AI Citadel Governance Hub, conside
 - Average token count per request
 - Concurrent user sessions
 - Burst traffic patterns
-  </Accordion>
+</Accordion>
   <Accordion title="Model Requirements">
 - Number of models to support
 - Model complexity (GPT-4o vs GPT-5)
 - Mix of PTU vs PAYG models
 - Geographic distribution needs
-  </Accordion>
+</Accordion>
   <Accordion title="Governance Needs">
 - PII processing requirements
 - Content safety volume
 - Logging and audit retention
 - Number of access contracts
-  </Accordion>
+</Accordion>
   <Accordion title="Growth Projections">
 - 6-month growth forecast
 - New team onboarding plans
 - Model expansion roadmap
 - Multi-region requirements
-  </Accordion>
+</Accordion>
 </AccordionGroup>
 
 <Note>
@@ -144,7 +144,7 @@ Medium and Medium V2 tiers can be scaled out by adding additional APIM units to 
 
 ## SKU Implementation
 
-Based on the selected T-Shirt and environment, update the SKUs in the deployment <a href="/bicep/infra/main.bicepparam" target="_blank">main.bicepparam</a> under the `COMPUTE SKU & SIZE` section:
+Based on the selected T-Shirt and environment, update the SKUs in the deployment <a href="https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/blob/citadel-v1/bicep/infra/main.bicepparam" target="_blank">main.bicepparam</a> under the `COMPUTE SKU & SIZE` section:
 
 ```bicep
 // ============================================================================

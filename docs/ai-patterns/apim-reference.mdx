@@ -16,50 +16,38 @@ This architecture implements the [hub-spoke networking model](/architecture/hub-
 
 ## Architecture Overview
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         AZURE PLATFORM LANDING ZONE                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │   Entra ID   │  │   Hub VNet   │  │ Log Analytics│  │ Azure Policy │     │
-│  │  (Identity)  │  │  (Network)   │  │ (Monitoring) │  │ (Governance) │     │
-│  └──────────────┘  └──────┬───────┘  └──────────────┘  └──────────────┘     │
-│                           │                                                 │
-└───────────────────────────┼─────────────────────────────────────────────────┘
-                            │ VNet Peering
-                            ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                      AI APPLICATION LANDING ZONE                             │
-│                                                                              │
-│  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │               CENTRAL GOVERNANCE HUB (CGH)                            │   │
-│  │                                                                       │   │
-│  │  ┌─────────────────────────────────────────────────────────────────┐  │   │
-│  │  │           AZURE API MANAGEMENT (Premium)                         │  │   │
-│  │  │                                                                  │  │   │
-│  │  │  ┌──────────────┐  ┌──────────────┐  ┌────────────────────────┐ │  │   │
-│  │  │  │   Gateway    │  │   Policies   │  │     Backend Pools      │ │  │   │
-│  │  │  │              │  │              │  │                        │ │  │   │
-│  │  │  │ • API Mgmt   │──▶ • Rate Limit │──▶ • Azure OpenAI        │ │  │   │
-│  │  │  │ • Auth       │  │ • Transform  │  │ • AI Foundry          │ │  │   │
-│  │  │  │ • Routing    │  │ • Safety     │  │ • Third-party LLMs    │ │  │   │
-│  │  │  │ • Caching    │  │ • Logging    │  │ • Custom endpoints    │ │  │   │
-│  │  │  └──────────────┘  └──────────────┘  └────────────────────────┘ │  │   │
-│  │  └─────────────────────────────────────────────────────────────────┘  │   │
-│  │                                                                       │   │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐                 │   │
-│  │  │  API Center  │  │  App Insights│  │ Log Analytics│                 │   │
-│  │  │  (Registry)  │  │  (Telemetry) │  │ (Audit Logs) │                 │   │
-│  │  └──────────────┘  └──────────────┘  └──────────────┘                 │   │
-│  └────────────────────────────────────────┬──────────────────────────────┘   │
-│                                           │                                  │
-│                              VNet Peering │                                  │
-│                                           │                                  │
-│  ┌─────────────┐  ┌─────────────┐  ┌──────┴───────┐  ┌─────────────┐         │
-│  │  Agent      │  │  Agent      │  │  Agent       │  │  Agent      │         │
-│  │  Spoke 1    │  │  Spoke 2    │  │  Spoke 3     │  │  Spoke N    │         │
-│  │  (Finance)  │  │  (HR)       │  │  (Legal)     │  │  (Other)    │         │
-│  └─────────────┘  └─────────────┘  └──────────────┘  └─────────────┘         │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph APL["AZURE PLATFORM LANDING ZONE"]
+        direction LR
+        EID["Entra ID\n(Identity)"]
+        HUB["Hub VNet\n(Network)"]
+        LA1["Log Analytics\n(Monitoring)"]
+        AZP["Azure Policy\n(Governance)"]
+    end
+
+    APL -->|VNet Peering| CGH
+
+    subgraph AILZ["AI APPLICATION LANDING ZONE"]
+        subgraph CGH["CENTRAL GOVERNANCE HUB (CGH)"]
+            subgraph APIM["AZURE API MANAGEMENT (Premium)"]
+                GW["Gateway\nAPI Mgmt · Auth\nRouting · Caching"]
+                POL["Policies\nRate Limit · Transform\nSafety · Logging"]
+                BP["Backend Pools\nAzure OpenAI · AI Foundry\nThird-party LLMs · Custom"]
+                GW --> POL --> BP
+            end
+            APC["API Center\n(Registry)"]
+            AI["App Insights\n(Telemetry)"]
+            LA2["Log Analytics\n(Audit Logs)"]
+        end
+
+        CGH -->|VNet Peering| S1 & S2 & S3 & SN
+
+        S1["Agent Spoke 1\n(Finance)"]
+        S2["Agent Spoke 2\n(HR)"]
+        S3["Agent Spoke 3\n(Legal)"]
+        SN["Agent Spoke N\n(Other)"]
+    end
 ```
 
 ## Hub Components
@@ -121,18 +109,22 @@ Agent Environment Spokes (CAS) connect to the hub for governance while maintaini
 
 Each business unit deploys its own spoke:
 
-```
-Business Unit Spoke (e.g., Finance)
-├── Virtual Network (isolated)
-│   ├── Compute subnet (AI apps/agents)
-│   ├── Data subnet (storage, databases)
-│   └── Integration subnet (service connections)
-├── AI Workloads
-│   ├── Agent applications
-│   ├── Data pipelines
-│   └── Integration services
-└── Connection to CGH
-    └── All AI traffic routes through APIM
+```mermaid
+graph TD
+    BUS["Business Unit Spoke\ne.g. Finance"]
+    VN["Virtual Network\nisolated"]
+    CS["Compute subnet\nAI apps/agents"]
+    DS["Data subnet\nstorage, databases"]
+    IS["Integration subnet\nservice connections"]
+    AW["AI Workloads"]
+    AA["Agent applications"]
+    DP["Data pipelines"]
+    INTS["Integration services"]
+    CCON["Connection to CGH\nAll AI traffic routes through APIM"]
+
+    BUS --> VN & AW & CCON
+    VN --> CS & DS & IS
+    AW --> AA & DP & INTS
 ```
 
 ### AI Workload Spokes
@@ -155,29 +147,19 @@ Optional shared infrastructure:
 
 ### Traffic Flow
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     REQUEST FLOW PATTERN                         │
-│                                                                  │
-│  Spoke Agent        CGH Gateway         Backend Services        │
-│       │                  │                     │                │
-│       │ 1. Request       │                     │                │
-│       │─────────────────▶│                     │                │
-│       │                  │                     │                │
-│       │             2. Auth & Policy           │                │
-│       │                  │                     │                │
-│       │             3. Route to Backend        │                │
-│       │                  │────────────────────▶│                │
-│       │                  │                     │                │
-│       │             4. Process Request         │                │
-│       │                  │◀────────────────────│                │
-│       │                  │                     │                │
-│       │             5. Response Validation     │                │
-│       │                  │                     │                │
-│       │ 6. Response      │                     │                │
-│       │◀─────────────────│                     │                │
-│       │                  │                     │                │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+sequenceDiagram
+    participant SA as Spoke Agent
+    participant CGH as CGH Gateway
+    participant BE as Backend Services
+
+    SA->>CGH: 1. Request
+    Note over CGH: 2. Auth & Policy
+    CGH->>BE: 3. Route to Backend
+    Note over BE: 4. Process Request
+    BE-->>CGH: Response
+    Note over CGH: 5. Response Validation
+    CGH-->>SA: 6. Response
 ```
 
 ### Private Connectivity
@@ -193,39 +175,49 @@ All connections use private networking:
 
 ### Subnet Design (Hub)
 
-```
-CGH Virtual Network (10.0.0.0/16)
-├── GatewaySubnet (10.0.1.0/24)      - APIM gateway
-├── ManagementSubnet (10.0.2.0/24)   - APIM management
-├── ServicesSubnet (10.0.3.0/24)     - API Center, monitoring
-└── IntegrationSubnet (10.0.4.0/24)  - Private endpoints
+```mermaid
+graph TD
+    VN["CGH Virtual Network\n10.0.0.0/16"]
+    GS["GatewaySubnet 10.0.1.0/24\nAPIM gateway"]
+    MS["ManagementSubnet 10.0.2.0/24\nAPIM management"]
+    SS["ServicesSubnet 10.0.3.0/24\nAPI Center, monitoring"]
+    IS["IntegrationSubnet 10.0.4.0/24\nPrivate endpoints"]
+
+    VN --> GS & MS & SS & IS
 ```
 
 ## Security Boundaries
 
 ### Defense in Depth
 
-```
-Layer 1: Perimeter
-├── Azure Firewall (traffic inspection)
-├── DDoS Protection
-└── NSGs (network segmentation)
+```mermaid
+flowchart TD
+    subgraph L1["Layer 1: Perimeter"]
+        AF["Azure Firewall\ntraffic inspection"]
+        DD["DDoS Protection"]
+        NSG["NSGs\nnetwork segmentation"]
+    end
 
-Layer 2: Gateway
-├── OAuth 2.0 / JWT validation
-├── Rate limiting and quotas
-├── Content filtering
-└── PII detection
+    subgraph L2["Layer 2: Gateway"]
+        OA["OAuth 2.0 / JWT validation"]
+        RL["Rate limiting and quotas"]
+        CF["Content filtering"]
+        PII["PII detection"]
+    end
 
-Layer 3: Backend
-├── Private endpoints
-├── Managed identities
-└── Encryption at rest/in transit
+    subgraph L3["Layer 3: Backend"]
+        PE["Private endpoints"]
+        MI["Managed identities"]
+        ENC["Encryption at rest/in transit"]
+    end
 
-Layer 4: Observability
-├── Audit logging
-├── Security alerts
-└── Compliance monitoring
+    subgraph L4["Layer 4: Observability"]
+        AL["Audit logging"]
+        SA["Security alerts"]
+        CM["Compliance monitoring"]
+    end
+
+    L1 --> L2 --> L3 --> L4
 ```
 
 ### Policy Enforcement
@@ -268,17 +260,21 @@ Layer 4: Observability
 
 For high availability and disaster recovery:
 
-```
-Primary Region                    Secondary Region
-┌──────────────┐                 ┌──────────────┐
-│   CGH Hub    │◀───────────────▶│  CGH Hub     │
-│  (Active)    │   Geo-replication  │  (Passive) │
-└──────┬───────┘                 └──────┬───────┘
-       │                                │
-       │                                │
-┌──────▼───────┐                 ┌──────▼───────┐
-│   Spokes     │                 │   Spokes     │
-└──────────────┘                 └──────────────┘
+```mermaid
+flowchart LR
+    subgraph PR["Primary Region"]
+        CH1["CGH Hub\n(Active)"]
+        SP1["Spokes"]
+        CH1 --> SP1
+    end
+
+    subgraph SR["Secondary Region"]
+        CH2["CGH Hub\n(Passive)"]
+        SP2["Spokes"]
+        CH2 --> SP2
+    end
+
+    CH1 <-->|Geo-replication| CH2
 ```
 
 ### Spoke Scaling
@@ -354,7 +350,7 @@ The APIM gateway integrates with [Foundry Control Plane](/ai-patterns/foundry-in
 
 ### Layer 3: Agent Identity
 
-[Agent 365 identity validation](/architecture/layers/layer3-agent-identity) at the gateway:
+[Agent 365 identity validation](/architecture/layer-3-agent-identity) at the gateway:
 
 - JWT token validation
 - Entra ID integration
@@ -362,7 +358,7 @@ The APIM gateway integrates with [Foundry Control Plane](/ai-patterns/foundry-in
 
 ### Layer 4: Security Fabric
 
-[Security integrations](/architecture/layers/layer4-security-fabric):
+[Security integrations](/architecture/layer-4-security-fabric):
 
 - Defender for API threat detection
 - Purview data governance
@@ -390,4 +386,4 @@ The APIM gateway integrates with [Foundry Control Plane](/ai-patterns/foundry-in
 1. Review the [pattern comparison](/ai-patterns/pattern-comparison) to confirm this is the right approach
 2. Plan your [network topology](/architecture/network-topology) and spoke design
 3. Review implementation templates in the [AI Landing Zones repository](https://aka.ms/ailz/apim)
-4. Set up your [development environment](/guides/getting-started)
+4. Set up your [development environment](/getting-started/quick-start)

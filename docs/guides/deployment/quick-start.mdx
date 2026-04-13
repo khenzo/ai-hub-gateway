@@ -38,7 +38,7 @@ First, initialize your local project in an empty folder (e.g. `ai-hub-citadel-de
 azd init --template Azure-Samples/ai-hub-gateway-solution-accelerator -e ai-hub-citadel-dev --branch citadel-v1
 
 # or use git clone:
-# git clone https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator.git
+# git clone -b citadel-v1 https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator.git
 # git checkout citadel-v1
 
 # Make the repository your current directory:
@@ -104,7 +104,7 @@ azd up
 | `ENABLE_AI_FOUNDRY` | `true` | Deploy AI Foundry instances |
 | `ENABLE_API_CENTER` | `true` | Enable API Center registry |
 
-For full list of variables, see <a href="/bicep/infra/main.bicepparam" target="_blank">main.bicepparam</a>.
+For full list of variables, see <a href="https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/blob/citadel-v1/bicep/infra/main.bicepparam" target="_blank">main.bicepparam</a>.
 
 ---
 
@@ -139,7 +139,7 @@ The `main.parameters.dev.bicepparam` file includes:
 
 Deployment state are visible under `Deployments` in used resource group in the Azure Portal.
 
-![Deployment in Azure Portal](/assets/rg-deployments.png)
+![Deployment in Azure Portal](/images/rg-deployments.png)
 
 Also you can retrieve key information via AZD CLI:
 

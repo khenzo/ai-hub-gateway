@@ -1,0 +1,50 @@
+# Mintlify ignore file
+# Exclude non-documentation files from processing
+
+# Planning and state files (XML-like format)
+.planning/
+.wolf/
+
+# Configuration and style files
+STYLE_GUIDE.md
+
+# Legacy configuration
+docs/mint.json
+
+# Templates (contain OpenAPI YAML that shouldn't be parsed as MDX)
+templates/
+
+# Node modules
+node_modules/
+
+# Git
+.git/
+.gitignore
+
+# Azure and infrastructure files
+azure.yaml
+bicep/
+
+# Scripts and utilities
+scripts/
+shared/
+src/
+validation/
+guides/
+
+# Assets
+assets/
+
+# Python
+*.pyc
+__pycache__/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

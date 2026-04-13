@@ -1,0 +1,8 @@
+/* Increase navbar logo display size */
+#navbar img,
+header img,
+nav img {
+  height: 44px !important;
+  width: auto !important;
+  max-width: 260px !important;
+}

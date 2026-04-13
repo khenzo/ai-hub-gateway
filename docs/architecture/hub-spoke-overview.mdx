@@ -1,6 +1,5 @@
 ---
 title: Hub-Spoke Architecture Overview
-description: Central Governance Hub (CGH) and Agent Environment Spokes (CAS) hub-spoke networking model
 description: 'Understand the hub-spoke architecture of Citadel Governance Hub, including the central governance layer and connected agent spokes'
 ---
 
@@ -58,26 +57,18 @@ The **Citadel Governance Hub** is the central control plane that governs all AI 
 
 ### One-to-Many Governance Model
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│              CENTRAL GOVERNANCE HUB (CGH)                    │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────┐  │
-│  │ AI Gateway  │  │ Policy Engine│  │ Observability       │  │
-│  │             │  │              │  │ • Usage Tracking    │  │
-│  │ • Routing   │  │ • Safety     │  │ • Cost Attribution  │  │
-│  │ • Auth      │  │ • Compliance │  │ • Performance       │  │
-│  │ • Rate Limit│  │ • Filtering  │  │ • Audit Logs        │  │
-│  └──────┬──────┘  └──────────────┘  └─────────────────────┘  │
-└───────┼──────────────────────────────────────────────────────┘
-        │
-        │    VNet Peering / Private Connectivity
-        │
-   ┌────┴────┬─────────┬─────────┬─────────┐
-   │         │         │         │         │
-┌──▼──┐  ┌───▼───┐ ┌───▼───┐ ┌───▼───┐ ┌───▼───┐
-│Spoke│  │ Spoke │ │ Spoke │ │ Spoke │ │ Spoke │
-│ HR  │  │Finance│ │Legal  │ │  IT   │ │ Ops   │
-└─────┘  └───────┘ └───────┘ └───────┘ └───────┘
+```mermaid
+graph TB
+    subgraph CGH["Central Governance Hub (CGH)"]
+        GW["AI Gateway<br/>Routing · Auth · Rate Limit"]
+        PE["Policy Engine<br/>Safety · Compliance · Filtering"]
+        OB["Observability<br/>Usage · Cost Attribution · Audit Logs"]
+    end
+    CGH -->|VNet Peering / Private Connectivity| HR["Spoke: HR"]
+    CGH --> FIN["Spoke: Finance"]
+    CGH --> LEG["Spoke: Legal"]
+    CGH --> IT["Spoke: IT"]
+    CGH --> OPS["Spoke: Ops"]
 ```
 
 ### Traffic Flow Pattern
@@ -137,43 +128,31 @@ The **Citadel Governance Hub** is the central control plane that governs all AI 
 
 The Citadel hub-spoke model extends your existing Azure Landing Zone architecture:
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│           AZURE LANDING ZONE (Enterprise Scale)              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │  Platform    │  │  Management  │  │  Identity    │       │
-│  │  Sub         │  │  Sub         │  │  Sub         │       │
-│  └──────────────┘  └──────────────┘  └──────────────┘       │
-│                                                              │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │          ENTERPRISE HUB VIRTUAL NETWORK              │    │
-│  │                                                      │    │
-│  │   ┌─────────────────┐    ┌─────────────────────┐    │    │
-│  │   │  Shared Svcs    │    │  Azure Firewall     │    │    │
-│  │   │  • AD DS        │    │  • Traffic Inspect  │    │    │
-│  │   │  • DNS          │    │  • Threat Intel     │    │    │
-│  │   │  • NVA          │    │                     │    │    │
-│  │   └─────────────────┘    └─────────────────────┘    │    │
-│  └──────────────┬──────────────────────────────────────┘    │
-│                 │                                           │
-│        ┌────────┴────────┐                                  │
-│        │  VNet Peering   │                                  │
-│        └────────┬────────┘                                  │
-│                 │                                           │
-│  ┌──────────────▼──────────────────────────────────────┐    │
-│  │         CITADEL GOVERNANCE HUB (CGH)                │    │
-│  │   • AI Gateway (API Management)                      │    │
-│  │   • Policy Engine (Content Safety)                   │    │
-│  │   • Observability (App Insights, Log Analytics)      │    │
-│  └──────────────────────┬───────────────────────────────┘    │
-│                         │                                   │
-│              ┌──────────┼──────────┐                        │
-│              │          │          │                        │
-│  ┌───────────▼───┐ ┌────▼────┐ ┌───▼────────┐              │
-│  │ Agent Spoke 1 │ │Spoke 2  │ │ Spoke 3    │              │
-│  │ (Finance)     │ │(HR)     │ │ (Legal)    │              │
-│  └───────────────┘ └─────────┘ └────────────┘              │
-└──────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph ALZ["Azure Landing Zone (Enterprise Scale)"]
+        subgraph Subs["Platform Subscriptions"]
+            PS["Platform Sub"]
+            MS["Management Sub"]
+            IS["Identity Sub"]
+        end
+        subgraph HubVNet["Enterprise Hub Virtual Network"]
+            SS["Shared Services<br/>AD DS · DNS · NVA"]
+            FW["Azure Firewall<br/>Traffic Inspect · Threat Intel"]
+        end
+    end
+    subgraph CGH["Citadel Governance Hub (CGH)"]
+        GW2["AI Gateway (API Management)"]
+        PE2["Policy Engine (Content Safety)"]
+        OB2["Observability<br/>App Insights · Log Analytics"]
+    end
+    subgraph Spokes["Agent Spokes"]
+        S1["Spoke 1 (Finance)"]
+        S2["Spoke 2 (HR)"]
+        S3["Spoke 3 (Legal)"]
+    end
+    HubVNet -->|VNet Peering| CGH
+    CGH --> Spokes
 ```
 
 ### Alignment with ALZ Design Areas

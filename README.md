@@ -68,6 +68,14 @@ AI Citadel Governance Hub follows a **hub-spoke architecture** that integrates s
 
 ![Citadel Governance Hub](./assets/citadel-governance-hub-v1.png)
 
+### AI Landing Zone — End-to-End Architecture
+
+The Citadel Governance Hub is designed to operate as the central governance layer within the broader **AI Landing Zone** framework. The AI Landing Zone provides the full-stack reference architecture for deploying secure, resilient, and scalable AI workloads — combining both an **AI Foundry spoke** for workload deployment and an **APIM-based AI Gateway** spoke for centralized model governance.
+
+![AI Landing Zone Overview](https://raw.githubusercontent.com/Azure/AI-Landing-Zones/main/media/AI-Landing-Zone.png)
+
+> The diagram above illustrates the complete AI Landing Zone landscape. The Citadel Governance Hub acts as the APIM-based AI Gateway (right side), while agent workloads deploy into the Foundry-based spoke environments (left side).
+
 ### Networking approach
 
 Detailed networking approach guidance for Citadel Governance Hub can be found in the [Network Approach Guide](./guides/network-approach.md).
@@ -170,6 +178,36 @@ For detailed guidance, see [AI App Landing Zone Repo](https://github.com/Azure/A
 - **Brownfield (Standalone with Existing Resources)** - Integrates with existing enterprise landing zones, reusing VNets and centralized monitoring
 
 > **Note:** Citadel Agent Environment deployment supports the AI development velocity pillar and is designed to work in conjunction with Citadel Governance Hub. Multiple environments can connect to a single hub for unified governance and observability.
+
+#### AI Landing Zone Reference Architectures
+
+Two primary reference architectures are available depending on whether workloads connect directly via Foundry or route through an APIM gateway:
+
+##### Foundry-based AI Landing Zone
+
+Deploy AI agents and apps using Azure AI Foundry as the core orchestration platform:
+
+![AI Landing Zone for Foundry](https://raw.githubusercontent.com/Azure/AI-Landing-Zones/main/media/AI-Landing-Zone-Foundry.png)
+
+##### APIM-based AI Landing Zone
+
+Route all AI workloads through Azure API Management as the centralized AI gateway — the pattern that connects directly to the Citadel Governance Hub:
+
+![AI Landing Zone for APIM](https://raw.githubusercontent.com/Azure/AI-Landing-Zones/main/media/AI-Landing-Zones-APIM.png)
+
+##### Standalone Deployment (Without Platform Landing Zone)
+
+For teams that need to deploy without an existing Azure platform landing zone:
+
+![AI Landing Zone without Platform](https://raw.githubusercontent.com/Azure/AI-Landing-Zones/main/media/AI-Landing-Zone-without-platform.png)
+
+#### AI Landing Zone Design Checklist
+
+The AI Landing Zone covers design areas across both the **Cloud Adoption Framework** and **Well-Architected Framework**. Use the checklist to assess greenfield and brownfield environments:
+
+![AI Landing Zone Design Checklist](https://raw.githubusercontent.com/Azure/AI-Landing-Zones/main/media/AI-Landing-Zone-design-area-checklist.png)
+
+> 🔗 Full interactive checklist: [AI Landing Zone Design Checklist](https://azure.github.io/AI-Landing-Zones/architecture/design-checklist/)
 
 ---
 

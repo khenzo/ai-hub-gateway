@@ -1,6 +1,5 @@
 ---
 title: VNet Peering and Connectivity
-description: Hub-spoke connectivity, routing, and cross-region networking patterns
 description: 'Configure VNet peering, routing, and connectivity between hub and spokes including cross-region scenarios'
 ---
 
@@ -12,41 +11,17 @@ This document covers VNet peering patterns, routing configuration, and connectiv
 
 ### Basic Peering Model
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                       HUB VNET (CGH)                                     │
-│                                                                          │
-│   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │                     CITADEL GOVERNANCE HUB                       │   │
-│   │                                                                  │   │
-│   │   ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │   │
-│   │   │ AI Gateway   │  │  Services    │  │  Private Endpoints   │  │   │
-│   │   └──────────────┘  └──────────────┘  └──────────────────────┘  │   │
-│   │                                                                  │   │
-│   └─────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-│   Peering 1: "hub-to-spoke-finance"                                      │
-│   ┌────────────────────────┐        ┌────────────────────────┐          │
-│   │ AllowForwardedTraffic  │◀──────▶│ AllowForwardedTraffic  │          │
-│   │ AllowGatewayTransit    │        │ UseRemoteGateways      │          │
-│   └────────────────────────┘        └────────────────────────┘          │
-│                                                                          │
-│   Peering 2: "hub-to-spoke-hr"                                          │
-│   ┌────────────────────────┐        ┌────────────────────────┐          │
-│   │ AllowForwardedTraffic  │◀──────▶│ AllowForwardedTraffic  │          │
-│   │ AllowGatewayTransit    │        │ UseRemoteGateways      │          │
-│   └────────────────────────┘        └────────────────────────┘          │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-       │                                              │
-       │                                              │
-       ▼                                              ▼
-┌─────────────────────────────────┐  ┌─────────────────────────────────┐
-│     FINANCE SPOKE VNET          │  │         HR SPOKE VNET           │
-│   ┌─────────────────────────┐   │  │   ┌─────────────────────────┐   │
-│   │    AI Agent Workloads   │   │  │   │    AI Agent Workloads   │   │
-│   └─────────────────────────┘   │  │   └─────────────────────────┘   │
-└─────────────────────────────────┘  └─────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph Hub["Hub VNet (CGH)"]
+        GW["AI Gateway"]
+        SVC["Services"]
+        PE["Private Endpoints"]
+    end
+    Hub -->|"hub-to-spoke-finance<br/>AllowForwardedTraffic · AllowGatewayTransit"| FIN["Finance Spoke VNet<br/>AI Agent Workloads"]
+    Hub -->|"hub-to-spoke-hr<br/>AllowForwardedTraffic · AllowGatewayTransit"| HR["HR Spoke VNet<br/>AI Agent Workloads"]
+    FIN -->|UseRemoteGateways| Hub
+    HR -->|UseRemoteGateways| Hub
 ```
 
 ### Peering Configuration (Bicep)
@@ -100,29 +75,13 @@ resource spokeToHubPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeer
 
 By default, spoke-to-spoke traffic routes through the hub:
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           HUB VNET                                       │
-│                                                                          │
-│   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │                      AZURE FIREWALL                              │   │
-│   │                                                                  │   │
-│   │         Spoke A ────────▶ Firewall ────────▶ Spoke B            │   │
-│   │                                                                  │   │
-│   └─────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-│   Peering: hub-to-spoke-a, hub-to-spoke-b                               │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-       │                                              │
-       │                                              │
-       ▼                                              ▼
-┌─────────────────────────────────┐  ┌─────────────────────────────────┐
-│        SPOKE A VNET             │  │         SPOKE B VNET            │
-│   ┌─────────────────────────┐   │  │   ┌─────────────────────────┐   │
-│   │    Agent A              │───┼──┼───▶│    Agent B              │   │
-│   └─────────────────────────┘   │  │   └─────────────────────────┘   │
-└─────────────────────────────────┘  └─────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph Hub["Hub VNet"]
+        FW["Azure Firewall"]
+    end
+    SA["Spoke A VNet<br/>Agent A"] -->|via peering| FW
+    FW -->|via peering| SB["Spoke B VNet<br/>Agent B"]
 ```
 
 ### Direct Peering (When Needed)
@@ -157,45 +116,23 @@ resource spokeAToSpokeBPeering 'Microsoft.Network/virtualNetworks/virtualNetwork
 
 ### ExpressRoute Integration
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        ON-PREMISES                                       │
-│   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │   Data Center                                                    │   │
-│   │   ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │   │
-│   │   │ Applications │  │   Agents     │  │    Users             │  │   │
-│   │   └──────┬───────┘  └──────┬───────┘  └──────────┬───────────┘  │   │
-│   │          │                 │                      │              │   │
-│   │          └─────────────────┴──────────────────────┘              │   │
-│   │                           │                                       │   │
-│   │                    ┌──────▼───────┐                               │   │
-│   │                    │   ExpressRoute│                               │   │
-│   │                    │   Circuit     │                               │   │
-│   │                    └──────┬───────┘                               │   │
-│   └───────────────────────────┼───────────────────────────────────────┘   │
-│                               │                                           │
-│                        ┌──────▼───────┐                                   │
-│                        │    MSEE      │  (Microsoft Enterprise Edge)      │
-│                        └──────────────┘                                   │
-└───────────────────────────────┼───────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           HUB VNET                                       │
-│                                                                          │
-│   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │              EXPRESSROUTE GATEWAY                                │   │
-│   │                                                                  │   │
-│   │   ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │   │
-│   │   │  Gateway     │  │   Azure      │  │  CGH Services        │  │   │
-│   │   │  Subnet      │  │   Firewall   │  │  (via peering)       │  │   │
-│   │   └──────────────┘  └──────────────┘  └──────────────────────┘  │   │
-│   │                                                                  │   │
-│   └─────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-│   Gateway transit: Spokes use hub ExpressRoute gateway                  │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph OnPrem["On-Premises Data Center"]
+        Apps["Applications · Agents · Users"]
+        ER["ExpressRoute Circuit"]
+    end
+    MSEE["MSEE (Microsoft Enterprise Edge)"]
+    subgraph HubVNet["Hub VNet"]
+        ERG["ExpressRoute Gateway"]
+        GWS["Gateway Subnet"]
+        FW["Azure Firewall"]
+        CGH["CGH Services (via peering)"]
+    end
+    Apps --> ER --> MSEE --> ERG
+    ERG --> GWS
+    ERG --> FW
+    ERG --> CGH
 ```
 
 ### ExpressRoute Configuration
@@ -309,33 +246,15 @@ resource routeTableWithForcedTunneling 'Microsoft.Network/routeTables@2023-11-01
 
 Connect CGH across regions:
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                       EAST US REGION                                     │
-│   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │              VNET-CITADEL-HUB-EASTUS                             │   │
-│   │   ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │   │
-│   │   │ Primary CGH  │  │  Services    │  │  Spokes              │  │   │
-│   │   └──────────────┘  └──────────────┘  └──────────────────────┘  │   │
-│   │                                                                  │   │
-│   │   Global Peering: eastus-to-westeurope                          │   │
-│   └─────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    │ Global VNet Peering
-                                    │ (Low latency, private)
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      WEST EUROPE REGION                                  │
-│   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │             VNET-CITADEL-HUB-WESTEUROPE                          │   │
-│   │   ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │   │
-│   │   │ DR CGH       │  │  Services    │  │  Spokes              │  │   │
-│   │   └──────────────┘  └──────────────┘  └──────────────────────┘  │   │
-│   │                                                                  │   │
-│   │   Global Peering: westeurope-to-eastus                          │   │
-│   └─────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph EastUS["East US Region"]
+        EU["VNET-CITADEL-HUB-EASTUS<br/>Primary CGH · Services · Spokes"]
+    end
+    subgraph WestEU["West Europe Region"]
+        WE["VNET-CITADEL-HUB-WESTEUROPE<br/>DR CGH · Services · Spokes"]
+    end
+    EU <-->|Global VNet Peering (low latency, private)| WE
 ```
 
 ### Global Peering Configuration
