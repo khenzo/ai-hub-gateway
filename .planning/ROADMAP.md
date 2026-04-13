@@ -50,7 +50,7 @@ Plans:
 
 Plans:
 - [x] 09-01: Document tool-use, reflection, and planning patterns
-- [ ] 09-02: Document multi-agent and ReAct patterns with orchestration examples
+- [x] 09-02: Document multi-agent and ReAct patterns with orchestration examples
 
 #### Phase 10: Enterprise Use Cases
 **Goal**: Map Agent Factory enterprise scenarios (employee self-service, data analytics, sales engagement, customer support) to the AI Landing Zone architecture.
@@ -59,8 +59,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 10-01: Document employee self-service and data analytics scenarios
-- [ ] 10-02: Document sales lead engagement and customer support scenarios
+- [x] 10-01: Document employee self-service and data analytics scenarios
+- [x] 10-02: Document sales lead engagement and customer support scenarios
 
 #### Phase 11: Open Standards Integration
 **Goal**: Document MCP and A2A integration within the AI Landing Zone, including gateway patterns and cross-agent collaboration.
@@ -92,7 +92,7 @@ Plans:
 | 6. Guides Documentation Section | v1.0 | 1/1 | Complete | 2026-04-10 |
 | 7. Agent Factory Foundation | v1.1 | 1/1 | Complete | 2026-04-13 |
 | 8. Agentic Web Stack Architecture | v1.1 | 2/2 | Complete | 2026-04-13 |
-| 9. Agentic AI Design Patterns | v1.1 | Complete    | 2026-04-13 | 2026-04-13 |
-| 10. Enterprise Use Cases | 1/2 | In Progress|  | - |
+| 9. Agentic AI Design Patterns | v1.1 | 2/2 | Complete | 2026-04-13 |
+| 10. Enterprise Use Cases | v1.1 | 2/2 | Complete | 2026-04-13 |
 | 11. Open Standards Integration | v1.1 | 0/2 | Not started | - |
 | 12. Agent Security & Observability | v1.1 | 0/2 | Not started | - |
