@@ -1,0 +1,196 @@
+---
+title: "MCP Integration"
+description: "Model Context Protocol server integration and tool invocation patterns on Citadel"
+---
+
+# MCP Integration
+
+The **Model Context Protocol (MCP)** is an open standard for structured tool and context exchange between AI systems and enterprise services. Originally introduced by Anthropic, MCP enables agents to discover, invoke, and compose tools in a consistent, secure, and interoperable way. When integrated with Citadel, MCP becomes an enterprise-grade capability governed by the same layers that protect all AI traffic in your organization.
+
+## What is MCP?
+
+MCP defines a standardized protocol for how agents request tools, pass context, and receive structured responses. It separates the concerns of **tool discovery** (what can an agent do?), **tool invocation** (how does it call a tool?), and **context management** (what information accompanies the request?). This standardization makes it possible for agents built on different frameworks to interact with the same enterprise APIs without custom integration code for every combination.
+
+### Why MCP Matters for Enterprise Agent Systems
+
+- **Interoperability**: Agents from different vendors or teams can use the same tools
+- **Discoverability**: New tools are automatically available to all MCP-compatible agents
+- **Governability**: Every tool call passes through a central gateway where policy is enforced
+- **Composability**: Complex workflows are built by chaining smaller, well-defined tools
+
+For organizations deploying AI at scale, MCP reduces integration fragmentation and ensures that tool access remains under centralized control.
+
+## MCP Architecture on Citadel
+
+Citadel maps MCP traffic across all four governance layers. This ensures that every tool discovery request and every tool invocation is authenticated, authorized, audited, and policy-compliant.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         MCP ARCHITECTURE ON CITADEL                         │
+│                                                                              │
+│   Agent (Foundry / Copilot Studio / Custom)                                  │
+│        │                                                                     │
+│        ▼                                                                     │
+│   ┌─────────────────────────────────────┐                                    │
+│   │  Layer 1: Governance Hub (APIM)     │  ← Auth, rate limits, policies    │
+│   │  ─ Unified MCP gateway              │                                    │
+│   └─────────────────────────────────────┘                                    │
+│        │                                                                     │
+│        ▼                                                                     │
+│   ┌─────────────────────────────────────┐                                    │
+│   │  Layer 2: AI Control Plane          │  ← Telemetry, evaluations, traces │
+│   │  ─ Foundry Control Plane            │                                    │
+│   └─────────────────────────────────────┘                                    │
+│        │                                                                     │
+│        ▼                                                                     │
+│   ┌─────────────────────────────────────┐                                    │
+│   │  Layer 3: Agent Identity            │  ← Which agent can invoke what    │
+│   │  ─ Entra ID / Agent 365             │                                    │
+│   └─────────────────────────────────────┘                                    │
+│        │                                                                     │
+│        ▼                                                                     │
+│   ┌─────────────────────────────────────┐                                    │
+│   │  Layer 4: Security Fabric           │  ← Content filtering, PII, DLP    │
+│   │  ─ Content Safety / Purview         │                                    │
+│   └─────────────────────────────────────┘                                    │
+│        │                                                                     │
+│        ▼                                                                     │
+│   MCP Server (API wrapper / function host)                                   │
+│        │                                                                     │
+│        ▼                                                                     │
+│   Enterprise API (CRM, ERP, database, etc.)                                  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Layer 1: Governance Hub / APIM
+
+Azure API Management acts as the unified MCP gateway. All MCP traffic routes through APIM, where authentication, rate limiting, and policy enforcement are applied consistently. This layer is the single front door for every tool invocation in the enterprise.
+
+### Layer 2: AI Control Plane
+
+The Foundry Control Plane captures tool usage telemetry, execution traces, and evaluation metrics. Teams can observe which tools are invoked most frequently, which agents use them, and whether tool outputs meet quality and safety thresholds.
+
+### Layer 3: Agent Identity
+
+Microsoft Entra ID and Agent 365 determine which agents are authorized to invoke which tools. Identity is verified at the gateway, and access decisions are based on agent roles, sponsorships, and entitlement policies.
+
+### Layer 4: Security Fabric
+
+Azure AI Content Safety and Microsoft Purview inspect tool inputs and outputs for sensitive data, inappropriate content, and policy violations. This layer ensures that tool invocations do not become a channel for data leakage or misuse.
+
+## Gateway Patterns
+
+Enterprise MCP deployments rely on a small set of gateway patterns that balance flexibility with governance.
+
+### APIM as the Central MCP Gateway
+
+Azure API Management is the recommended gateway for all MCP traffic. By routing every MCP request through APIM, organizations gain:
+
+- **Single sign-on** via Microsoft Entra ID
+- **Rate limiting and quota management** per agent or per tool
+- **Policy enforcement** for transformation, validation, and routing
+- **Centralized logging** of all tool invocations for audit and compliance
+
+### API Center for MCP Server Catalog and Versioning
+
+Azure API Center provides a unified catalog for all APIs—including those exposed as MCP servers. It tracks versions, owners, and lifecycle status, making it easy for agent developers to discover available tools and for platform teams to manage changes without breaking downstream agents.
+
+### Routing MCP Requests Through the CGH
+
+The Citadel Governance Hub (CGH) ensures that MCP traffic follows the same paths as all other AI traffic. This maintains auditability and prevents shadow integrations where agents bypass enterprise controls to reach tools directly.
+
+**Recommended routing pattern:**
+
+1. Agent sends MCP request to the CGH endpoint
+2. APIM authenticates the agent and applies policy
+3. Request is forwarded to the registered MCP server
+4. Response flows back through APIM where logging and content filtering are applied
+5. Agent receives the structured tool result
+
+## Tool Invocation Patterns
+
+MCP supports multiple patterns for how agents discover and call tools. The right pattern depends on latency requirements, throughput needs, and the complexity of the workflow.
+
+### Direct Tool Invocation via Foundry Agent Service
+
+Azure AI Foundry Agent Service can invoke MCP-compatible tools directly as part of an agent run. The agent defines which tools it needs, and the orchestrator handles the MCP protocol exchange transparently.
+
+**Best for:** Simple, synchronous tasks where the agent needs an immediate result to continue reasoning.
+
+### Dynamic Tool Discovery from the AI Registry
+
+Agents can query the AI Registry (backed by API Center) to discover what tools are available, what parameters they require, and what permissions are needed. This enables agents to adapt their behavior based on the current enterprise environment.
+
+**Best for:** General-purpose agents that solve a wide range of user requests and must choose tools dynamically.
+
+### Batched and Async Tool Calls
+
+For high-throughput scenarios, multiple MCP tool calls can be batched into a single request or executed asynchronously. The agent receives a correlation ID and polls for results, or subscribes to a callback when processing completes.
+
+**Best for:** Bulk operations, long-running backend processes, and workflows where immediate response is not required.
+
+### Error Handling and Retry Patterns
+
+Enterprise tool invocations fail for many reasons—transient network issues, rate limiting, downstream API errors, or policy blocks. Robust MCP implementations include:
+
+- **Exponential backoff** with jitter for transient failures
+- **Circuit breakers** to prevent cascading overload
+- **Fallback tools** or degraded responses when primary tools are unavailable
+- **Escalation to humans** when automated recovery is not possible
+
+## Security & Governance
+
+MCP tool access must be governed with the same rigor as any enterprise API. Citadel provides the controls needed to deploy MCP safely.
+
+### Entra ID Authentication on Every MCP Call
+
+Every MCP request must include a valid token from Microsoft Entra ID. This ties each tool invocation to a specific agent identity and enables fine-grained access control.
+
+### Rate Limiting and Quota Management
+
+APIM enforces per-agent and per-tool rate limits. Quotas prevent runaway agents or malicious traffic from overwhelming downstream systems. Limits can be tiered by environment (development, staging, production) and by agent criticality.
+
+### Input/Output Content Safety Filtering
+
+Azure AI Content Safety scans tool inputs and outputs for harmful content, sensitive data, and policy violations. This is especially important when agents invoke tools with user-generated input or when tool responses contain unstructured text that will be shown to end users.
+
+### Audit Logging of All Tool Invocations
+
+Every MCP request and response is logged through APIM and Azure Monitor. Logs include the caller identity, timestamp, tool name, outcome, and any policy actions taken. These logs are essential for compliance, debugging, and operational monitoring.
+
+## Implementation Guidance
+
+Follow these steps to integrate MCP into your Citadel deployment.
+
+### Register MCP Servers in API Center
+
+Catalog every MCP server as an API in Azure API Center. Include metadata such as owner team, version, environment, and required permissions. This makes tools discoverable and provides a single source of truth for what agents can invoke.
+
+### Expose Through APIM with Consistent Auth Policies
+
+Create APIM products and APIs for each MCP server. Apply consistent authentication policies—typically OAuth 2.0 via Microsoft Entra ID—and validate tokens at the gateway. Use APIM policies to transform requests, inject headers, and enforce schema validation.
+
+### Use the AI Registry to Catalog Available Tools for Agents
+
+Maintain an AI Registry that maps API Center entries to agent-consumable tool descriptions. The registry should include tool names, parameter schemas, example invocations, and permission requirements. Update the registry automatically when new APIs are published or deprecated.
+
+### Monitor Tool Usage via Foundry Control Plane Telemetry
+
+Configure the Foundry Control Plane to capture tool invocation traces. Set up dashboards and alerts for anomaly detection—such as sudden spikes in tool usage, repeated failures, or access from unauthorized agents.
+
+## Next Steps
+
+Explore related patterns and architecture guidance to continue building your agentic AI practice:
+
+<CardGroup>
+  <Card title="A2A Integration" icon="arrow-left-right" href="/agent-factory/a2a-integration">
+    Cross-agent collaboration and interoperability patterns
+  </Card>
+  <Card title="Agentic Web Stack" icon="layers" href="/agent-factory/agentic-web-stack">
+    The 8 essential components that power enterprise agent systems
+  </Card>
+  <Card title="Design Patterns" icon="wand-2" href="/agent-factory/design-patterns">
+    Tool use, reflection, and planning patterns mapped to Citadel
+  </Card>
+</CardGroup>
