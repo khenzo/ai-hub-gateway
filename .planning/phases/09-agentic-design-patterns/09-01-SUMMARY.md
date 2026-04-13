@@ -73,7 +73,7 @@ Each task was committed atomically:
 2. **Task 2: Update docs/agent-factory/overview.mdx** - `364e52f` (feat)
 3. **Task 3: Update docs.json navigation** - `a466d7e` (feat)
 
-**Plan metadata:** `ffd1921` (docs: complete plan)
+**Plan metadata:** `1f435fd` (docs: complete plan)
 
 ## Files Created/Modified
 
