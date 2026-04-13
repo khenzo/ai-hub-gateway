@@ -110,7 +110,9 @@
           "docs/agent-factory/design-patterns",
           "docs/agent-factory/orchestration-patterns",
           "docs/agent-factory/use-case-employee-self-service",
-          "docs/agent-factory/use-case-data-analytics"
+          "docs/agent-factory/use-case-data-analytics",
+          "docs/agent-factory/use-case-sales-engagement",
+          "docs/agent-factory/use-case-customer-support"
         ]
       },
       {
