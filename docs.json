@@ -32,6 +32,10 @@
       "url": "architecture"
     },
     {
+      "name": "Agent Factory",
+      "url": "agent-factory"
+    },
+    {
       "name": "Business Value",
       "url": "business-value"
     },
@@ -92,6 +96,15 @@
           "docs/architecture/layer-3-agent-identity",
           "docs/architecture/network-topology",
           "docs/architecture/layer-4-security-fabric"
+        ]
+      },
+      {
+        "group": "Agent Factory",
+        "pages": [
+          "docs/agent-factory/overview",
+          "docs/agent-factory/intelligence-layers",
+          "docs/agent-factory/builder-personas",
+          "docs/agent-factory/citadel-mapping"
         ]
       },
       {
