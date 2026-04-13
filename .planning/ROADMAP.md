@@ -93,6 +93,6 @@ Plans:
 | 7. Agent Factory Foundation | v1.1 | 1/1 | Complete | 2026-04-13 |
 | 8. Agentic Web Stack Architecture | v1.1 | 2/2 | Complete | 2026-04-13 |
 | 9. Agentic AI Design Patterns | v1.1 | 2/2 | Complete | 2026-04-13 |
-| 10. Enterprise Use Cases | v1.1 | 2/2 | Complete | 2026-04-13 |
+| 10. Enterprise Use Cases | v1.1 | Complete    | 2026-04-13 | 2026-04-13 |
 | 11. Open Standards Integration | v1.1 | 0/2 | Not started | - |
 | 12. Agent Security & Observability | v1.1 | 0/2 | Not started | - |
