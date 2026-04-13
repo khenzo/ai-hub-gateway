@@ -95,4 +95,4 @@ Plans:
 | 9. Agentic AI Design Patterns | v1.1 | 2/2 | Complete | 2026-04-13 |
 | 10. Enterprise Use Cases | v1.1 | 2/2 | Complete | 2026-04-13 |
 | 11. Open Standards Integration | v1.1 | Complete    | 2026-04-13 | 2026-04-13 |
-| 12. Agent Security & Observability | v1.1 | 0/2 | Not started | - |
+| 12. Agent Security & Observability | 1/2 | In Progress|  | - |

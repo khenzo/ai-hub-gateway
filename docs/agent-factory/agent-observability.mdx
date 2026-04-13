@@ -1,0 +1,158 @@
+---
+title: "Agent Observability"
+description: "Five best practices for monitoring AI agents in production on Azure AI Foundry and Citadel"
+---
+
+# Agent Observability
+
+Seeing is knowing. AI agents are non-deterministic — they reason, plan, and call external tools dynamically. Traditional metrics, logs, and traces provide a starting point, but they are insufficient on their own. Full agent observability requires two additional pillars: **evaluations** (how well agents resolve intent, adhere to tasks, and use tools effectively) and **governance** (ensuring agents operate safely, ethically, and in compliance). For agent-specific security controls that complement observability, see [Agent Security Blueprint](/agent-factory/agent-security-blueprint).
+
+## Traditional vs Agent Observability
+
+| Dimension | Traditional Software | AI Agents |
+|---|---|---|
+| **Output Validation** | Deterministic — expected outputs can be asserted | Non-deterministic — quality must be evaluated, not just asserted |
+| **Non-determinism** | Rare (e.g., concurrency bugs) | Inherent — same input can produce different outputs |
+| **Tool Call Auditing** | Service call logs are sufficient | Must trace tool selection reasoning, not just the call itself |
+| **Quality Measurement** | Latency, error rate, throughput | Relevance, coherence, fluency, task adherence, intent resolution |
+| **Regulatory Evidence** | Standard audit logs | Automated governance mappings (EU AI Act, NIST AI RMF) required |
+
+## Azure AI Foundry Observability Platform
+
+Azure AI Foundry Observability is a unified solution combining **Azure Monitor Application Insights** and **Azure Workbooks** into a single agent monitoring dashboard. The **Agents Playground** enables interactive debugging, test runs, and live evaluation before pipeline integration. Four agent evaluators are built in: Intent Resolution, Task Adherence, Tool Call Accuracy, and Response Completeness — covering the full spectrum from intent to output quality.
+
+## Five Best Practices
+
+<Steps>
+  <Step title="Model Selection via Benchmark-Driven Leaderboards">
+    Every agent's performance ceiling is set by its underlying model. Use **Azure AI Foundry model leaderboards** to compare foundation models side-by-side across quality, cost, and safety benchmarks before committing to a deployment.
+
+    - Compare models on task-specific benchmarks relevant to your agent's domain
+    - Visualize trade-offs (quality vs. cost, safety vs. performance) before investment
+    - Dive into detailed benchmark metrics to make confident, data-driven decisions
+
+    Model selection affects all downstream evaluation baselines — an under-performing model will degrade every metric across BP2 through BP5.
+
+    > *"Azure AI Foundry's model leaderboards gave us the confidence to scale client solutions from experimentation to deployment. Comparing models side by side helped customers select the best fit — balancing performance, safety, and cost with confidence."*
+    > — Mark Luquire, EY Global Microsoft Alliance Co-Innovation Leader
+  </Step>
+
+  <Step title="Continuous Evaluation in Development and Production">
+    Before deploying agents, evaluate their behavior across three evaluation categories using Azure AI Foundry's built-in evaluators:
+
+    **Agent evaluators** (agent-specific behavior):
+    - **Intent Resolution** — how accurately the agent identifies and addresses user intentions
+    - **Task Adherence** — how well the agent follows through on identified tasks
+    - **Tool Call Accuracy** — how effectively the agent selects and uses tools
+    - **Response Completeness** — whether the agent's response includes all necessary information
+
+    **Quality evaluators** (output quality):
+    - Relevance, Coherence, Fluency
+
+    **Risk and safety evaluators** (harm prevention):
+    - Code vulnerabilities, violence, self-harm, sexual content, hate/unfairness, indirect attacks, protected materials
+
+    Use the **Azure AI Foundry Agents Playground** to combine all three evaluator categories for interactive debugging and validation before pipeline integration.
+
+    > *"The robust evaluation tools in Azure AI Foundry help our developers continuously assess the performance and accuracy of our AI models, including meeting standards for coherence, fluency, and groundedness."*
+    > — Amarender Singh, Director AI, Hughes Network Systems
+  </Step>
+
+  <Step title="CI/CD Integration for Automated Quality Gates">
+    Evaluations should be automated on every commit — not just at release time. Integrate Azure AI Foundry evaluations into your CI/CD workflows to catch regressions early and prevent low-quality agents from reaching production.
+
+    - **GitHub Actions extension** for Azure AI Foundry: run all three evaluator categories as PR checks
+    - **Azure DevOps extension**: integrate quality gates into release pipelines
+    - Fail builds automatically when evaluation scores drop below defined thresholds
+    - Keep evaluation datasets versioned alongside prompt templates so changes are traceable
+
+    Confidence intervals and significance tests are available to distinguish real regressions from natural variance.
+
+    > *"We've integrated Azure AI Foundry evaluations directly into our GitHub Actions workflow, so every code change to our AI agents is automatically tested before deployment."*
+    > — Justin Layne Hofer, Senior Software Engineer, Veeam
+  </Step>
+
+  <Step title="AI Red Teaming Before Production">
+    Static test sets cannot anticipate all adversarial conditions. Before every production promotion, run automated adversarial testing to uncover vulnerabilities that would not surface in standard evaluations.
+
+    - **Azure AI Red Teaming Agent**: automated adversarial testing at scale — simulates attacks and generates readiness reports for both individual agents and complex multi-agent workflows
+    - **PyRIT toolkit** (open-source): adversarial probing for multi-agent workflows, validating cascading logic under attack conditions
+
+    <Note>
+      Red teaming (BP4) is pre-production testing focused on adversarial vulnerability discovery. Production monitoring (BP5) is the continuous runtime practice. Both are required — red teaming does not replace production monitoring.
+    </Note>
+
+    > *"Red teaming lets us simulate worst-case scenarios before they ever hit production. That changes the game."*
+    > — Nayanjyoti Paul, Associate Director and Chief Azure Architect for Gen AI, Accenture
+  </Step>
+
+  <Step title="Production Monitoring with Tracing, Evaluations, and Alerts">
+    Deployment is not the finish line. Agents drift in production as real-world inputs diverge from test distributions. Continuous monitoring catches issues, performance drift, and regressions before they impact users.
+
+    - **Azure Monitor Application Insights**: distributed tracing across agent chains — captures execution flows, tool calls, and reasoning paths
+    - **Azure Workbooks**: unified dashboard for quality, safety, performance, and resource usage metrics with customizable views
+    - **Continuous evaluation sampling**: run evaluations on live production traffic — not just at release time
+    - **Microsoft Purview integration**: governance evidence generation for regulatory compliance, audit trails, and policy enforcement
+    - **Credo AI / Saidot**: automated mapping of evaluation results to EU AI Act and NIST AI RMF requirements
+
+    > *"With Azure AI Foundry, we have the desired observability and control over our infrastructure and can deliver a highly secure environment to our customers."*
+    > — Ahmad Fattahi, Sr. Director Data Science, Spotfire
+  </Step>
+</Steps>
+
+## Citadel Layer Mapping for Observability
+
+Each observability pillar maps to its governing layer in the Citadel architecture:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                 OBSERVABILITY ON CITADEL                                    │
+│                                                                             │
+│  Observability Pillar           Citadel Layer                               │
+│  ─────────────────────────────────────────────                             │
+│  Model Selection (Leaderboards) Layer 2: AI Control Plane                  │
+│  Continuous Evaluations         Layer 2: AI Control Plane                  │
+│  CI/CD Quality Gates            Layer 2: AI Control Plane                  │
+│  Red Teaming (pre-prod)         Layer 2: AI Control Plane                  │
+│  Distributed Tracing            Layer 4: Security Fabric (telemetry)        │
+│  Governance Evidence (Purview)  Layer 1: Governance Hub                     │
+│  Regulatory Mapping (Credo AI)  Layer 1: Governance Hub                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Operational Runbook for Agent Monitoring
+
+| Cadence | Task | Tool | Success Signal |
+|---------|------|------|----------------|
+| Daily | Review evaluation score trends | Foundry Dashboard / Azure Workbooks | No metric below threshold |
+| Daily | Check safety evaluator alerts | Azure Monitor alerts | Zero critical safety violations |
+| Weekly | Sample production traces for anomalies | Application Insights | No unexpected tool call failures |
+| Weekly | Review CI/CD evaluation gate results | GitHub Actions / Azure DevOps | All PRs pass evaluation gates |
+| Monthly | Run full red-team adversarial suite | Red Teaming Agent + PyRIT | Pass rate meets agreed threshold |
+| Monthly | Generate governance evidence report | Microsoft Purview / Credo AI | Report exported and archived |
+| Quarterly | Refresh evaluation datasets | Foundry Playground | Datasets reflect current use cases |
+
+## Enterprise Proof Points
+
+**EY** uses Azure AI Foundry model leaderboards to compare models by quality, cost, and safety metrics side-by-side, enabling their teams to scale AI solutions with confidence before deployment.
+
+**Accenture** is testing the Microsoft AI Red Teaming Agent to simulate adversarial prompts at scale across full multi-agent workflows — validating cascading logic under attack conditions before production promotion.
+
+**Veeam** has integrated Azure AI Foundry evaluations into their GitHub Actions workflow so every code change is automatically tested, enabling rapid iteration while maintaining quality standards.
+
+**Spotfire** and **Hughes Network Systems** use Azure AI Foundry's continuous evaluation and monitoring capabilities to maintain the observability and control required for highly secure enterprise environments.
+
+<CardGroup cols={2}>
+  <Card title="Agent Security Blueprint" icon="shield" href="/agent-factory/agent-security-blueprint">
+    Layered security controls for safe, trustworthy agents in production
+  </Card>
+  <Card title="Agent Operations" icon="activity" href="/operations/monitoring">
+    Infrastructure monitoring, metrics collection, and operational dashboards
+  </Card>
+  <Card title="AI Control Plane" icon="server" href="/implementation/integration/foundry-control-plane">
+    Azure AI Foundry integration patterns and control plane configuration
+  </Card>
+  <Card title="Design Patterns" icon="diagram-project" href="/agent-factory/design-patterns">
+    Orchestration, tool-use, and multi-agent collaboration patterns
+  </Card>
+</CardGroup>

@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: AI Agent Factory Integration
-  status: in_progress
-  last_updated: "2026-04-13T14:24:06Z"
-  last_activity: 2026-04-13 — Completed 11-02: A2A Integration (Open Standards)
-  progress:
-    total_phases: 6
-    completed_phases: 5
-    total_plans: 12
-    completed_plans: 9
-    percent: 75
+status: executing
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-04-13T14:47:43.385Z"
+last_activity: "2026-04-13 — Completed 11-02: A2A Integration (Open Standards)"
+progress:
+  total_phases: 6
+  completed_phases: 5
+  total_plans: 11
+  completed_plans: 10
+  percent: 96
 ---
 
 :# Project State
@@ -29,7 +30,7 @@ Plan: 2 of 2 in current phase - **COMPLETE**
 Status: Milestone v1.1 in progress. Phase 7 complete. Phase 8 complete. Phase 9 complete. Phase 10 complete. Phase 11 complete.
 Last activity: 2026-04-13 — Completed 11-02: A2A Integration (Open Standards)
 
-Progress: [██████████░░] 75%
+Progress: [██████████] 96%
 
 ## Performance Metrics
 
@@ -73,6 +74,7 @@ Progress: [██████████░░] 75%
 | Phase 10-enterprise-use-cases P02 | 2 min | 3 tasks | 3 files |
 | Phase 11-open-standards P01 | 1min | 2 tasks | 2 files |
 | Phase 11-open-standards P02 | 1min | 2 tasks | 2 files |
+| Phase 12-agent-security-observability P01 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -129,6 +131,8 @@ Recent decisions affecting current work:
 - [Phase 09-agentic-design-patterns P01]: Referenced real-world customer examples from the Agent Factory white paper (Fujitsu, ContraForce, GitHub Copilot)
 - [Phase 09-agentic-design-patterns]: Wrapped existing standalone Card in citadel-4-layer-model.mdx into a CardGroup to accommodate new navigation cards while preserving existing layout
 - [Phase 10-enterprise-use-cases]: Linked data analytics Next Steps to existing employee-self-service page instead of non-existent sales-lead-engagement page to maintain valid navigation
+- [Phase 12-agent-security-observability]: Cross-link instead of duplicate: all four existing governance pages referenced via cross-links rather than repeating their content
+- [Phase 12-agent-security-observability]: Warning component for cross-prompt injection to emphasize extended attack surface beyond user input
 
 ### Pending Todos
 
@@ -195,8 +199,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-13T14:24:06Z
-Stopped at: Completed 11-02-PLAN.md
+Last session: 2026-04-13T14:47:43.380Z
+Stopped at: Completed 12-01-PLAN.md
 Resume file: None
 
 ## Milestone Status
