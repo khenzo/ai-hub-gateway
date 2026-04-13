@@ -6,49 +6,25 @@ icon: "chart-line"
 
 # Monitoring and Observability
 
+This page covers the operations-focused view of monitoring Citadel infrastructure and AI workloads. For agent-specific observability — evaluations, CI/CD quality gates, red teaming, and production runbooks — see the dedicated guide below.
+
 <Note>
-  This page is a placeholder for **Phase 5: Operations**. Comprehensive monitoring guidance will be documented here.
+  For the complete observability guide covering the five best practices, evaluator types, CI/CD integration, red teaming, and production runbooks, see [Agent Observability](/agent-factory/agent-observability).
 </Note>
 
-## Monitoring Overview
+## What the Agent Observability Guide Covers
 
-Effective monitoring is essential for operating AI infrastructure at scale. Citadel provides comprehensive observability across all layers.
+The [Agent Observability](/agent-factory/agent-observability) page provides a comprehensive runbook-style guide for monitoring AI agents in production on Azure AI Foundry and Citadel. Topics include:
 
-## Coming Soon
+- **Model selection** — using Azure AI Foundry leaderboards to pick the right model before deployment
+- **Continuous evaluation** — agent, quality, and risk/safety evaluators running in development and production
+- **CI/CD quality gates** — automated evaluation checks via GitHub Actions and Azure DevOps extensions
+- **AI red teaming** — adversarial testing with the Azure AI Red Teaming Agent and PyRIT before every promotion
+- **Production monitoring dashboard** — Azure Monitor Application Insights, Azure Workbooks, and governance integrations
 
-This section will document:
+## Infrastructure Monitoring
 
-<Steps>
-  <Step title="Metrics Collection">
-    - Key performance indicators
-    - Custom metric definitions
-    - Metric aggregation strategies
-    - Retention policies
-  </Step>
-  
-  <Step title="Log Analytics">
-    - Log query examples (KQL)
-    - Log retention configuration
-    - Diagnostic settings
-    - Log routing and export
-  </Step>
-  
-  <Step title="Alerting">
-    - Alert rule configuration
-    - Action groups and notifications
-    - Smart detection
-    - Alert suppression
-  </Step>
-  
-  <Step title="Dashboards">
-    - Executive dashboards
-    - Operations dashboards
-    - Application-specific views
-    - Cost monitoring views
-  </Step>
-</Steps>
-
-## Key Metrics
+Citadel provides observability across all platform layers through Azure Monitor. Key metrics include:
 
 <CardGroup>
   <Card title="Performance" icon="bolt">
@@ -76,6 +52,12 @@ This section will document:
     - Circuit breaker status
   </Card>
 </CardGroup>
+
+## Agent Observability Guide
+
+<Card title="Agent Observability" icon="chart-line" href="/agent-factory/agent-observability">
+  Five best practices for monitoring AI agents in production: model selection, continuous evaluation, CI/CD integration, red teaming, and production monitoring with runbook cadences.
+</Card>
 
 ## Next Steps
 

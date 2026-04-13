@@ -112,6 +112,7 @@
           "docs/agent-factory/mcp-integration",
           "docs/agent-factory/a2a-integration",
           "docs/agent-factory/agent-security-blueprint",
+          "docs/agent-factory/agent-observability",
           "docs/agent-factory/use-case-employee-self-service",
           "docs/agent-factory/use-case-data-analytics",
           "docs/agent-factory/use-case-sales-engagement",
