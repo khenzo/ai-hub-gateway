@@ -77,8 +77,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 12-01: Document agent security blueprint (identity, controls, evaluations, data protection)
-- [ ] 12-02: Document observability best practices and operational runbooks for agents
+- [ ] 12-01-PLAN.md — Agent security blueprint (five qualities, 6-step sequence, Citadel layer mapping)
+- [ ] 12-02-PLAN.md — Agent observability (five best practices, CI/CD, red teaming, production runbook)
 
 ## Progress
 
