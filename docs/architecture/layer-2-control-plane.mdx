@@ -9,6 +9,8 @@ description: "Observability and compliance layer — agent traces, AI evaluation
 
 **Layer 2 — AI Control Plane** provides the **observability and compliance brain** that sits above the gateway. Powered by **Microsoft Foundry Control Plane**, this layer continuously evaluates agent behavior, captures end-to-end traces, runs automated red-teaming, and powers fleet operations dashboards—turning raw telemetry from every spoke into actionable governance insights.
 
+The Foundry Control Plane also serves as the **observability and compliance brain for Agent Factory workloads**, enabling unified evaluation and monitoring across Copilot Studio agents, Foundry-hosted agents, and Agent 365 identities.
+
 ## Strategic Purpose
 
 > *"Full Visibility = Trust & Confidence"*
@@ -77,6 +79,17 @@ Manage agent ecosystem at scale:
 | **Lifecycle Management** | Activation, versioning, retirement workflows |
 | **Fleet Health** | Visualize health and anomalies across all agents |
 | **Compliance Dashboards** | Real-time compliance status across the fleet |
+
+## Agent Factory Integration
+
+The AI Control Plane is the observability and compliance brain for Microsoft Agent Factory workloads. It unifies evaluation and monitoring across all builder platforms and intelligence layers.
+
+| Agent Factory Element | Layer 2 Capability | Value |
+|-----------------------|-------------------|-------|
+| **Foundry-hosted agents** | Execution traces, evaluations | End-to-end quality assurance |
+| **Copilot Studio agents** | Usage tracking, compliance checks | Unified observability across platforms |
+| **Agent 365 identity** | Lifecycle + access correlation | Track agent behavior by identity |
+| **Work IQ / Fabric IQ** | Data access telemetry | Monitor what intelligence agents consume |
 
 ## Observability Layers
 
@@ -194,6 +207,7 @@ Evaluation Pipeline:
 ## Next Steps
 
 - Learn about [Layer 3: Agent Identity](./layer-3-agent-identity) for agent lifecycle management
+- Explore [Agent Factory mapping](/agent-factory/citadel-mapping) to understand the full integration
 - Explore [Foundry Control Plane Integration](../implementation/integration/foundry-control-plane) for implementation guidance
 - Review [AI Evaluations](/operations/monitoring) for quality assurance
 - Review [monitoring dashboards](../operations/monitoring) for operational visibility
