@@ -30,8 +30,8 @@ _For full details, see `.planning/milestones/v1.0-ROADMAP.md`_
 **Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: Document Agent Factory overview, builder personas, and intelligence layers
-- [ ] 07-02: Map Agent Factory concepts to Citadel 4-layer model and AI Landing Zone
+- [x] 07-01: Document Agent Factory overview, builder personas, and intelligence layers
+- [x] 07-02: Map Agent Factory concepts to Citadel 4-layer model and AI Landing Zone
 
 #### Phase 8: Agentic Web Stack Architecture
 **Goal**: Document the 8 essential components of the agentic web stack and their placement within the Citadel/AI Landing Zone architecture.
@@ -90,7 +90,7 @@ Plans:
 | 4. Implementation Guides | v1.0 | 4/4 | Complete | 2026-04-10 |
 | 5. Integration & Validation | v1.0 | 3/3 | Complete | 2026-04-10 |
 | 6. Guides Documentation Section | v1.0 | 1/1 | Complete | 2026-04-10 |
-| 7. Agent Factory Foundation | v1.1 | 0/2 | Not started | - |
+| 7. Agent Factory Foundation | v1.1 | 1/1 | Complete | 2026-04-13 |
 | 8. Agentic Web Stack Architecture | v1.1 | 0/2 | Not started | - |
 | 9. Agentic AI Design Patterns | v1.1 | 0/2 | Not started | - |
 | 10. Enterprise Use Cases | v1.1 | 0/2 | Not started | - |
