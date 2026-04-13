@@ -1,0 +1,211 @@
+---
+title: "A2A Integration"
+description: "Agent-to-Agent cross-agent collaboration and interoperability patterns on Citadel"
+---
+
+# A2A Integration
+
+The **Agent-to-Agent (A2A)** protocol is an open standard for cross-agent collaboration and interoperability in enterprise AI systems. Originally introduced by Google as part of its A2A initiative, the protocol enables agents built on different frameworks, platforms, and vendors to discover, communicate, and coordinate with one another. When deployed on Citadel, A2A traffic is governed by the same enterprise security, identity, and observability layers that protect all AI workloads.
+
+## What is A2A?
+
+A2A defines how agents exchange messages, delegate tasks, share context, and coordinate on shared goals. Unlike tool-centric protocols that focus on invoking APIs, A2A is relationship-centric: it treats agents as first-class participants in a distributed system where each agent has capabilities, identity, and agency.
+
+### Why A2A Matters for Enterprise Multi-Agent Systems
+
+- **Interoperability**: Agents from different vendors or internal teams can collaborate without tight coupling
+- **Specialization**: Complex workflows are decomposed and delegated to the agents best suited for each subtask
+- **Scalability**: New agents join the ecosystem dynamically, making their capabilities available to the entire fleet
+- **Governability**: Every inter-agent message routes through a central gateway where policy is enforced
+
+For organizations building multi-agent AI platforms, A2A provides the communication fabric that turns isolated agents into coherent, enterprise-grade systems.
+
+## A2A Architecture on Citadel
+
+Citadel maps A2A traffic across all four governance layers. This ensures that every message between agents is authenticated, authorized, audited, and policy-compliant.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         A2A ARCHITECTURE ON CITADEL                         │
+│                                                                              │
+│   Agent A (Specialist)                                                       │
+│        │                                                                     │
+│        │  A2A Message (delegate task + context)                             │
+│        ▼                                                                     │
+│   ┌─────────────────────────────────────┐                                    │
+│   │  Layer 1: Governance Hub (APIM)     │  ← Auth, rate limits, routing    │
+│   │  ─ A2A message gateway              │                                    │
+│   └─────────────────────────────────────┘                                    │
+│        │                                                                     │
+│        ▼                                                                     │
+│   ┌─────────────────────────────────────┐                                    │
+│   │  Layer 2: AI Control Plane          │  ← Collaboration traces, evals   │
+│   │  ─ Foundry Control Plane            │                                    │
+│   └─────────────────────────────────────┘                                    │
+│        │                                                                     │
+│        ▼                                                                     │
+│   ┌─────────────────────────────────────┐                                    │
+│   │  Layer 3: Agent Identity            │  ← Verify Agent A and Agent B    │
+│   │  ─ Entra ID / Agent 365             │                                    │
+│   └─────────────────────────────────────┘                                    │
+│        │                                                                     │
+│        ▼                                                                     │
+│   ┌─────────────────────────────────────┐                                    │
+│   │  Layer 4: Security Fabric           │  ← Threat detection on traffic   │
+│   │  ─ Defender / Content Safety        │                                    │
+│   └─────────────────────────────────────┘                                    │
+│        │                                                                     │
+│        ▼                                                                     │
+│   Agent B (Executor)                                                         │
+│        │                                                                     │
+│        │  A2A Response (result + status)                                      │
+│        ▼                                                                     │
+│   Back to Agent A via Layer 1 (APIM)                                         │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Layer 1: Governance Hub / APIM
+
+Azure API Management acts as the A2A message gateway. All inter-agent communication routes through APIM, where authentication, rate limiting, message routing, and policy enforcement are applied consistently. This layer is the single front door for every A2A message in the enterprise.
+
+### Layer 2: AI Control Plane
+
+The Foundry Control Plane captures collaboration traces, evaluation metrics, and execution timelines for multi-agent workflows. Teams can observe how agents delegate tasks, how long handoffs take, and whether cross-agent collaborations meet quality and safety thresholds.
+
+### Layer 3: Agent Identity
+
+Microsoft Entra ID and Agent 365 authenticate both the sending and receiving agents. Identity is verified at the gateway, and access decisions are based on agent roles, sponsorships, and entitlement policies that define which agents are allowed to communicate.
+
+### Layer 4: Security Fabric
+
+Microsoft Defender for Cloud and Azure AI Content Safety monitor A2A traffic for anomalous behavior, unauthorized communication paths, and policy violations. This layer ensures that inter-agent messaging does not become a channel for lateral movement or data leakage.
+
+## Cross-Agent Collaboration Patterns
+
+A2A enables several collaboration patterns that enterprise multi-agent systems use to solve complex problems. Each pattern maps to a different way agents share work and coordinate outcomes.
+
+### Delegation Pattern
+
+One agent delegates a subtask to another specialist agent. The delegating agent defines the goal, passes relevant context, and waits for the specialist to return a result.
+
+**Best for:** Breaking complex workflows into domain-specific tasks handled by expert agents.
+
+**Example:** A planning agent delegates market research to a research agent, then uses the findings to build a recommendation.
+
+### Coordination Pattern
+
+Multiple agents coordinate on a shared goal via planning. A coordinator agent distributes subtasks, tracks progress, and synthesizes results from multiple contributors.
+
+**Best for:** Projects that require parallel work from several specialized agents with a single combined outcome.
+
+**Example:** A product launch agent coordinates design, legal, and marketing agents to prepare a unified campaign.
+
+### Handoff Pattern
+
+A session is transferred from one agent to another with context preservation. The receiving agent picks up where the first left off, maintaining conversation state and prior decisions.
+
+**Best for:** Long-running workflows that span multiple stages, each best handled by a different agent persona.
+
+**Example:** A triage agent hands off a support ticket to a technical agent, passing the full conversation history and diagnostic context.
+
+### Broadcast Pattern
+
+One agent publishes an event that multiple agents consume. Subscribers react independently, enabling loose coupling between event producers and consumers.
+
+**Best for:** Event-driven architectures where agents need to react to changes without direct pairwise integration.
+
+**Example:** A monitoring agent broadcasts an alert, triggering remediation, notification, and logging agents simultaneously.
+
+## Gateway Patterns
+
+Enterprise A2A deployments rely on gateway patterns that balance flexibility with centralized governance.
+
+### APIM as the Central A2A Gateway
+
+Azure API Management is the recommended gateway for all A2A traffic. By routing every A2A message through APIM, organizations gain:
+
+- **Single sign-on** via Microsoft Entra ID for all agent identities
+- **Rate limiting and quota management** per agent or per conversation
+- **Policy enforcement** for message transformation, validation, and routing
+- **Centralized logging** of all inter-agent communication for audit and compliance
+
+### Message Validation and Schema Enforcement at the Edge
+
+APIM policies enforce A2A message schemas at the edge. Invalid messages are rejected before they reach downstream agents, preventing malformed requests from propagating through the multi-agent system.
+
+**Recommended checks:**
+- Required fields (sender identity, recipient identity, message type)
+- Schema validation against the A2A message contract
+- Payload size limits and encoding validation
+
+### Audit Logging of All Inter-Agent Communication
+
+Every A2A message and response is logged through APIM and Azure Monitor. Logs include sender and recipient identities, timestamps, message types, routing decisions, and any policy actions taken. These logs are essential for compliance, incident investigation, and operational optimization.
+
+### Integration with Agent 365 for Identity-Verified Messaging
+
+Agent 365 provides the authoritative registry for agent identities. When integrated with APIM, Agent 365 enables real-time verification of sender and recipient credentials, ensuring that only approved agents can participate in A2A conversations.
+
+## Security & Identity
+
+A2A communication must be secured with the same rigor as any enterprise messaging system. Citadel provides the controls needed to deploy A2A safely.
+
+### Mutual Authentication Between Agents
+
+Every A2A message must include valid tokens from Microsoft Entra ID for both the sending and receiving agents. Mutual authentication ensures that agents cannot impersonate one another and that every message is tied to a verified identity.
+
+### Authorization Policies for Agent Communication Paths
+
+Not every agent should be able to communicate with every other agent. Authorization policies define allowed communication paths based on agent roles, sensitivity classifications, and business rules. APIM enforces these policies at the gateway before routing messages.
+
+### Message Encryption and Replay Protection
+
+A2A messages should be encrypted in transit using TLS 1.2 or higher. For high-sensitivity scenarios, consider additional payload-level encryption. Include correlation IDs and timestamps in every message to protect against replay attacks.
+
+### Monitoring for Anomalous Agent Behavior
+
+Use Microsoft Defender for Cloud and Azure Monitor to detect anomalous A2A traffic patterns. Indicators of compromise include:
+- Agents communicating outside approved paths
+- Sudden spikes in message volume
+- Repeated failed authentication attempts
+- Unusual payload sizes or message types
+
+## Implementation Guidance
+
+Follow these steps to integrate A2A into your Citadel deployment.
+
+### Define Agent Capability Contracts
+
+Document what each agent can do, what inputs it expects, and what outputs it produces. Capability contracts act as the API documentation for your agent ecosystem, making it possible for agents to discover and delegate to one another effectively.
+
+### Route All A2A Traffic Through APIM for Consistent Governance
+
+Do not allow agents to communicate directly. Every A2A message should pass through the Citadel Governance Hub (APIM) so that authentication, rate limiting, logging, and policy enforcement are applied consistently.
+
+### Use Foundry Control Plane to Trace Multi-Agent Workflows
+
+Enable execution tracing in the Foundry Control Plane for all A2A collaborations. Traces reveal delegation chains, handoff latency, and failure points—making it possible to optimize multi-agent workflows over time.
+
+### Establish Clear Escalation Paths When Agent Handoffs Fail
+
+When an agent cannot complete a delegated task or a handoff fails, the system must escalate gracefully. Define fallback behaviors:
+- Retry the delegation with a different specialist agent
+- Return partial results to the delegating agent with an explanation
+- Escalate to a human operator with full context and conversation history
+
+## Next Steps
+
+Explore related patterns and architecture guidance to continue building your agentic AI practice:
+
+<CardGroup>
+  <Card title="MCP Integration" icon="plug" href="/agent-factory/mcp-integration">
+    Model Context Protocol server integration and tool invocation patterns
+  </Card>
+  <Card title="Orchestration Patterns" icon="git-branch" href="/agent-factory/orchestration-patterns">
+    Multi-agent and ReAct patterns with Citadel integration
+  </Card>
+  <Card title="Agentic Web Stack" icon="layers" href="/agent-factory/agentic-web-stack">
+    The 8 essential components that power enterprise agent systems
+  </Card>
+</CardGroup>
