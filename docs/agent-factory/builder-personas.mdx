@@ -1,0 +1,162 @@
+---
+title: "Agent Factory Builder Personas"
+description: "Match builder personas to the right platforms across four enterprise AI agent scenarios"
+---
+
+# Builder Personas
+
+The Microsoft Agent Factory supports the full spectrum of builders so you can activate talent wherever it exists in your organization. The key is matching the right people to the right problems with the right tools.
+
+## Builder Personas Overview
+
+| Persona | Description | Primary Tools |
+|---------|-------------|---------------|
+| **Business User** | Consumes insights and interacts with agents without building | Microsoft 365 Copilot, Power BI |
+| **Power User (Non-Dev)** | Builds solutions without writing code; often Excel and Power BI power users | Copilot Studio, Fabric Data Agents |
+| **Developer** | Builds custom agents with full control over architecture and orchestration | Azure AI Foundry, Agent Framework, GitHub Copilot |
+
+Most successful organizations activate **all three personas**. Line-of-business users create self-service agents with IT-approved tools, while developers build platforms that scale.
+
+## Scenario 1: Employee Self-Service (HR and IT Support)
+
+### Challenge
+
+Help desks are overwhelmed with routine questions. Employees can't easily find answers in policies and end up calling IT or HR for everything. Knowledge is scattered across SharePoint, policy documents, and word of mouth.
+
+### Opportunity
+
+Deploy an agent that answers routine questions instantly, freeing help desk staff to focus on complex issues. Employees get answers in the flow of work through Teams or the apps they already use. Tickets are created automatically when the user doesn't find what they need.
+
+### Who Should Act
+
+If your ops team has business process knowledge, they can use Copilot Studio and own the agent end-to-end. If the solution needs deep integration with custom systems, strict network isolation, or bespoke UX, developers should lead—still leveraging the same intelligence layers.
+
+### Builder Approaches
+
+| Persona | Approach | Tool |
+|---------|----------|------|
+| **Power User** | Build a self-service process agent in Copilot Studio using Work IQ for business flows and Foundry IQ for policy grounding. Configure ServiceNow/Workday connectors and approval workflows. | M365 Copilot + Copilot Studio |
+| **Developer** | Build an agent with full control over conversation logic, integrate via MCP servers/APIs, and deploy in Foundry for enterprise-grade scaling. | Foundry + Agent Framework |
+
+### IQ Advantage
+
+Simplifies access to the employee's specific work context, streamlines grounding to enterprise sources, and executes MCP calls to internal systems when necessary.
+
+### Customer Example
+
+A **global energy company** deployed Employee Self-Service using Copilot Studio and an organizational skilling program. The agent integrates with ServiceNow and is grounded in policy documents through Foundry IQ. Employees interact through Teams. The solution was built and maintained by their IT operations team—demonstrating that high-impact agents don't require developer resources when the right tools are matched to the right people.
+
+**Buying pattern fit:** Microsoft 365 E3/E5 customers with ServiceNow or Workday. Moderate to high help desk costs or poor employee satisfaction.
+
+---
+
+## Scenario 2: Data and Analytics Agents
+
+### Challenge
+
+Dashboards exist everywhere, but employees still ask analysts to pull numbers. People know data exists but struggle to find the right report or interpret what they see. Analysts spend time answering ad-hoc questions instead of doing strategic analysis.
+
+### Opportunity
+
+Let employees ask questions in natural language and get answers grounded in actual business data. *"What were Q3 sales by region?"* returns an answer from your data. Analysts reclaim time for high-value work while the organization gets faster access to insights.
+
+### Who Should Act
+
+Analysts and data engineers are often the best builders—they understand the data, the questions people ask, and what the answers mean. Developers step in when the solution needs to scale across the enterprise or integrate with non-Microsoft data sources.
+
+### Builder Approaches
+
+| Persona | Approach | Tool |
+|---------|----------|------|
+| **Business User** | Use Copilot's native Power BI integration to ask natural language questions over existing datasets. No building required. | M365 Copilot + Fabric IQ |
+| **Data Engineer** | Build Fabric Data Agents that expose curated datasets for natural language queries. Define the semantic layer—business terms, relationships, and metrics. | Fabric Data Agent + Fabric IQ |
+| **Developer** | Create sophisticated analytics agents that expose APIs for embedding in AI applications and customer-facing solutions. | Above + Foundry + Agent Framework |
+
+### Customer Example
+
+A **large banking customer** with mature Power BI deployments uses this pattern to unlock their existing data investment. The breakthrough: showing business leaders that they can ask questions about their own divisional data and get accurate, grounded answers. When employees see an agent correctly report last quarter's KPIs directly into research documents, skepticism turns to adoption.
+
+**Buying pattern fit:** Moderate to heavy Power BI usage. Analytics team demand pressure.
+
+---
+
+## Scenario 3: Sales Lead Engagement
+
+### Challenge
+
+Sellers spend hours researching prospects before outreach, or worse, skip research and send generic messages that get ignored. The information exists in CRM, news feeds, and relationship data across the organization—but assembling it for each prospect is manual and slow.
+
+### Opportunity
+
+Deploy agents that research prospects, identify warm paths through existing relationships, and draft personalized outreach grounded in real context. Sellers engage with confidence. Response rates climb. Time spent on research drops dramatically.
+
+### Who Should Act
+
+Sales operations and marketing ops teams understand your ideal customer profile, messaging frameworks, and CRM structures. Developers lead when you need proprietary data sources, custom scoring models, or connections to marketing automation platforms.
+
+### Builder Approaches
+
+| Persona | Approach | Tool |
+|---------|----------|------|
+| **Power User** | Build prospecting agents in Copilot Studio that pull relationship signals from Work IQ, match against ICPs in Fabric, and enrich with company research via Foundry IQ. | Copilot Studio + Dynamics 365 |
+| **Developer** | Build agents that integrate with marketing automation platforms, apply custom lead scoring models, and orchestrate multi-step research workflows. | Foundry + Agent Framework |
+
+### Customer Example
+
+A **B2B technology company** deployed a lead enrichment agent that runs nightly against new inbound leads. The agent identifies existing relationships via Work IQ, scores fit with the product using Fabric IQ, and pulls recent news via Foundry IQ. Sellers receive a prioritized list each morning with context summaries and suggested talking points. Response rates increased double-digits, and sellers report spending far less time on pre-call research.
+
+**Buying pattern fit:** Dynamics 365 Sales or Salesforce, B2B sales motion, outbound or ABM strategy.
+
+---
+
+## Scenario 4: Customer Support and Product Feedback
+
+### Challenge
+
+The real value of support isn't just resolving tickets—it's closing the loop. Feature requests and bug reports come through support channels, get logged somewhere, and then stall. Engineering teams don't have visibility into what customers are actually asking for.
+
+### Opportunity
+
+Deploy agents that handle frontline support grounded in product knowledge and resolution history. When a customer reports an issue, the agent triages, enriches with context, and creates a GitHub issue automatically. On the engineering side, coding agents draft implementation plans and propose code changes—accelerating the path from customer voice to product improvement.
+
+### Who Should Act
+
+Power users own the conversational experience and triage logic. Developers own the product backlog, GitHub integration, coding agent configuration, and the automation that turns issues into actionable plans.
+
+### Builder Approaches
+
+| Persona | Approach | Tool |
+|---------|----------|------|
+| **Power User** | Build support agents in Copilot Studio grounded in product docs via Foundry IQ. Configure triage workflows that enrich issues with customer context from Fabric IQ and create GitHub issues. | Copilot Studio + Power Platform + GitHub Connector |
+| **Developer** | Build agents that monitor GitHub issues, draft implementation plans, propose code changes, and route to human reviewers. Integrate coding agents into CI/CD workflows. | Foundry + Agent Framework + GitHub Copilot |
+
+### Customer Example
+
+A **SaaS platform company** deployed a support agent that handles product questions and bug reports. When a customer reports unexpected behavior, the agent checks known issues in Foundry IQ, verifies the customer's configuration in Fabric IQ, and either resolves immediately or creates a GitHub issue with full context. On the engineering side, a coding agent reviews incoming issues nightly and drafts investigation plans. Time from customer report to engineering action dropped from weeks to days.
+
+**Buying pattern fit:** SaaS or product company, GitHub customer, support volume that justifies automation.
+
+---
+
+## Scenario Summary
+
+| Scenario | Primary Personas | Key IQ Layers | Best Fit |
+|----------|------------------|---------------|----------|
+| **Employee Self-Service** | Power User, Developer | Work IQ, Foundry IQ | M365 E3/E5 + ServiceNow/Workday |
+| **Data and Analytics** | Business User, Data Engineer, Developer | Fabric IQ, Foundry IQ | Heavy Power BI usage |
+| **Sales Lead Engagement** | Power User, Developer | Work IQ, Fabric IQ, Foundry IQ | Dynamics/Salesforce, B2B sales |
+| **Customer Support** | Power User, Developer | Work IQ, Fabric IQ, Foundry IQ | SaaS, GitHub, high support volume |
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Agent Factory Overview" icon="factory" href="/agent-factory/overview">
+    Return to the operating model and value proposition
+  </Card>
+  <Card title="Intelligence Layers" icon="brain" href="/agent-factory/intelligence-layers">
+    Deep dive into Work IQ, Fabric IQ, and Foundry IQ
+  </Card>
+  <Card title="Citadel Mapping" icon="castle" href="/agent-factory/citadel-mapping">
+    See how Agent Factory maps to the 4-layer Citadel architecture
+  </Card>
+</CardGroup>
