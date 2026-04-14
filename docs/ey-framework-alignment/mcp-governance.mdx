@@ -1,0 +1,100 @@
+---
+title: "MCP Governance on Citadel"
+description: "How MCP server endpoints are exposed, governed, and enforced through the Citadel APIM layer — aligned to EY MCP standards"
+icon: "plug"
+---
+
+# MCP Governance on Citadel
+
+EY's AI Agent Development Framework recognizes the Model Context Protocol (MCP) as an open standard for connecting AI models to enterprise tools and data sources. As organizations scale their agent deployments, MCP provides the interoperability layer that lets agents discover and invoke capabilities without custom integrations for every system. EY Fabric has released an MCP Standard Starter Kit in Python, with Node.js and .NET C# versions planned for FY26 Q3.
+
+However, the EY framework does not yet specify how MCP traffic should be governed at enterprise scale. This is where Citadel closes the gap. By routing every MCP request through Azure API Management (Layer 1), Citadel ensures that authentication, policy enforcement, rate limiting, and audit logging are applied consistently across all MCP interactions — regardless of which starter kit or agent platform the team is using.
+
+## MCP Tool Invocation Flow on Citadel
+
+The diagram below shows the end-to-end path an MCP tool call takes when governed by Citadel. Every request passes through enforcement layers before reaching the underlying enterprise API.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    MCP TOOL INVOCATION FLOW ON CITADEL                      │
+│                                                                              │
+│   MCP Client (Agent / Foundry / Copilot)                                     │
+│        │                                                                     │
+│        ▼                                                                     │
+│   ┌─────────────────────────────────────┐                                    │
+│   │  Layer 1: Governance Hub (APIM)     │  ← Auth + rate limits + policies  │
+│   │  ─ Validate Entra ID token          │                                    │
+│   │  ─ Check agent access contract      │                                    │
+│   └─────────────────────────────────────┘                                    │
+│        │                                                                     │
+│        ▼                                                                     │
+│   ┌─────────────────────────────────────┐                                    │
+│   │  Layer 4: Security Fabric           │  ← Content Safety + PII scan      │
+│   │  ─ Scan tool inputs / outputs       │                                    │
+│   └─────────────────────────────────────┘                                    │
+│        │                                                                     │
+│        ▼                                                                     │
+│   MCP Server (registered in API Center)                                      │
+│        │                                                                     │
+│        ▼                                                                     │
+│   Enterprise API (CRM, ERP, database)                                        │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+In this flow, the MCP client never talks directly to the enterprise API. APIM acts as the single front door, validating identity and enforcing access contracts before the request is forwarded. Layer 4 then inspects tool inputs and outputs for sensitive data or policy violations. Only after these checks does the MCP server execute the tool against the backing system.
+
+## Policy Enforcement Points
+
+Every MCP call that traverses Citadel passes through four enforcement points. Each point maps directly to an EY governance requirement.
+
+| Enforcement Point | Citadel Layer | What It Enforces | EY Alignment |
+|---|---|---|---|
+| Authentication gate | Layer 1 (APIM) | Valid Entra ID token; agent identity verified | Identity and access governance |
+| Access contract check | Layer 1 (APIM) | Rate limits, allowed models, cost quotas per agent | Resource governance and cost control |
+| Content safety scan | Layer 4 (Security Fabric) | Content Safety + PII blocking on tool inputs/outputs | Content safety and PII protection requirements |
+| Audit logging | Layer 1 + Layer 2 | Every request logged with caller, timestamp, tool, outcome | Audit and compliance evidence |
+
+These enforcement points are not optional add-ons — they are built into the Citadel routing path. An MCP tool call that fails any one of these checks is blocked before it can reach the enterprise API. This gives security and compliance teams the confidence that agent-driven tool usage remains within enterprise guardrails.
+
+### Authentication Gate
+
+The authentication gate is the first checkpoint every MCP request encounters. APIM validates the Entra ID token presented by the MCP client, ensuring it is unexpired, properly signed, and issued by a trusted tenant. The token is also checked against Agent 365 to confirm the caller is a registered agent with an active sponsorship. Unauthenticated or anonymous tool calls are rejected at the edge.
+
+### Access Contract Check
+
+Once identity is confirmed, APIM evaluates the agent's access contract. This contract defines what the agent is permitted to do — which tools it can invoke, how many requests per minute it is allowed, and any cost quotas that apply. Access contracts can be tailored by environment, making it easy to grant broader permissions in development while enforcing stricter limits in production.
+
+### Content Safety Scan
+
+Before the tool request reaches the MCP server, Layer 4 inspects both the input parameters and the anticipated response path. Azure AI Content Safety evaluates inputs for harmful content, jailbreak attempts, and prompt injection patterns. Microsoft Purview scans for PII and organizational sensitive data types. Requests that trigger safety thresholds can be blocked, sanitized, or escalated for human review depending on policy configuration.
+
+### Audit Logging
+
+Every MCP request generates a structured audit record that flows through Layer 1 (APIM logs) and Layer 2 (Foundry Control Plane telemetry). These records include the caller agent identity, timestamp, target tool, request outcome, and any policy actions taken. The combined log stream supports AIRA risk assessments, AI QRM compliance reviews, and operational monitoring dashboards.
+
+## How This Maps to EY MCP Standards
+
+EY's framework requires that MCP clients communicate using STDIO or HTTP with Server-Sent Events (SSE). While STDIO is suitable for local tool execution, HTTP-based MCP is the natural choice for enterprise deployments where multiple agents and services need to share tools across the network. Citadel extends this baseline by ensuring that **all HTTP-based MCP traffic** routes through APIM before reaching any MCP server. This enterprise governance layer adds four critical properties that the framework expects but does not yet specify how to implement:
+
+- **Every tool call is authenticated** — not anonymous. The caller must present a valid Entra ID token tied to an agent identity registered in Agent 365.
+- **Every tool call is rate-limited** — no uncontrolled consumption. APIM quotas prevent runaway agents or accidental denial-of-service against downstream systems.
+- **Every tool call is logged** — full audit trail for AIRA and AI QRM. Logs include who called what, when, and with what outcome.
+- **Tool inputs and outputs are scanned** — Azure AI Content Safety and Purview inspect payloads for PII and harmful content.
+
+By layering these controls on top of standard MCP transport, Citadel transforms MCP from a development convenience into an enterprise-grade integration pattern that security and compliance teams can endorse.
+
+<Note>
+Citadel does not replace EY's MCP Standard Starter Kits — it governs them. Whether the agent uses the Python, Node.js, or .NET MCP starter kit, routing traffic through Citadel APIM ensures enterprise-grade enforcement.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="MCP Integration" icon="plug" href="../agent-factory/mcp-integration">
+    Deep-dive technical guide: MCP architecture, gateway patterns, and implementation on Citadel
+  </Card>
+  <Card title="A2A Trust Broker" icon="arrows-left-right" href="./a2a-trust-broker">
+    How Citadel governs agent-to-agent communication and cross-agent authentication
+  </Card>
+</CardGroup>
