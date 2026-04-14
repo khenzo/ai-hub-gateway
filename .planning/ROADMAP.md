@@ -140,5 +140,5 @@ Plans:
 | 16. EY Framework Alignment Overview | 2/2 | Complete    | 2026-04-14 | - |
 | 17. Kubernetes & DevOps Patterns | 2/2 | Complete    | 2026-04-14 | - |
 | 18. Security & Governance at Scale | 3/3 | Complete    | 2026-04-14 | - |
-| 19. MCP, A2A & Agent Discovery | v1.3 | 0/TBD | Not started | - |
+| 19. MCP, A2A & Agent Discovery | 1/3 | In Progress|  | - |
 | 20. Attention Points & Recommendations | v1.3 | 0/TBD | Not started | - |
