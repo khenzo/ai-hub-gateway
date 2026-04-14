@@ -47,6 +47,10 @@
     {
       "name": "Operations",
       "url": "operations"
+    },
+    {
+      "name": "EY Alignment",
+      "url": "ey-framework-alignment"
     }
   ],
   "anchors": [
@@ -230,6 +234,14 @@
               "operations/runbooks/common-issues"
             ]
           }
+        ]
+      },
+      {
+        "group": "EY Framework Alignment",
+        "tab": "EY Alignment",
+        "pages": [
+          "ey-framework-alignment/index",
+          "ey-framework-alignment/alignment-map"
         ]
       }
     ]
