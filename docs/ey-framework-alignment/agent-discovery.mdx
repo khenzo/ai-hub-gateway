@@ -1,0 +1,122 @@
+---
+title: "Agent Discovery with API Center"
+description: "How APIM API Center functions as an agent registry and discovery catalog — addressing EY's 'future agent discovery' requirement today"
+icon: "search"
+---
+
+# Agent Discovery with API Center
+
+EY's AI Agent Development Framework lists "Agent Registration and Discovery" as a future capability: "Agent registration and discovery will be developed later," with plans to include it in future A2A releases by FY26 Q3. For architects evaluating Citadel today, this creates an important question: how do agents discover what tools and capabilities are available to them? The answer is that Citadel already provides this capability through **Azure API Center** — a unified API catalog that registers, versions, and publishes every API (including MCP servers and A2A endpoints) so that agents and their developers can discover them programmatically or through a searchable portal.
+
+Rather than treating agent discovery as a roadmap gap, Citadel treats it as a solved problem. API Center functions as the enterprise agent registry, while Azure API Management (APIM) enforces that only registered APIs are reachable. Together, they provide the complete registration-and-discovery pipeline that EY describes — available to deploy today.
+
+## The EY Gap vs. Citadel Reality
+
+EY's framework positions agent registration and discovery as a future-state capability. Citadel delivers it now through a direct mapping between EY's stated requirements and Azure's API governance services.
+
+| EY Framework Statement | Citadel Capability Today | How It Works |
+|---|---|---|
+| "Agent registration and discovery will be developed later" | API Center registers every API and MCP server as a discoverable asset | Platform teams register APIs in API Center; metadata is published to a central catalog |
+| "Future releases will include Agent Binding i.e. Agent Registration and Discovery" | APIM + API Center integration enforces that only registered APIs are reachable through the gateway | Unregistered endpoints cannot be consumed by agents because APIM routes only to catalog-backed APIs |
+| A2A agent discovery planned for FY26 Q3 | API Center's developer portal and programmatic APIs enable discovery now | Agent developers can search the catalog, view OpenAPI specs, and understand required permissions |
+
+This mapping means that organizations adopting Citadel do not need to wait for a separate agent discovery service. The same infrastructure that governs enterprise APIs today also serves as the agent registry tomorrow.
+
+## Registration-to-Discovery Flow
+
+The following diagram shows how an API becomes discoverable to an agent, from platform-team registration to runtime invocation.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                 AGENT REGISTRATION & DISCOVERY FLOW                        │
+│                                                                              │
+│   STEP 1: Platform team registers API                                        │
+│   ┌─────────────────────────────────────┐                                    │
+│   │  Azure API Center                   │  ← Source of truth for all APIs   │
+│   │  ─ API metadata (name, version,     │                                    │
+│   │    owner, lifecycle)                │                                    │
+│   │  ─ OpenAPI specification            │                                    │
+│   │  ─ Required permissions / scopes    │                                    │
+│   └─────────────────────┬───────────────┘                                    │
+│                         │                                                    │
+│   STEP 2: APIM gateway  │  syncs catalog                                     │
+│   ┌─────────────────────▼───────────────┐                                    │
+│   │  Azure API Management               │  ← Only registered APIs exposed   │
+│   │  ─ Product + API configuration      │                                    │
+│   │  ─ Access contracts per agent       │                                    │
+│   │  ─ Policy enforcement               │                                    │
+│   └─────────────────────┬───────────────┘                                    │
+│                         │                                                    │
+│   STEP 3: Agent         │  discovers available tools                         │
+│   ┌─────────────────────▼───────────────┐                                    │
+│   │  AI Registry / Developer Portal     │  ← Agent-consumable view          │
+│   │  ─ Tool name + description          │                                    │
+│   │  ─ Parameter schema                 │                                    │
+│   │  ─ Authentication requirements      │                                    │
+│   └─────────────────────┬───────────────┘                                    │
+│                         │                                                    │
+│   STEP 4: Agent invokes │  tool via governed gateway                         │
+│                         ▼                                                    │
+│              MCP Server or A2A Endpoint                                      │
+│                         │                                                    │
+│                         ▼                                                    │
+│              Enterprise API (CRM, ERP, etc.)                                 │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+In this flow, API Center is the source of truth. APIM is the enforcement point. The developer portal and AI Registry are the discovery interfaces. And the agent's runtime experience is governed from end to end.
+
+## What API Center Provides as an Agent Registry
+
+API Center delivers the core capabilities required for any enterprise agent registry. These capabilities map directly to the needs of platform teams, agent developers, and agents themselves.
+
+- **Catalog of all agent-facing APIs**: Every MCP server, A2A endpoint, and traditional REST API that agents can call is registered in API Center with a unique identity. This eliminates shadow APIs and ensures that agents only interact with known, approved tools.
+
+- **Version and lifecycle tracking**: APIs are versioned (v1, v2, beta) and marked with lifecycle states (design, preview, active, deprecated). Agents can query this metadata to avoid calling deprecated tools or to select the appropriate version for their task.
+
+- **Owner and governance metadata**: Each registered API has an owner team, a service-line association, and compliance tags. This maps directly to EY's governance tier model, making it clear who is responsible for each tool and which policies apply.
+
+- **Developer portal for discovery**: Agent developers can browse the API Center developer portal to find available tools, read specifications, and understand how to authenticate. This reduces onboarding friction and encourages reuse of existing capabilities.
+
+- **Programmatic discovery via API**: The API Center REST API allows agents or orchestrators to query the catalog dynamically — enabling true runtime tool discovery. An agent can ask "what tools do I have access to?" and receive a structured, up-to-date answer.
+
+## From API Registry to Agent Discovery
+
+Agent discovery is not a single experience. It looks different depending on who is doing the discovering. API Center supports all three perspectives.
+
+| Perspective | What They See | How They Interact with API Center |
+|---|---|---|
+| Platform team | API registration dashboard, governance reports, lifecycle management | Register APIs, assign owners, set versions |
+| Agent developer | Searchable developer portal with tool descriptions, schemas, and auth requirements | Browse portal, read OpenAPI specs, copy endpoint URLs |
+| Agent runtime | Dynamic catalog query result (JSON) listing available tools and their parameters | Call API Center REST API to discover tools at runtime |
+
+This separation of concerns is critical. Platform teams manage the registry. Developers discover tools through a friendly interface. Agents discover tools programmatically. All three perspectives are backed by the same source of truth in API Center.
+
+## Addressing the 'Future' Requirement Today
+
+EY's framework says agent registration and discovery is future work. Citadel makes it present work. API Center functions as the agent registry. APIM enforces that only registered APIs are reachable. Together, they provide the complete registration-and-discovery pipeline that EY describes.
+
+Organizations deploying Citadel do not need to wait for an EY-specific agent discovery service. They can use API Center today and remain aligned with EY's framework direction. When EY's A2A discovery capabilities arrive, they will complement — not replace — the API Center foundation that Citadel already provides.
+
+<Note>
+**EY requirement: "Agent Registration and Discovery" — Status: Addressable today**
+
+Citadel's API Center + APIM integration provides:
+- **Registration**: Every API and MCP server is registered with metadata and lifecycle state
+- **Discovery**: Agent developers and agents themselves can query the catalog to find available tools
+- **Enforcement**: APIM blocks traffic to unregistered endpoints, ensuring governance by default
+</Note>
+
+## Next Steps
+
+Explore related protocol and governance pages to continue building your understanding of Citadel's agent infrastructure:
+
+<CardGroup cols={2}>
+  <Card title="MCP Governance" icon="plug" href="./mcp-governance">
+    How Citadel's APIM layer governs MCP server exposure and tool invocation flows
+  </Card>
+  <Card title="A2A Trust Broker" icon="arrows-left-right" href="./a2a-trust-broker">
+    How Citadel acts as a trust broker for cross-agent authentication and federation
+  </Card>
+</CardGroup>
