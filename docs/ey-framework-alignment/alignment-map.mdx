@@ -16,7 +16,7 @@ This page maps every requirement from the EY AI Agent Development Framework to i
 | Microsoft stack selection (AutoGen, Semantic Kernel, LangGraph) | Ch 1 — Agent Standards | [Citadel APIM Gateway](/architecture/layer-1-governance-hub) routes to Azure AI Foundry endpoints; all MS-stack agents supported | Enforced |
 | Pro-code approved stack (AutoGen, SK, LangGraph) | Ch 1 — Agent Standards | [Citadel Layer 2 Control Plane](/architecture/layer-2-control-plane) manages model routing for all pro-code agents | Enforced |
 | NVIDIA stack (NeMo, GPU-accelerated AI) | Ch 1 — Agent Standards | Out of scope — Citadel focuses on Microsoft Azure infrastructure | Attention Point |
-| No-code/low-code stack (Copilot Studio, M365) | Ch 1 — Agent Standards | Out of scope — Citadel governs pro-code Azure-native agents | Attention Point |
+| No-code/low-code stack (Copilot Studio, M365) | Ch 1 — Agent Standards | [Citadel APIM Gateway](/architecture/layer-1-governance-hub) is the central AI API gateway for requests originating from Copilot Studio, Power Platform, and other no-code/low-code runtimes — governing model access, rate limits, and policy enforcement uniformly | Enforced |
 | Agent-to-Agent (A2A) protocols | Ch 1 — Agent Standards | [Citadel APIM](/architecture/layer-1-governance-hub) acts as A2A trust broker; OAuth 2.0 federation between agents | Enforced |
 | Model Context Protocol (MCP) | Ch 1 — Agent Standards | [Citadel APIM Layer 1](/architecture/layer-1-governance-hub) governs MCP server exposure and tool invocation | Enforced |
 | Pre-approved RAG patterns | Ch 1 — Agent Standards | [Citadel Layer 2](/architecture/layer-2-control-plane) provides Azure AI Search integration; RAG routing enforced via [access contracts](/governance/access-contracts) | Enforced |
@@ -43,7 +43,7 @@ This page maps every requirement from the EY AI Agent Development Framework to i
 ### Summary
 
 <Info>
-  **Enforced**: Citadel natively implements 14 of 27 criteria through Azure infrastructure, APIM policies, or the 4-layer architecture — no additional tooling required.
+  **Enforced**: Citadel natively implements 15 of 27 criteria through Azure infrastructure, APIM policies, or the 4-layer architecture — no additional tooling required.
 </Info>
 
 <Warning>
@@ -51,7 +51,7 @@ This page maps every requirement from the EY AI Agent Development Framework to i
 </Warning>
 
 <Note>
-  **Attention Points**: 3 criteria fall outside Citadel's scope: NVIDIA stack, EY-proprietary tooling, and No-code/Low-code platforms. These are by design — Citadel targets Azure-native pro-code deployments.
+  **Attention Points**: 2 criteria fall outside Citadel's scope: NVIDIA stack and EY-proprietary tooling or internal forms. Citadel governs both pro-code and no-code/low-code requests through the AI API Gateway.
 </Note>
 
 ## Next Steps
