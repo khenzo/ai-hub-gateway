@@ -41,7 +41,7 @@ PR / push to develop                          Merge to main
 | CD | 8. Apply APIM policy | Layer 1 (Governance Hub) | `az apim api policy create` applies `inbound.xml` (subscription key + JWT) and `outbound.xml` (response scrubbing) from `/policies/` directory |
 | CD | 9. Register agent trace | Layer 2 (AI Control Plane) | `az ml online-endpoint` or Foundry SDK call registers the deployment with the AI Control Plane for trace collection |
 
-## CI Workflow
+## CI Workflow (`ci.yml`)
 
 The CI workflow runs on every pull request targeting `develop` or `main`. It validates code, builds the image, and performs a security scan before the code can merge.
 
@@ -95,7 +95,7 @@ jobs:
           echo "Image scan placeholder — integrate Defender for Containers or trivy"
 ```
 
-## CD Workflow
+## CD Workflow (`cd.yml`)
 
 The CD workflow runs on every push to `main`. It authenticates to Azure via OIDC, pushes the image, deploys to AKS, applies APIM policies, and registers the agent with the AI Control Plane.
 
