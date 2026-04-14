@@ -1,0 +1,66 @@
+---
+title: "EY Framework Alignment Map"
+description: "Criterion-by-criterion mapping of the EY AI Agent Development Framework to Citadel components, with enforcement status for each requirement"
+icon: table
+---
+
+## Overview
+
+This page maps every requirement from the EY AI Agent Development Framework to its corresponding Citadel component or architecture layer. Use the enforcement status column to identify what Citadel covers, what requires supplemental process, and where to look for additional tooling.
+
+## Alignment Map
+
+| EY Criterion | EY Chapter | Citadel Component | Enforcement Status |
+|--------------|------------|-------------------|--------------------|
+| Agent taxonomy (5-tier classification) | Ch 1 — Agent Standards | [Citadel access contracts](/governance/access-contracts) enforce per-agent policy scoping; all 5 tiers deployable | Enforced |
+| Microsoft stack selection (AutoGen, Semantic Kernel, LangGraph) | Ch 1 — Agent Standards | [Citadel APIM Gateway](/architecture/layer-1-governance-hub) routes to Azure AI Foundry endpoints; all MS-stack agents supported | Enforced |
+| Pro-code approved stack (AutoGen, SK, LangGraph) | Ch 1 — Agent Standards | [Citadel Layer 2 Control Plane](/architecture/layer-2-control-plane) manages model routing for all pro-code agents | Enforced |
+| NVIDIA stack (NeMo, GPU-accelerated AI) | Ch 1 — Agent Standards | Out of scope — Citadel focuses on Microsoft Azure infrastructure | Attention Point |
+| No-code/low-code stack (Copilot Studio, M365) | Ch 1 — Agent Standards | Out of scope — Citadel governs pro-code Azure-native agents | Attention Point |
+| Agent-to-Agent (A2A) protocols | Ch 1 — Agent Standards | [Citadel APIM](/architecture/layer-1-governance-hub) acts as A2A trust broker; OAuth 2.0 federation between agents | Enforced |
+| Model Context Protocol (MCP) | Ch 1 — Agent Standards | [Citadel APIM Layer 1](/architecture/layer-1-governance-hub) governs MCP server exposure and tool invocation | Enforced |
+| Pre-approved RAG patterns | Ch 1 — Agent Standards | [Citadel Layer 2](/architecture/layer-2-control-plane) provides Azure AI Search integration; RAG routing enforced via [access contracts](/governance/access-contracts) | Enforced |
+| AI language model access (Azure OpenAI) | Ch 1 — Agent Standards | [Citadel Layer 1 APIM Gateway](/architecture/layer-1-governance-hub) manages all model access, quotas, and routing | Enforced |
+| Containerized agent deployment | Ch 2 — Deployment & Runtime | Citadel supports AKS-hosted agents behind [APIM gateway](/architecture/layer-1-governance-hub); namespace isolation via Kubernetes | Partial |
+| AI security / guardrail controls | Ch 2 — Security & Guardrails | [Citadel Layer 4 Security Fabric](/architecture/layer-4-security-fabric): [Content Safety](/governance/content-safety), [PII blocking](/governance/pii-protection), jailbreak detection via APIM policies | Enforced |
+| AI monitoring and observability | Ch 2 — Monitoring | [Citadel APIM](/architecture/layer-1-governance-hub) emits telemetry to Azure Monitor / Application Insights; agent observability via distributed tracing | Partial |
+| Two-tiered governance (firmwide) | Ch 3 — Governance | [Citadel 4-layer architecture](/architecture/citadel-4-layer-model) enforces firmwide controls: gateway policies, identity, content safety | Enforced |
+| Two-tiered governance (service-line) | Ch 3 — Governance | [Citadel access contracts](/governance/access-contracts) scoped per service-line agent product; [Layer 3 identity isolation](/architecture/layer-3-agent-identity) | Enforced |
+| AIRA (AI Risk Assessment) | Ch 3 — Governance | EY-internal process control — Citadel provides audit logs and policy enforcement; AIRA form submitted separately | Partial |
+| AI QRM (AI Quality Risk Management) | Ch 3 — Governance | EY-internal process control — not reproducible in Citadel; supplemental tooling required | Attention Point |
+| Data Protection AI Assessment | Ch 3 — Governance | [Citadel Layer 4](/architecture/layer-4-security-fabric): Purview data classification and [PII protection](/governance/pii-protection) enforced at runtime | Partial |
+| Information Security AI Assessment | Ch 3 — Governance | [Citadel APIM](/architecture/layer-1-governance-hub) + Azure Policy + Defender for AI address IS requirements at platform level | Partial |
+| Responsible AI (RAI) Global Policy | Ch 3 — Governance | [Citadel Content Safety](/governance/content-safety) ([Layer 4](/architecture/layer-4-security-fabric)) enforces RAI controls for harmful content, PII, jailbreak | Enforced |
+| Agent onboarding governance (EYQ) | Ch 3 — Governance | EYQ-specific onboarding process — Citadel provides the [access contract](/governance/access-contracts) and policy enforcement layer | Partial |
+| AI Factory Governance process | Ch 3 — Governance | [Citadel access contracts](/governance/access-contracts) implement the technical controls; AI Factory process steps are EY-internal | Partial |
+| GA Agent release process | Ch 3 — Governance | Citadel policy enforcement is part of release gates; full GA approval is an EY process | Partial |
+| Pro-code agent development (AutoGen, SK) | Ch 4 — Getting Started | [Citadel APIM gateway](/architecture/layer-1-governance-hub) and [access contracts](/governance/access-contracts) are ready for AutoGen / Semantic Kernel agents | Enforced |
+| GitHub repository scaffolding (EY standards) | Ch 4 — Getting Started | GitHub Actions CI/CD with Citadel [access contract](/governance/access-contracts) deployment — EY-specific folder conventions TBD | Partial |
+| CI/CD pipeline with access contracts | Ch 4 — Getting Started | [Citadel access contracts](/governance/access-contracts) deployable via Bicep in GitHub Actions pipeline | Enforced |
+| EYQ API specifications (REST, agent mgmt) | Ch 4 — Getting Started | [Citadel APIM](/architecture/layer-1-governance-hub) exposes and governs REST endpoints; EYQ-specific API catalog in API Center | Partial |
+| Agent discovery / registry | Ch 4 — Getting Started | [Citadel APIM API Center](/architecture/layer-1-governance-hub) functions as agent registry catalog; addresses EY's future discovery requirement | Enforced |
+
+### Summary
+
+<Info>
+  **Enforced**: Citadel natively implements 14 of 27 criteria through Azure infrastructure, APIM policies, or the 4-layer architecture — no additional tooling required.
+</Info>
+
+<Warning>
+  **Partial**: 10 criteria require Citadel plus an EY process step (AIRA submission, AI QRM form, service-line approval) or a supplemental tool for full coverage. The Attention Points section details what to add.
+</Warning>
+
+<Note>
+  **Attention Points**: 3 criteria fall outside Citadel's scope: NVIDIA stack, EY-proprietary tooling, and No-code/Low-code platforms. These are by design — Citadel targets Azure-native pro-code deployments.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Back to Overview" icon="building" href="/ey-framework-alignment">
+    Return to framework overview and enforcement status key.
+  </Card>
+  <Card title="Attention Points" icon="alert-triangle" href="/ey-framework-alignment/attention-points">
+    Supplemental tool recommendations for gaps.
+  </Card>
+</CardGroup>
