@@ -1,0 +1,191 @@
+---
+title: "AKS Deployment & Citadel Integration"
+description: "Step-by-step guide to deploy a pro-code agent container to Azure Kubernetes Service (AKS) behind the Citadel APIM gateway with namespace isolation and access contract wiring"
+icon: "kubernetes"
+---
+
+This page is the deployment reference for pro-code engineers who have [scaffolded their agent repository](/ey-framework-alignment/github-scaffolding) and are ready to ship a containerised agent to Azure Kubernetes Service (AKS) behind the Citadel gateway.
+
+## Network Integration Diagram
+
+```
+[Developer Workstation]
+      |
+      v  docker push
+[Azure Container Registry (ACR)]
+      |
+      v  Helm chart pull / kubectl apply
+[AKS Cluster]
+  ├── Namespace: citadel-agents
+  │     └── Pod: agent-container (Port 8080)
+  │           └── Service (ClusterIP)
+  └── Ingress Controller (NGINX/AGIC)
+            |
+            v  APIM subscription key validation
+[Citadel APIM Gateway — Layer 1]
+      |
+      v  Entra managed identity check
+[Agent Identity Layer — Layer 3]
+      |
+      v  traces/evaluations
+[AI Control Plane — Layer 2]
+      |
+      v  Defender for Containers
+[Security Fabric — Layer 4]
+```
+
+Every agent request enters through the Citadel APIM Gateway (Layer 1), which validates the subscription key and access contract before the traffic ever reaches the AKS pod.
+
+<Info>
+**Prerequisites**
+- AKS cluster provisioned and reachable
+- ACR attached to AKS (or pull secret configured)
+- APIM instance provisioned in the Citadel Governance Hub
+- Helm 3 installed locally
+- `kubectl` configured for the target AKS cluster
+- Azure CLI logged in (`az login`)
+</Info>
+
+<Steps>
+  <Step title="Containerize the Agent">
+    Create a `Dockerfile` at the repository root. The example below uses a Python FastAPI agent with a multi-stage build, a non-root user, and port 8080 exposed.
+
+    ```dockerfile
+    # Stage 1 — Build dependencies
+    FROM python:3.11-slim AS builder
+    WORKDIR /app
+    COPY requirements.txt .
+    RUN pip install --user --no-cache-dir -r requirements.txt
+
+    # Stage 2 — Runtime image
+    FROM python:3.11-slim
+    WORKDIR /app
+    COPY --from=builder /root/.local /home/appuser/.local
+    COPY src/ ./src/
+    ENV PATH=/home/appuser/.local/bin:$PATH
+    ENV PYTHONDONTWRITEBYTECODE=1
+    ENV PYTHONUNBUFFERED=1
+    RUN useradd -m appuser && chown -R appuser:appuser /app
+    USER appuser
+    EXPOSE 8080
+    CMD ["uvicorn", "src.agent.main:app", "--host", "0.0.0.0", "--port", "8080"]
+    ```
+
+    Build and tag the image against your ACR:
+
+    ```bash
+    docker build -t <acr-name>.azurecr.io/agents/<agent-name>:v1.0.0 .
+    ```
+
+    Authenticate with ACR and push the image:
+
+    ```bash
+    az acr login --name <acr-name>
+    docker push <acr-name>.azurecr.io/agents/<agent-name>:v1.0.0
+    ```
+  </Step>
+
+  <Step title="Deploy to AKS with Namespace Isolation">
+    Create the `citadel-agents` namespace and label it for Citadel network policy management:
+
+    ```bash
+    kubectl create namespace citadel-agents
+    kubectl label namespace citadel-agents citadel.io/managed=true
+    ```
+
+    Provide a minimal Helm `values.yaml` for the agent release:
+
+    ```yaml
+    image:
+      repository: <acr-name>.azurecr.io/agents/<agent-name>
+      tag: "v1.0.0"
+      pullPolicy: IfNotPresent
+
+    service:
+      type: ClusterIP
+      port: 8080
+
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+    ```
+
+    Deploy the Helm chart:
+
+    ```bash
+    helm upgrade --install <agent-name> ./chart \
+      --namespace citadel-agents \
+      --values values.yaml
+    ```
+
+    Verify the pod is running:
+
+    ```bash
+    kubectl get pods -n citadel-agents
+    ```
+  </Step>
+
+  <Step title="Wire the Citadel Access Contract">
+    Create an API in APIM that points to the AKS service endpoint. The backend can be an internal load balancer IP or the hostname exposed by AGIC.
+
+    Apply a subscription-key validation policy in APIM. The XML snippet below checks the `Ocp-Apim-Subscription-Key` header at ingress:
+
+    ```xml
+    <inbound>
+      <base />
+      <check-header name="Ocp-Apim-Subscription-Key" failed-check-httpcode="401" failed-check-error-message="Not authorized" ignore-case="false">
+      </check-header>
+      <validate-jwt header-name="Authorization" failed-validation-httpcode="401" failed-validation-error-message="Invalid token">
+        <openid-config url="https://login.microsoftonline.com/<tenant-id>/v2.0/.well-known/openid-configuration" />
+        <audiences>
+          <audience>api://<apim-client-id></audience>
+        </audiences>
+      </validate-jwt>
+    </inbound>
+    ```
+
+    Bind the AKS workload to an Entra managed identity so the pod can authenticate to the APIM backend:
+
+    ```bash
+    az aks pod-identity add \
+      --cluster-name <aks-name> \
+      --resource-group <aks-rg> \
+      --namespace citadel-agents \
+      --name <agent-name>-identity \
+      --identity-resource-id <identity-resource-id>
+    ```
+
+    Test the end-to-end path with a curl command:
+
+    ```bash
+    curl -H "Ocp-Apim-Subscription-Key: <key>" \
+         -H "Authorization: Bearer <token>" \
+         https://<apim-host>/agents/<agent-name>/health
+    ```
+  </Step>
+</Steps>
+
+## Citadel Layer Enforcement Table
+
+| Pipeline Stage | Citadel Layer | Enforcement Mechanism |
+| -------------- | ------------- | --------------------- |
+| Container image push | Layer 4 (Security Fabric) | Defender for Containers image scanning |
+| Namespace creation | Layer 3 (Agent Identity) | Entra workload identity binding |
+| Ingress routing | Layer 1 (Governance Hub) | APIM API gateway routing |
+| Request validation | Layer 1 (Governance Hub) | Subscription key + JWT policy |
+| Runtime traces | Layer 2 (AI Control Plane) | Foundry Control Plane agent traces |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="GitHub Repository Scaffolding" icon="github" href="/ey-framework-alignment/github-scaffolding">
+    Set up the canonical repository structure, branch policies, and naming conventions before deploying to AKS.
+  </Card>
+  <Card title="CI/CD Pipeline" icon="code-branch" href="/ey-framework-alignment/cicd-pipeline">
+    Automate build, test, and deployment from GitHub Actions to AKS and Citadel APIM.
+  </Card>
+</CardGroup>
