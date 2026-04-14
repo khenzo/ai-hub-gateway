@@ -1,0 +1,128 @@
+---
+title: "Compliance Tooling: Azure Policy, Defender & Purview"
+description: "How Azure Policy initiatives, Defender for AI threat signals, and Purview data classification satisfy EY's AIRA and AI QRM compliance process requirements"
+icon: "clipboard-check"
+---
+
+EY's AIRA and AI QRM processes require evidence that AI systems are registered, risk-assessed, and subject to ongoing monitoring. Citadel integrates three Azure services — Azure Policy, Defender for AI, and Microsoft Purview — that generate the compliance evidence and automated enforcement signals needed to support these processes. This page explains which service maps to which EY requirement, and where automation ends and manual process begins.
+
+Azure Policy initiatives enforce baseline configuration standards across all Citadel resources, ensuring that network isolation, diagnostic logging, and identity controls are in place before an agent ever receives traffic. Defender for AI collects threat signals — jailbreak attempts, prompt injection, anomalous usage — that teams can include as evidence in risk reviews. Microsoft Purview provides automated data classification and PII scanning, supporting Data Protection review with machine-generated reports. Together, these three services form the compliance tooling layer that underpins Citadel's governance story.
+
+## Overview Mapping
+
+The high-level table below maps each Azure service to the EY compliance requirement it supports, along with the degree of coverage and enforcement type.
+
+| Azure Service | EY Compliance Requirement | Coverage | Enforcement Type |
+|---|---|---|---|
+| Azure Policy initiatives | AI system configuration standards | Automated | Enforces baseline configuration rules across AI resources; violations block deployment |
+| Defender for AI | InfoSec review — threat signal evidence | Partial | Provides real-time threat signals (jailbreak attempts, prompt injection); human review still required |
+| Microsoft Purview | Data Protection review — data classification evidence | Partial | Automates data classification and PII scanning; formal DP approval remains manual |
+
+## Azure Policy — Configuration Governance
+
+Azure Policy initiatives are the first line of defense for configuration governance. In a Citadel deployment, policy initiatives are applied at the subscription or resource group level, ensuring that every APIM instance, AI service, and supporting resource complies with organizational baselines before it is used in production.
+
+### What Azure Policy Enforces
+
+- **APIM SKU compliance**: Ensures that API Management is deployed on Standard v2 or Premium SKUs that support private endpoints, enhanced logging, and virtual network integration.
+- **Private endpoint requirements**: Enforces that AI services (Azure OpenAI, AI Foundry projects) are accessible only through private endpoints, eliminating public internet exposure.
+- **Network isolation rules**: Requires network security groups and route tables that restrict traffic flow to approved sources and destinations.
+- **Diagnostic settings enablement**: Mandates that all resources send logs and metrics to a centralized Log Analytics workspace or Event Hub for audit and observability.
+
+### Mapping to Firmwide Governance
+
+Any Citadel deployment that violates a policy initiative is flagged in the Azure Policy compliance dashboard and can be blocked at the resource group level. This gives EY's InfoSec and governance teams continuous visibility into configuration drift. If a team attempts to deploy an AI resource without diagnostic settings or with public network access enabled, the deployment fails — preventing non-compliant resources from entering production.
+
+### AIRA Evidence
+
+Azure Policy compliance reports can be exported as evidence of configuration controls for AIRA submissions. The report shows which policies are applied, which resources are compliant, and which exceptions exist — providing auditors with a clear picture of the control environment.
+
+### Example Policy Categories
+
+| Policy Initiative | Controls Enforced | Maps to EY Requirement |
+|---|---|---|
+| AI Services Governance | Require private endpoints; disable public network access | InfoSec — network isolation |
+| API Management Governance | Enforce APIM Standard v2+; require diagnostic settings | InfoSec — audit logging enablement |
+| Data Residency | Restrict AI resources to approved Azure regions | Data Protection — data residency |
+| Identity Controls | Enforce Managed Identity for AI resource access | InfoSec — identity governance |
+
+## Defender for AI — Threat Signal Collection
+
+Defender for AI provides security monitoring and threat detection for Azure AI services. It analyzes traffic patterns, model inputs, and usage behavior to identify attacks against AI workloads.
+
+### What It Detects
+
+- **Jailbreak attempts**: Adversarial prompts designed to bypass system instructions or safety guardrails.
+- **Prompt injection**: Malicious inputs that attempt to alter model behavior or extract sensitive system information.
+- **Anomalous token usage**: Unusual spikes in request volume or token consumption that may indicate abuse or exfiltration.
+- **Model abuse patterns**: Repeated behaviors that suggest scraping, model inversion, or other attacks.
+
+### Threat Signals in AIRA and AI QRM
+
+Defender for AI generates security alerts that teams include as evidence in AIRA risk classification and AI QRM reviews. High-severity signals — such as repeated jailbreak attempts or model exfiltration patterns — may trigger a re-review of the agent's risk rating or lead to additional controls being required before the agent can remain in production.
+
+### Citadel Layer 4 Integration
+
+Citadel's Layer 4 (Security Fabric) acts as the real-time enforcement layer — blocking harmful prompts before they reach the model. Defender for AI operates at the subscription level, providing post-hoc threat intelligence and pattern analysis that complements Layer 4's real-time blocking. The two work together: Layer 4 stops the immediate attack, and Defender for AI provides the forensic evidence and trend analysis needed for compliance reporting.
+
+### Automated vs Manual Boundary
+
+| Defender Signal | Citadel Layer 4 Action | EY Process Impact |
+|---|---|---|
+| Jailbreak attempt detected | Layer 4 blocks request in real-time | Alert stored for AIRA review evidence |
+| Prompt injection detected | Layer 4 blocks request in real-time | Alert included in InfoSec review |
+| Anomalous token usage | Alert generated | Manual review triggered for AI QRM |
+| Model exfiltration attempt | Alert generated | InfoSec escalation required |
+
+## Microsoft Purview — Data Classification
+
+Microsoft Purview provides automated scanning and classification of data assets flowing through AI workloads. It identifies sensitivity labels, detects PII, and generates classification reports that serve as evidence for Data Protection review.
+
+### What Purview Provides
+
+- **Automated scanning**: Continuously scans data stores, pipelines, and AI training datasets for sensitive information.
+- **Sensitivity labeling**: Applies labels such as General, Confidential, and Highly Confidential based on organizational policy.
+- **PII detection**: Identifies common PII types (names, addresses, credit card numbers, national IDs) as well as custom patterns defined by the organization.
+
+### Supporting Data Protection Review
+
+Purview generates a classification report that serves as evidence for the DP review required in AIRA. The report shows what data types are present, how they are labeled, and where they flow. However, the formal Data Protection review and approval remain a manual gate — a human reviewer must evaluate the report and sign off on the agent's data handling practices.
+
+### Integration with Layer 4
+
+Layer 4 PII blocking is rule-based, using regex patterns and Azure AI Language service detection. Purview adds enterprise-wide classification that can inform which PII patterns to configure in APIM policies. For example, if Purview identifies that a service line processes healthcare data, Layer 4 policies can be tuned to block HIPAA-related identifiers with higher sensitivity.
+
+### Classification-to-Action Mapping
+
+| Purview Classification | Layer 4 Response | EY Process Step |
+|---|---|---|
+| PII — High Sensitivity | PII blocking policy active (block or anonymize) | Triggers Data Protection review in AIRA |
+| Confidential | Audit logging at enhanced verbosity | Noted in AIRA risk classification |
+| General | Standard logging | No additional AIRA steps required |
+
+## Automated vs Manual Control Summary
+
+<Note>
+**Citadel automates the enforcement runtime. EY AIRA and AI QRM remain manual processes.**
+
+The following controls require human action outside Citadel:
+- Registering AI systems in EY's AIRA application
+- Completing AI QRM reviews for medium/high-risk agents
+- Obtaining formal Data Protection and InfoSec approvals
+- Conducting service-line-specific reviews (e.g., TTAR AI Agent Acceptance Process)
+
+Citadel's role is to generate the compliance evidence (audit logs, threat signals, classification reports, policy compliance reports) that these manual processes require.
+</Note>
+
+This boundary is intentional. Citadel is a technical platform, not a workflow engine for EY-internal processes. By generating rich, machine-verifiable evidence, Citadel reduces the friction of compliance — but the accountability for risk acceptance remains with the human reviewers who own AIRA, AI QRM, and service-line governance.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Governance Tier Mapping" icon="sitemap" href="./governance-tiers">
+    See how EY's firmwide and service-line tiers map to each Citadel layer
+  </Card>
+  <Card title="AI Guardrails Configuration" icon="filter" href="./guardrails-config">
+    Configure Content Safety, PII blocking, and jailbreak detection via APIM policies
+  </Card>
+</CardGroup>
