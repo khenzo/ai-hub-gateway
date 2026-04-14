@@ -47,7 +47,7 @@ _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
 
 ### v1.3 EY Framework Alignment (Phases 16-20)
 
-- [ ] **Phase 16: EY Framework Alignment Overview** - Alignment map and dedicated EY section in site navigation
+- [x] **Phase 16: EY Framework Alignment Overview** - Alignment map and dedicated EY section in site navigation (completed 2026-04-14)
 - [ ] **Phase 17: Kubernetes & DevOps Patterns** - AKS deployment, GitHub scaffolding, and CI/CD pipeline guidance
 - [ ] **Phase 18: Security & Governance at Scale** - EY two-tiered governance mapped to Citadel 4-layer architecture
 - [ ] **Phase 19: MCP, A2A & Agent Discovery** - Protocol alignment and APIM as agent registry
@@ -137,7 +137,7 @@ Plans:
 | 13. Open Platform Transformation | v1.2 | 1/1 | Complete | 2026-04-13 |
 | 14. Deep Agents Architecture | v1.2 | 1/1 | Complete | 2026-04-13 |
 | 15. Navigation & Integration | v1.2 | 1/1 | Complete | 2026-04-13 |
-| 16. EY Framework Alignment Overview | 1/2 | In Progress|  | - |
+| 16. EY Framework Alignment Overview | 2/2 | Complete   | 2026-04-14 | - |
 | 17. Kubernetes & DevOps Patterns | v1.3 | 0/2 | Not started | - |
 | 18. Security & Governance at Scale | v1.3 | 0/3 | Not started | - |
 | 19. MCP, A2A & Agent Discovery | v1.3 | 0/TBD | Not started | - |
