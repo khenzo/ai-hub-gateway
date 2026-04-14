@@ -137,7 +137,7 @@ Plans:
 | 13. Open Platform Transformation | v1.2 | 1/1 | Complete | 2026-04-13 |
 | 14. Deep Agents Architecture | v1.2 | 1/1 | Complete | 2026-04-13 |
 | 15. Navigation & Integration | v1.2 | 1/1 | Complete | 2026-04-13 |
-| 16. EY Framework Alignment Overview | v1.3 | 0/2 | Not started | - |
+| 16. EY Framework Alignment Overview | 1/2 | In Progress|  | - |
 | 17. Kubernetes & DevOps Patterns | v1.3 | 0/2 | Not started | - |
 | 18. Security & Governance at Scale | v1.3 | 0/3 | Not started | - |
 | 19. MCP, A2A & Agent Discovery | v1.3 | 0/TBD | Not started | - |
