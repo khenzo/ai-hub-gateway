@@ -39,7 +39,7 @@ Progress: [███████░░░] 70% (3/5 phases complete, 7/7 plans o
 | 16. EY Framework Alignment Overview | Readers can navigate a dedicated EY section and view the full alignment map | ALIGN-01, ALIGN-02 | Complete |
 | 17. Kubernetes & DevOps Patterns | Pro-code engineers can deploy agents to AKS and wire CI/CD with Citadel | KUBE-01, KUBE-02, KUBE-03 | Complete (2/2 plans) |
 | 18. Security & Governance at Scale | Architects can map EY two-tiered governance to Citadel 4-layer architecture | GOVN-01, GOVN-02, GOVN-03 | Complete (3/3 plans) |
-| 19. MCP, A2A & Agent Discovery | Architects can understand Citadel's role in MCP, A2A trust, and agent discovery | PROTO-01, PROTO-02, PROTO-03 | In Progress (1/3 plans) |
+| 19. MCP, A2A & Agent Discovery | Architects can understand Citadel's role in MCP, A2A trust, and agent discovery | PROTO-01, PROTO-02, PROTO-03 | In Progress (2/3 plans) |
 | 20. Attention Points & Recommendations | Readers receive actionable gap analysis and supplemental tool recommendations | GAPS-01 | Not started |
 
 ## Performance Metrics
@@ -94,6 +94,7 @@ Progress: [███████░░░] 70% (3/5 phases complete, 7/7 plans o
 | Phase 18-security-governance-at-scale P01 | 3min | 2 tasks | 2 files |
 | Phase 18-security-governance-at-scale P02 | 1min | 1 tasks | 1 files |
 | Phase 18-security-governance-at-scale P03 | 1min | 1 tasks | 1 files |
+| Phase 19-mcp-a2a-agent-discovery P01 | 2min | 2 tasks | 2 files |
 | Phase 19-mcp-a2a-agent-discovery P02 | 1 min | 1 tasks | 1 files |
 
 ## Accumulated Context
@@ -159,6 +160,8 @@ Recent decisions affecting current work:
 - [Phase 18-security-governance-at-scale]: Expanded governance-tiers.mdx with layer-specific subsections and cross-references to meet content depth requirements — Improved reader comprehension and navigational continuity while satisfying the 120+ line minimum
 - [Phase 18-security-governance-at-scale]: Established automated vs manual enforcement matrix as a reusable pattern for compliance documentation — Creates a clear boundary that architects and compliance officers can reference when mapping platform capabilities to process requirements
 - [Phase 19-mcp-a2a-agent-discovery]: Positioned Azure API Center as the enterprise agent registry, addressing EY's future requirement today rather than treating it as a roadmap gap
+- [Phase 19-mcp-a2a-agent-discovery]: Expanded both pages beyond minimum line count with substantive subsections to ensure architectural depth rather than padding — Automated verification required 100+ lines; adding meaningful subsections about enforcement points and trust patterns satisfied the requirement with real value
+- [Phase 19-mcp-a2a-agent-discovery]: Used existing Agent Factory pages as deep-dive targets via CardGroup cross-links, avoiding technical duplication — The plan explicitly required cross-links to agent-factory/mcp-integration and agent-factory/a2a-integration; routing readers there via CardGroup preserves the DRY principle across documentation
 
 ### Pending Todos
 
@@ -209,5 +212,5 @@ Resume file: None
 - Phase 16: Complete (2/2 plans complete)
 - Phase 17: Complete (2/2 plans complete)
 - Phase 18: Complete (3/3 plans complete)
-- Phase 19: In Progress (1/3 plans complete)
+- Phase 19: In Progress (2/3 plans complete)
 - Phase 20: Not started
