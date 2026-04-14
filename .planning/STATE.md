@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: EY Framework Alignment
 status: in_progress
-stopped_at: Completed 16-02-PLAN.md
-last_updated: "2026-04-14T12:42:00.000Z"
-last_activity: "2026-04-14 — Completed Plan 16-02 (EY Framework Navigation Wiring)"
+stopped_at: Completed 17-01-PLAN.md
+last_updated: "2026-04-14T12:54:43.000Z"
+last_activity: "2026-04-14 — Completed Plan 17-01 (AKS Deployment & GitHub Scaffolding)"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 3
+  completed_plans: 3
   percent: 20
 ---
 
@@ -25,19 +25,19 @@ See: .planning/PROJECT.md (updated 2026-04-14)
 
 ## Current Position
 
-Phase: Phase 16 — EY Framework Alignment Overview (complete)
-Plan: 02
-Status: Phase 16 complete — ready for Phase 17
-Last activity: 2026-04-14 — Completed Plan 16-02 (EY Framework Navigation Wiring)
+Phase: Phase 17 — Kubernetes & DevOps Patterns (in progress)
+Plan: 01
+Status: Plan 17-01 complete — ready for Plan 17-02
+Last activity: 2026-04-14 — Completed Plan 17-01 (AKS Deployment & GitHub Scaffolding)
 
-Progress: [██░░░░░░░░] 20% (1/5 phases complete, 2/2 plans in current phase)
+Progress: [██░░░░░░░░] 20% (1/5 phases complete, 3/3 plans overall in v1.3)
 
 ## v1.3 Phase Summary
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
 | 16. EY Framework Alignment Overview | Readers can navigate a dedicated EY section and view the full alignment map | ALIGN-01, ALIGN-02 | Complete |
-| 17. Kubernetes & DevOps Patterns | Pro-code engineers can deploy agents to AKS and wire CI/CD with Citadel | KUBE-01, KUBE-02, KUBE-03 | Not started |
+| 17. Kubernetes & DevOps Patterns | Pro-code engineers can deploy agents to AKS and wire CI/CD with Citadel | KUBE-01, KUBE-02, KUBE-03 | In Progress (1/2 plans) |
 | 18. Security & Governance at Scale | Architects can map EY two-tiered governance to Citadel 4-layer architecture | GOVN-01, GOVN-02, GOVN-03 | Not started |
 | 19. MCP, A2A & Agent Discovery | Architects can understand Citadel's role in MCP, A2A trust, and agent discovery | PROTO-01, PROTO-02, PROTO-03 | Not started |
 | 20. Attention Points & Recommendations | Readers receive actionable gap analysis and supplemental tool recommendations | GAPS-01 | Not started |
@@ -89,6 +89,7 @@ Progress: [██░░░░░░░░] 20% (1/5 phases complete, 2/2 plans i
 | Phase 15-navigation-integration P01 | 1min | 4 tasks | 0 files |
 | Phase 16-ey-framework-alignment-overview P01 | 1min | 2 tasks | 2 files |
 | Phase 16-ey-framework-alignment-overview P02 | 2 min | 1 tasks | 1 files |
+| Phase 17-kubernetes-devops-patterns P01 | 2 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -149,15 +150,16 @@ Recent decisions affecting current work:
 - [Phase 12-agent-security-observability]: Warning component for cross-prompt injection to emphasize extended attack surface beyond user input
 - [Phase 12-agent-security-observability]: Agent observability page uses Steps component matching agent-security-blueprint.mdx pattern for consistency
 - [Phase 12-agent-security-observability]: monitoring.mdx retained original frontmatter and structure; body replaced to become active cross-reference rather than dead placeholder
+- [Phase 17-kubernetes-devops-patterns]: Added a Repository Init Checklist section to github-scaffolding.mdx to ensure the page exceeds 100 lines and provides actionable onboarding value
 
 ### Pending Todos
 
-**v1.3 Phases — all pending:**
-- Phase 16: EY Framework Alignment Overview (plans TBD)
-- Phase 17: Kubernetes & DevOps Patterns (plans TBD)
-- Phase 18: Security & Governance at Scale (plans TBD)
-- Phase 19: MCP, A2A & Agent Discovery (plans TBD)
-- Phase 20: Attention Points & Recommendations (plans TBD)
+**v1.3 Phases:**
+- Phase 16: EY Framework Alignment Overview (complete)
+- Phase 17: Kubernetes & DevOps Patterns (in progress)
+- Phase 18: Security & Governance at Scale (pending)
+- Phase 19: MCP, A2A & Agent Discovery (pending)
+- Phase 20: Attention Points & Recommendations (pending)
 
 ### Blockers/Concerns
 
@@ -165,8 +167,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-14T12:42:00.000Z
-Stopped at: Completed 16-02-PLAN.md
+Last session: 2026-04-14T12:54:43.000Z
+Stopped at: Completed 17-01-PLAN.md
 Resume file: None
 
 ## Milestone Status
@@ -195,9 +197,9 @@ Resume file: None
 
 **Milestone v1.3: EY Framework Alignment — IN PROGRESS**
 - 5 phases defined (Phases 16-20)
-- 11 requirements mapped, 2/11 complete
+- 11 requirements mapped, 4/11 complete
 - Phase 16: Complete (2/2 plans complete)
-- Phase 17: Not started
+- Phase 17: In Progress (1/2 plans complete)
 - Phase 18: Not started
 - Phase 19: Not started
 - Phase 20: Not started
