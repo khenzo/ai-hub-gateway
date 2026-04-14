@@ -28,9 +28,6 @@ This page maps every requirement from the EY AI Agent Development Framework to i
 | Two-tiered governance (service-line) | Ch 3 — Governance | [Citadel access contracts](/governance/access-contracts) scoped per service-line agent product; [Layer 3 identity isolation](/architecture/layer-3-agent-identity) | Enforced |
 | AIRA (AI Risk Assessment) | Ch 3 — Governance | EY-internal process control — Citadel provides audit logs and policy enforcement; AIRA form submitted separately | Partial |
 | AI QRM (AI Quality Risk Management) | Ch 3 — Governance | EY-internal process control — not reproducible in Citadel; supplemental tooling required | Attention Point |
-| Data Protection AI Assessment | Ch 3 — Governance | [Citadel Layer 4](/architecture/layer-4-security-fabric): Purview data classification and [PII protection](/governance/pii-protection) enforced at runtime | Partial |
-| Information Security AI Assessment | Ch 3 — Governance | [Citadel APIM](/architecture/layer-1-governance-hub) + Azure Policy + Defender for AI address IS requirements at platform level | Partial |
-| Responsible AI (RAI) Global Policy | Ch 3 — Governance | [Citadel Content Safety](/governance/content-safety) ([Layer 4](/architecture/layer-4-security-fabric)) enforces RAI controls for harmful content, PII, jailbreak | Enforced |
 | Agent onboarding governance (EYQ) | Ch 3 — Governance | EYQ-specific onboarding process — Citadel provides the [access contract](/governance/access-contracts) and policy enforcement layer | Partial |
 | AI Factory Governance process | Ch 3 — Governance | [Citadel access contracts](/governance/access-contracts) implement the technical controls; AI Factory process steps are EY-internal | Partial |
 | GA Agent release process | Ch 3 — Governance | Citadel policy enforcement is part of release gates; full GA approval is an EY process | Partial |
@@ -40,18 +37,28 @@ This page maps every requirement from the EY AI Agent Development Framework to i
 | EYQ API specifications (REST, agent mgmt) | Ch 4 — Getting Started | [Citadel APIM](/architecture/layer-1-governance-hub) exposes and governs REST endpoints; EYQ-specific API catalog in API Center | Partial |
 | Agent discovery / registry | Ch 4 — Getting Started | [Citadel APIM API Center](/architecture/layer-1-governance-hub) functions as agent registry catalog; addresses EY's future discovery requirement | Enforced |
 
+### Documental Process Controls
+
+The EY framework also includes three governance assessments that are **documental process steps** rather than technical infrastructure controls. They are listed here for completeness but are **not included in the alignment map** because they require EY-internal forms, manual review, and organisational sign-off rather than Azure platform configuration:
+
+- **Responsible AI (RAI) Global Policy** — EY policy attestation and documentation requirement
+- **Data Protection AI Assessment** — EY data protection review process
+- **Information Security AI Assessment** — EY information security review process
+
+Citadel provides the underlying technical guardrails ([Content Safety](/governance/content-safety), [PII blocking](/governance/pii-protection), Defender for AI) that support these assessments, but the assessments themselves remain EY process controls outside the scope of this technical alignment.
+
 ### Summary
 
 <Info>
-  **Enforced**: Citadel natively implements 15 of 27 criteria through Azure infrastructure, APIM policies, or the 4-layer architecture — no additional tooling required.
+  **Enforced**: Citadel natively implements 14 of 24 mapped criteria through Azure infrastructure, APIM policies, or the 4-layer architecture — no additional tooling required.
 </Info>
 
 <Warning>
-  **Partial**: 10 criteria require Citadel plus an EY process step (AIRA submission, AI QRM form, service-line approval) or a supplemental tool for full coverage. The Attention Points section details what to add.
+  **Partial**: 8 mapped criteria require Citadel plus an EY process step (AIRA, service-line approval) or a supplemental tool for full coverage.
 </Warning>
 
 <Note>
-  **Attention Points**: 2 criteria fall outside Citadel's scope: NVIDIA stack and EY-proprietary tooling or internal forms. Citadel governs both pro-code and no-code/low-code requests through the AI API Gateway.
+  **Attention Points**: 2 criteria fall outside Citadel's scope: NVIDIA stack and EY-proprietary tooling or internal forms. The three documental assessments (RAI, Data Protection, Information Security) are mentioned above but excluded from the technical alignment map.
 </Note>
 
 ## Next Steps
