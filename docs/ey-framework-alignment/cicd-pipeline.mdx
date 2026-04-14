@@ -1,0 +1,210 @@
+---
+title: "CI/CD Pipeline with Citadel Access Contracts"
+description: "GitHub Actions workflow that builds the agent container image, runs tests, and deploys to AKS with Citadel access contracts applied at each pipeline stage"
+icon: "code-branch"
+---
+
+This page defines the GitHub Actions pipeline that operationalises the [GitHub repository scaffolding](./github-scaffolding) and [AKS deployment](./aks-deployment) into an automated delivery pipeline. The key addition is that Citadel access contracts are applied at deploy time — not as a post-deployment step.
+
+## Pipeline Overview
+
+```
+PR / push to develop                          Merge to main
+      |                                              |
+      v                                              v
+[CI Job]                                      [CD Job]
+┌─────────────────────────────┐   ┌────────────────────────────────┐
+│ 1. Checkout                 │   │ 5. Login to Azure (OIDC)       │
+│ 2. Run unit tests           │   │    Layer 3: Agent Identity      │
+│ 3. Build container image    │   │ 6. Push image to ACR            │
+│ 4. Scan image               │   │    Layer 4: Security Fabric     │
+│    Layer 4: Security Fabric │   │ 7. Helm upgrade (AKS deploy)    │
+│                             │   │    Layer 1: Governance Hub      │
+│                             │   │ 8. Apply APIM policy            │
+│                             │   │    Layer 1: Governance Hub      │
+│                             │   │ 9. Register agent trace         │
+│                             │   │    Layer 2: AI Control Plane    │
+└─────────────────────────────┘   └────────────────────────────────┘
+```
+
+## Citadel Layer Enforcement per Stage
+
+| Stage | Step | Citadel Layer | Enforcement Mechanism |
+|-------|------|---------------|----------------------|
+| CI | 1. Checkout | n/a | Source code checkout from GitHub |
+| CI | 2. Unit tests | n/a | `pytest` validates code correctness |
+| CI | 3. Build image | n/a | `docker build` produces container image |
+| CI | 4. Image scan | Layer 4 (Security Fabric) | Defender for Containers / `az acr task run` vulnerability scan; blocks on high CVE |
+| CD | 5. Azure login (OIDC) | Layer 3 (Agent Identity) | GitHub OIDC federated credential bound to Entra managed identity; no stored secrets |
+| CD | 6. Push to ACR | Layer 4 (Security Fabric) | ACR pulls policy tag from Defender scan; unsigned images rejected |
+| CD | 7. Helm upgrade | Layer 1 (Governance Hub) | Namespace label `citadel.io/managed=true` enforces network policy; APIM backend URL injected via Helm values |
+| CD | 8. Apply APIM policy | Layer 1 (Governance Hub) | `az apim api policy create` applies `inbound.xml` (subscription key + JWT) and `outbound.xml` (response scrubbing) from `/policies/` directory |
+| CD | 9. Register agent trace | Layer 2 (AI Control Plane) | `az ml online-endpoint` or Foundry SDK call registers the deployment with the AI Control Plane for trace collection |
+
+## CI Workflow
+
+The CI workflow runs on every pull request targeting `develop` or `main`. It validates code, builds the image, and performs a security scan before the code can merge.
+
+```yaml
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_TAG: ${{ secrets.ACR_LOGIN_SERVER }}/agents/<agent-name>:${{ github.sha }}
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      # n/a — standard checkout
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # n/a — validate code correctness
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # n/a — install dependencies
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # n/a — validate unit behavior
+      - name: Run unit tests
+        run: pytest tests/unit/ -v --tb=short
+
+      # n/a — validate integration behavior
+      - name: Run integration tests
+        run: pytest tests/integration/ -v --tb=short
+
+      # n/a — build container image
+      - name: Build container image
+        run: docker build -t ${{ env.IMAGE_TAG }} .
+
+      # Layer 4: Security Fabric — image vulnerability scan
+      - name: Scan image
+        run: |
+          # Replace with: az acr task run or trivy scan — blocks on HIGH/CRITICAL CVE
+          echo "Image scan placeholder — integrate Defender for Containers or trivy"
+```
+
+## CD Workflow
+
+The CD workflow runs on every push to `main`. It authenticates to Azure via OIDC, pushes the image, deploys to AKS, applies APIM policies, and registers the agent with the AI Control Plane.
+
+```yaml
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write      # Required for OIDC federated credential
+  contents: read
+
+env:
+  IMAGE_TAG: ${{ secrets.ACR_LOGIN_SERVER }}/agents/<agent-name>:${{ github.sha }}
+  NAMESPACE: citadel-agents
+  HELM_RELEASE: <agent-name>
+  RG: ${{ secrets.AZURE_RESOURCE_GROUP }}
+  APIM: ${{ secrets.APIM_SERVICE_NAME }}
+  API_ID: ${{ secrets.APIM_API_ID }}
+
+jobs:
+  cd:
+    runs-on: ubuntu-latest
+    steps:
+      # n/a — checkout source for deployment
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Layer 3: Agent Identity — OIDC login to Azure (no stored secrets)
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Layer 4: Security Fabric — push image to ACR with scan policy enforced
+      - name: Push image to ACR
+        run: |
+          az acr login --name ${{ secrets.ACR_NAME }}
+          docker push ${{ env.IMAGE_TAG }}
+
+      # Layer 1: Governance Hub — deploy to AKS with namespace isolation and APIM backend wiring
+      - name: Helm upgrade
+        run: |
+          helm upgrade --install ${{ env.HELM_RELEASE }} ./chart \
+            --namespace ${{ env.NAMESPACE }} \
+            --set image.tag=${{ github.sha }} \
+            --set apim.backendUrl=${{ secrets.APIM_BACKEND_URL }}
+
+      # Layer 1: Governance Hub — apply APIM access contract policies
+      - name: Apply APIM policy
+        run: |
+          az apim api policy create \
+            --resource-group ${{ env.RG }} \
+            --service-name ${{ env.APIM }} \
+            --api-id ${{ env.API_ID }} \
+            --policy-format xml \
+            --value @policies/inbound.xml
+
+          az apim api policy create \
+            --resource-group ${{ env.RG }} \
+            --service-name ${{ env.APIM }} \
+            --api-id ${{ env.API_ID }} \
+            --policy-format xml \
+            --value @policies/outbound.xml
+
+      # Layer 2: AI Control Plane — register deployment for trace collection
+      - name: Register agent trace
+        run: |
+          # Register deployment with Citadel AI Control Plane for trace collection
+          echo "Register agent trace with AI Control Plane"
+
+      # n/a — verify deployment health
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/<agent-name> \
+            -n ${{ env.NAMESPACE }} \
+            --timeout=120s
+```
+
+## Configuring GitHub OIDC for Azure
+
+<Info>
+  Using OIDC federated credentials instead of stored service principal secrets is required by EY's repository security policy. The federated credential in Entra binds this repository and branch to the AKS workload managed identity — satisfying Layer 3 (Agent Identity) before a single line of CD code runs.
+</Info>
+
+Run this one-time Azure CLI command to create the federated credential:
+
+```bash
+az ad app federated-credential create \
+  --id <app-object-id> \
+  --parameters '{
+    "name": "github-actions-main",
+    "issuer": "https://token.actions.githubusercontent.com",
+    "subject": "repo:<org>/<agent-repo>:ref:refs/heads/main",
+    "audiences": ["api://AzureADTokenExchange"]
+  }'
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="AKS Deployment & Citadel Integration" icon="server" href="./aks-deployment">
+    Deploy your agent to AKS with namespace isolation, managed identity, and APIM backend wiring.
+  </Card>
+  <Card title="GitHub Repository Scaffolding" icon="github" href="./github-scaffolding">
+    Set up the canonical folder structure, branch policies, and secrets required for this pipeline.
+  </Card>
+</CardGroup>
