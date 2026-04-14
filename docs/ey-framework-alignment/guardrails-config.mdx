@@ -1,0 +1,243 @@
+---
+title: "AI Guardrails Configuration"
+description: "Step-by-step guidance for implementing EY-required AI guardrails — Content Safety filtering, PII blocking, and jailbreak/injection detection — using Citadel APIM policies"
+icon: "filter"
+---
+
+# AI Guardrails Configuration
+
+EY's AI Agent Development Framework requires three categories of AI guardrails: content safety filtering, PII and sensitive data protection, and jailbreak/injection detection. In Citadel's architecture, all three are implemented as APIM policies at Layer 1 (Governance Hub) and Layer 4 (Security Fabric).
+
+This page provides configuration guidance and example policy XML for each guardrail type. Policies can be applied at the product level (via access contracts) or at the API level for more granular control. Each section includes deployable snippets you can adapt to your environment.
+
+## Guardrail Overview
+
+| Guardrail | Citadel Layer | APIM Policy Type | EY Requirement |
+|---|---|---|---|
+| Content Safety filtering | Layer 4 — Security Fabric | Inbound + outbound `send-request` to Content Safety API | Content Safety — violence, self-harm, sexual content |
+| PII blocking | Layer 4 — Security Fabric | Inbound `send-request` to Language API + conditional block | PII and Sensitive Data Detection |
+| Jailbreak/injection detection | Layer 1 — Governance Hub + Layer 4 | Inbound body inspection + prompt shield API | Injection Detection |
+| Ethical compliance | Layer 2 — AI Control Plane | Access contract — model access boundaries | Policy and ethical compliance |
+
+## Content Safety Filtering
+
+Content Safety filtering calls the Azure AI Content Safety API from within the APIM inbound policy and blocks requests or responses that exceed the configured severity threshold. This prevents harmful content from reaching the AI model or being returned to users.
+
+<Steps>
+  <Step title="Deploy Azure AI Content Safety resource">
+    Create an Azure AI Content Safety resource in the same region as your APIM instance. Store the endpoint and key in Azure Key Vault, then reference them in APIM as named values: `{{content-safety-name}}` and `{{content-safety-key}}`.
+  </Step>
+  <Step title="Apply the inbound Content Safety policy">
+    Add the following policy fragment to your APIM product policy or API inbound section. This sends the user prompt to Content Safety before forwarding to the AI model:
+
+    ```xml
+    <!-- Content Safety: Analyze inbound prompt before forwarding to model -->
+    <send-request mode="new" response-variable-name="contentSafetyResult" timeout="10" ignore-error="false">
+      <set-url>https://{{content-safety-name}}.cognitiveservices.azure.com/contentsafety/text:analyze?api-version=2023-10-01</set-url>
+      <set-method>POST</set-method>
+      <set-header name="Ocp-Apim-Subscription-Key" exists-action="override">
+        <value>{{content-safety-key}}</value>
+      </set-header>
+      <set-header name="Content-Type" exists-action="override">
+        <value>application/json</value>
+      </set-header>
+      <set-body>@{
+        var body = context.Request.Body.As&lt;JObject&gt;(preserveContent: true);
+        var prompt = body["messages"]?.Last()?["content"]?.ToString() ?? "";
+        return new JObject(new JProperty("text", prompt)).ToString();
+      }</set-body>
+    </send-request>
+    <!-- Block if any category exceeds severity threshold 2 (Medium) -->
+    <choose>
+      <when condition="@{
+        var result = ((IResponse)context.Variables["contentSafetyResult"]).Body.As&lt;JObject&gt;();
+        var categories = result["categoriesAnalysis"];
+        return categories != null &amp;&amp; categories.Any(c =&gt; (int)c["severity"] &gt;= 2);
+      }">
+        <return-response>
+          <set-status code="400" reason="Content Safety Violation" />
+          <set-header name="Content-Type" exists-action="override">
+            <value>application/json</value>
+          </set-header>
+          <set-body>{"error": "Request blocked by content safety policy"}</set-body>
+        </return-response>
+      </when>
+    </choose>
+    ```
+  </Step>
+  <Step title="Tune severity thresholds per use case">
+    Adjust the threshold value (`&gt;= 2`) based on the agent's risk classification:
+    - **High-security agents** (AIRA high risk): threshold 1 — block at low severity
+    - **Balanced (standard enterprise)**: threshold 2 — block at medium severity (recommended default)
+    - **Rapid/POC**: threshold 3 — block only at high severity
+  </Step>
+</Steps>
+
+<Tip>
+For additional context on Content Safety integration patterns, including outbound response filtering and custom blocklists, see the [Content Safety Integration guide](../governance/content-safety).
+</Tip>
+
+## PII Blocking
+
+PII blocking uses the Azure AI Language service to detect PII entities in the inbound request body. When PII is detected, the policy either blocks the request outright or anonymizes the detected entities before forwarding to the model, depending on the configured mode.
+
+<Steps>
+  <Step title="Deploy Azure AI Language resource">
+    Create an Azure AI Language resource and store its endpoint and key in Key Vault. Reference as named values: `{{language-service-endpoint}}` and `{{language-service-key}}`.
+  </Step>
+  <Step title="Apply the PII blocking inbound policy">
+
+    ```xml
+    <!-- PII Blocking: Detect PII entities before forwarding to model -->
+    <send-request mode="new" response-variable-name="piiResult" timeout="15" ignore-error="false">
+      <set-url>{{language-service-endpoint}}/language/:analyze-text?api-version=2023-04-01</set-url>
+      <set-method>POST</set-method>
+      <set-header name="Ocp-Apim-Subscription-Key" exists-action="override">
+        <value>{{language-service-key}}</value>
+      </set-header>
+      <set-header name="Content-Type" exists-action="override">
+        <value>application/json</value>
+      </set-header>
+      <set-body>@{
+        var body = context.Request.Body.As&lt;JObject&gt;(preserveContent: true);
+        var text = body["messages"]?.Last()?["content"]?.ToString() ?? "";
+        return new JObject(
+          new JProperty("kind", "PiiEntityRecognition"),
+          new JProperty("analysisInput", new JObject(
+            new JProperty("documents", new JArray(
+              new JObject(new JProperty("id", "1"), new JProperty("text", text))
+            ))
+          ))
+        ).ToString();
+      }</set-body>
+    </send-request>
+    <!-- Block if high-confidence PII entities detected (Category: sensitive) -->
+    <choose>
+      <when condition="@{
+        var result = ((IResponse)context.Variables["piiResult"]).Body.As&lt;JObject&gt;();
+        var entities = result["results"]?["documents"]?[0]?["entities"];
+        var sensitiveCategories = new[] { "CreditCardNumber", "USSocialSecurityNumber", "PassportNumber", "BankAccountNumber" };
+        return entities != null &amp;&amp; entities.Any(e =&gt;
+          sensitiveCategories.Contains((string)e["category"]) &amp;&amp;
+          (double)e["confidenceScore"] &gt;= 0.85
+        );
+      }">
+        <return-response>
+          <set-status code="400" reason="PII Policy Violation" />
+          <set-header name="Content-Type" exists-action="override">
+            <value>application/json</value>
+          </set-header>
+          <set-body>{"error": "Request blocked: sensitive PII detected in prompt"}</set-body>
+        </return-response>
+      </when>
+    </choose>
+    ```
+  </Step>
+  <Step title="Configure which PII categories trigger blocking">
+    The `sensitiveCategories` array controls which entity types trigger a block. Adjust based on the agent's data handling requirements:
+    - For HR agents: add `"PersonType"`, `"Age"`, `"DateOfBirth"`
+    - For financial agents: add `"EUDebitCardNumber"`, `"IBANCode"`
+    - For healthcare agents: follow PHI patterns from the existing [PII Protection guide](../governance/pii-protection)
+  </Step>
+</Steps>
+
+<Tip>
+For redaction strategies, tokenization patterns, and compliance alignment (GDPR, HIPAA), refer to the [PII Protection guide](../governance/pii-protection).
+</Tip>
+
+## Jailbreak and Injection Detection
+
+Jailbreak and prompt injection detection uses Azure AI Content Safety's Prompt Shield feature to detect attempts to override system prompts or inject malicious instructions. This protects against both direct jailbreak attempts (from users) and indirect injection (via retrieved documents in RAG pipelines).
+
+<Steps>
+  <Step title="Enable Prompt Shield on your Content Safety resource">
+    Prompt Shield is included in Azure AI Content Safety at no additional charge. Confirm the resource is on API version `2024-02-15-preview` or later.
+  </Step>
+  <Step title="Apply the Prompt Shield inbound policy">
+
+    ```xml
+    <!-- Jailbreak/Injection Detection via Prompt Shield -->
+    <send-request mode="new" response-variable-name="promptShieldResult" timeout="10" ignore-error="false">
+      <set-url>https://{{content-safety-name}}.cognitiveservices.azure.com/contentsafety/text:shieldPrompt?api-version=2024-02-15-preview</set-url>
+      <set-method>POST</set-method>
+      <set-header name="Ocp-Apim-Subscription-Key" exists-action="override">
+        <value>{{content-safety-key}}</value>
+      </set-header>
+      <set-header name="Content-Type" exists-action="override">
+        <value>application/json</value>
+      </set-header>
+      <set-body>@{
+        var body = context.Request.Body.As&lt;JObject&gt;(preserveContent: true);
+        var messages = body["messages"] as JArray ?? new JArray();
+        var systemPrompt = messages.FirstOrDefault(m =&gt; (string)m["role"] == "system")?["content"]?.ToString() ?? "";
+        var userPrompt = messages.LastOrDefault(m =&gt; (string)m["role"] == "user")?["content"]?.ToString() ?? "";
+        return new JObject(
+          new JProperty("userPrompt", userPrompt),
+          new JProperty("documents", new JArray())
+        ).ToString();
+      }</set-body>
+    </send-request>
+    <!-- Block if jailbreak or indirect injection detected -->
+    <choose>
+      <when condition="@{
+        var result = ((IResponse)context.Variables["promptShieldResult"]).Body.As&lt;JObject&gt;();
+        var userAnalysis = result["userPromptAnalysis"];
+        return userAnalysis != null &amp;&amp; (bool?)userAnalysis["attackDetected"] == true;
+      }">
+        <return-response>
+          <set-status code="400" reason="Injection Detected" />
+          <set-header name="Content-Type" exists-action="override">
+            <value>application/json</value>
+          </set-header>
+          <set-body>{"error": "Request blocked: prompt injection or jailbreak attempt detected"}</set-body>
+        </return-response>
+      </when>
+    </choose>
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+For RAG-based agents, populate the `documents` array with retrieved text chunks so Prompt Shield can detect indirect injection via compromised knowledge sources.
+</Warning>
+
+## Combining Guardrails in an Access Contract
+
+All three guardrails can be composed in a single product-level APIM policy using policy fragments or inline blocks. This is the recommended pattern for Citadel access contracts, ensuring every request passes through identity validation, content safety, PII detection, and injection detection before reaching the AI model.
+
+```xml
+<!-- Combined guardrails in a Citadel access contract product policy -->
+<policies>
+  <inbound>
+    <!-- Step 1: Authenticate and validate identity (Layer 1) -->
+    <include-fragment fragment-id="frag-entra-auth" />
+    <!-- Step 2: Content Safety check (Layer 4) -->
+    <!-- [Insert content-safety send-request block above] -->
+    <!-- Step 3: PII detection (Layer 4) -->
+    <!-- [Insert pii-blocking send-request block above] -->
+    <!-- Step 4: Prompt Shield / injection detection (Layer 4) -->
+    <!-- [Insert prompt-shield send-request block above] -->
+    <!-- Step 5: Rate limiting and usage tracking (Layer 1) -->
+    <include-fragment fragment-id="frag-llm-usage" />
+    <base />
+  </inbound>
+  <outbound>
+    <base />
+  </outbound>
+</policies>
+```
+
+<Note>
+Order matters: run identity validation first (fail fast on unauthenticated requests), then content checks, then forward to the model. This order minimises unnecessary calls to external safety APIs for unauthenticated traffic.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Governance Tier Mapping" icon="sitemap" href="./governance-tiers">
+    See how EY's firmwide and service-line tiers map to each Citadel layer
+  </Card>
+  <Card title="Compliance Tooling" icon="clipboard-check" href="./compliance-tooling">
+    How Azure Policy, Defender for AI, and Purview map to EY's AIRA and AI QRM requirements
+  </Card>
+</CardGroup>
