@@ -244,7 +244,16 @@
           "ey-framework-alignment/alignment-map",
           "ey-framework-alignment/aks-deployment",
           "ey-framework-alignment/github-scaffolding",
-          "ey-framework-alignment/cicd-pipeline"
+          "ey-framework-alignment/cicd-pipeline",
+          {
+            "group": "Security & Governance",
+            "icon": "shield",
+            "pages": [
+              "ey-framework-alignment/governance-tiers",
+              "ey-framework-alignment/guardrails-config",
+              "ey-framework-alignment/compliance-tooling"
+            ]
+          }
         ]
       }
     ]
