@@ -64,7 +64,10 @@ _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
   2. Reader can navigate to the EY Framework Alignment section from the Mintlify top-level navigation without needing to search
   3. Reader can distinguish at a glance which EY criteria are fully covered by Citadel vs. which require supplemental tooling
   4. Reader who is unfamiliar with EY's framework can orient themselves via a brief framework overview before reaching the alignment table
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 16-01-PLAN.md — Create EY framework overview and alignment map content pages
+- [ ] 16-02-PLAN.md — Wire EY Alignment tab and navigation into docs.json
 
 ### Phase 17: Kubernetes & DevOps Patterns
 **Goal**: A pro-code engineer can follow step-by-step guidance to deploy an agent container to AKS behind Citadel APIM, scaffold a GitHub repository to EY standards, and wire a CI/CD pipeline that applies Citadel access contracts on deploy
@@ -75,7 +78,10 @@ _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
   2. Reader can follow a prescribed GitHub repository folder structure and branch policy convention that aligns to EY agent delivery standards
   3. Reader can implement a GitHub Actions workflow that builds the agent image, runs tests, and deploys to AKS with Citadel access contracts applied at deploy time
   4. Reader can identify which Citadel layer (Gateway, Control Plane, Identity, Security Fabric) is enforced at each stage of the CI/CD pipeline
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 17-01-PLAN.md — AKS deployment guide and GitHub repository scaffolding content pages
+- [ ] 17-02-PLAN.md — CI/CD pipeline guide and navigation wiring into docs.json
 
 ### Phase 18: Security & Governance at Scale
 **Goal**: An architect or compliance officer can map EY's two-tiered governance model onto Citadel's 4-layer architecture, configure AI guardrails via APIM policies, and understand how Azure Policy, Defender, and Purview satisfy EY's AIRA/AI QRM compliance requirements
@@ -86,7 +92,11 @@ _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
   2. Reader can follow configuration guidance to implement Content Safety filtering, PII blocking, and jailbreak/injection detection using Citadel APIM policies — with example policy snippets
   3. Reader can understand how Azure Policy initiatives, Defender for AI threat signals, and Purview data classification maps to EY's AIRA and AI QRM compliance process requirements
   4. Reader can identify which governance requirements are automatically enforced by Citadel vs. which require manual process controls outside the platform
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 18-01-PLAN.md — Governance tier mapping and compliance tooling content pages (GOVN-01, GOVN-03)
+- [ ] 18-02-PLAN.md — AI guardrails configuration guide with APIM policy snippets (GOVN-02)
+- [ ] 18-03-PLAN.md — Wire Phase 18 pages into EY Alignment navigation in docs.json
 
 ### Phase 19: MCP, A2A & Agent Discovery
 **Goal**: An architect can understand how Citadel governs MCP tool exposure, acts as an A2A trust broker for cross-agent authentication, and uses APIM API Center as an agent registry that satisfies EY's future agent discovery requirement today
@@ -127,8 +137,8 @@ _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
 | 13. Open Platform Transformation | v1.2 | 1/1 | Complete | 2026-04-13 |
 | 14. Deep Agents Architecture | v1.2 | 1/1 | Complete | 2026-04-13 |
 | 15. Navigation & Integration | v1.2 | 1/1 | Complete | 2026-04-13 |
-| 16. EY Framework Alignment Overview | v1.3 | 0/TBD | Not started | - |
-| 17. Kubernetes & DevOps Patterns | v1.3 | 0/TBD | Not started | - |
-| 18. Security & Governance at Scale | v1.3 | 0/TBD | Not started | - |
+| 16. EY Framework Alignment Overview | v1.3 | 0/2 | Not started | - |
+| 17. Kubernetes & DevOps Patterns | v1.3 | 0/2 | Not started | - |
+| 18. Security & Governance at Scale | v1.3 | 0/3 | Not started | - |
 | 19. MCP, A2A & Agent Discovery | v1.3 | 0/TBD | Not started | - |
 | 20. Attention Points & Recommendations | v1.3 | 0/TBD | Not started | - |

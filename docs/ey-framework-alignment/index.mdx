@@ -1,0 +1,53 @@
+---
+title: "EY AI Agent Development Framework"
+description: "How Citadel aligns to EY's AI Agent Development Framework — standards for agent governance, protocols, and deployment"
+icon: building
+---
+
+## What is EY's AI Agent Development Framework?
+
+EY published a formal mandatory standard (v1.5.2, March 2026) covering agent classification, technology selection, communication protocols, RAG patterns, and end-to-end governance from development to deployment. The framework spans four chapters and applies to all EY personnel and approved third-party vendors.
+
+The standard is designed to ensure consistency, security, and compliance across all AI agent initiatives within the organization. It defines clear criteria for how agents should be built, deployed, monitored, and governed — providing a structured approach to scaling AI safely.
+
+## Framework Structure
+
+| Chapter | Topic | Key EY Requirements |
+|---------|-------|---------------------|
+| Chapter 1: AI Agent Standards | Agent taxonomy, Microsoft stack, A2A/MCP protocols, RAG patterns | Classification, stack selection, communication standards |
+| Chapter 2: What's Next | Deployment & runtime, AI security/guardrail, monitoring & observability | Containerized deployment, guardrails, logging and tracing |
+| Chapter 3: Agentic AI Governance | Two-tiered governance (firmwide + service-line), AIRA, AI QRM, responsible AI | Governance tiers, risk assessment, compliance controls |
+| Chapter 4: Getting Started | Copilot Studio, pro-code development, GitHub scaffolding, EYQ API specs | Development patterns, CI/CD, API standards, agent registry |
+
+## How Citadel Aligns
+
+Citadel is Microsoft Azure infrastructure — it directly addresses the Microsoft stack chapter and the governance chapter requirements through APIM policies, Azure Policy, and the 4-layer architecture. By building on Azure-native services, Citadel provides the foundational platform for deploying agents that meet EY's technical standards.
+
+Some EY criteria (AIRA process, AI QRM forms, NVIDIA stack) are EY-internal process controls or out-of-scope stacks — Citadel provides the platform foundation; supplemental tools handle process automation. This means that while Citadel enforces the technical controls, organizations must still complete EY-specific process steps separately.
+
+The alignment map shows the full criterion-by-criterion picture, making it easy to understand exactly what Citadel covers natively and where additional tooling or process steps are required.
+
+## Enforcement Status Key
+
+<Info>
+  **Enforced**: Citadel directly implements this requirement via Azure infrastructure, APIM policies, or platform configuration — no additional tooling required.
+</Info>
+
+<Warning>
+  **Partial**: Citadel provides the technical foundation but the EY process control (e.g., AIRA approval, AI QRM form submission) must be completed separately.
+</Warning>
+
+<Note>
+  **Attention Point**: This criterion falls outside Citadel's scope (EY-proprietary tooling, NVIDIA stack, EY-internal forms) — see the Attention Points section for recommendations.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Alignment Map" icon="table" href="/ey-framework-alignment/alignment-map">
+    View every EY criterion mapped to a Citadel component with enforcement status.
+  </Card>
+  <Card title="Attention Points" icon="alert-triangle" href="/ey-framework-alignment/attention-points">
+    See gaps and supplemental tool recommendations.
+  </Card>
+</CardGroup>
