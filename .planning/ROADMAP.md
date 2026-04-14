@@ -96,7 +96,7 @@ Plans:
 Plans:
 - [ ] 18-01-PLAN.md — Governance tier mapping and compliance tooling content pages (GOVN-01, GOVN-03)
 - [ ] 18-02-PLAN.md — AI guardrails configuration guide with APIM policy snippets (GOVN-02)
-- [ ] 18-03-PLAN.md — Wire Phase 18 pages into EY Alignment navigation in docs.json
+- [x] 18-03-PLAN.md — Wire Phase 18 pages into EY Alignment navigation in docs.json (completed 2026-04-14)
 
 ### Phase 19: MCP, A2A & Agent Discovery
 **Goal**: An architect can understand how Citadel governs MCP tool exposure, acts as an A2A trust broker for cross-agent authentication, and uses APIM API Center as an agent registry that satisfies EY's future agent discovery requirement today
@@ -139,6 +139,6 @@ Plans:
 | 15. Navigation & Integration | v1.2 | 1/1 | Complete | 2026-04-13 |
 | 16. EY Framework Alignment Overview | 2/2 | Complete    | 2026-04-14 | - |
 | 17. Kubernetes & DevOps Patterns | 2/2 | Complete    | 2026-04-14 | - |
-| 18. Security & Governance at Scale | 3/3 | Complete   | 2026-04-14 | - |
+| 18. Security & Governance at Scale | 3/3 | Complete    | 2026-04-14 | - |
 | 19. MCP, A2A & Agent Discovery | v1.3 | 0/TBD | Not started | - |
 | 20. Attention Points & Recommendations | v1.3 | 0/TBD | Not started | - |
