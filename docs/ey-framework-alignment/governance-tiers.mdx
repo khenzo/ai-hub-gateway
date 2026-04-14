@@ -1,0 +1,120 @@
+---
+title: "Governance Tier Mapping"
+description: "How EY's two-tiered governance model (firmwide and service-line) maps to Citadel's four-layer architecture — with enforcement status for each requirement"
+icon: "sitemap"
+---
+
+EY's AI Agent Development Framework mandates a two-tiered governance model that balances global consistency with local flexibility. **Tier 1 (Firmwide Governance)** establishes universal standards enforced across all service lines — covering AIRA registration, AI QRM review for medium and high-risk agents, Data Protection approval, and InfoSec sign-off. These controls ensure that every AI system deployed within the organization meets a baseline of risk management, security, and compliance expectations.
+
+**Tier 2 (Service-Line Governance)** builds on Tier 1 by adding tailored controls specific to each function. This includes the TTAR AI Agent Acceptance Process, service-line-specific risk calibration, and line-of-business guardrails. The purpose of Tier 2 is to account for the unique operational contexts, data sensitivity profiles, and regulatory requirements of individual business units without undermining the firmwide baseline.
+
+Citadel's four-layer architecture maps cleanly to this two-tiered model. Each layer contributes specific enforcement capabilities that satisfy one or both tiers — automating technical controls where possible while leaving EY process gates (AIRA, AI QRM, TTAR) as manual approvals outside the platform. The result is a clear division of labor: Citadel enforces the runtime, and EY processes govern the risk acceptance.
+
+## EY Governance Tier Overview
+
+The diagram below shows the two tiers side by side, highlighting the primary controls and review processes at each level.
+
+```
+┌──────────────────────────────────┐  ┌──────────────────────────────────┐
+│  TIER 1 — FIRMWIDE GOVERNANCE   │  │  TIER 2 — SERVICE LINE GOVERNANCE│
+│  (Global Standards & Policy)    │  │  (Tailored Function Controls)    │
+├──────────────────────────────────┤  ├──────────────────────────────────┤
+│  • AIRA registration (mandatory) │  │  • TTAR Agent Acceptance Process │
+│  • AI QRM review (med/high risk) │  │  • Service line risk calibration │
+│  • Data Protection approval      │  │  • Function-specific controls    │
+│  • InfoSec approval              │  │  • Line-of-business guardrails   │
+│  • Common identity standards     │  │  • Audit service line AI QRM     │
+└──────────────────────────────────┘  └──────────────────────────────────┘
+```
+
+## Citadel Layer-to-Tier Mapping
+
+The following table maps each Citadel layer to the EY governance tier(s) it satisfies, along with the enforcement status and specific controls provided.
+
+| Citadel Layer | EY Tier(s) Addressed | Enforcement Status | What It Enforces |
+|---|---|---|---|
+| Layer 1 — Governance Hub (APIM) | Tier 1 (Firmwide) | Automated | Identity validation, authentication, rate limiting, audit logging of all AI calls |
+| Layer 2 — AI Control Plane (Foundry) | Tier 1 (Firmwide) | Automated | Model access contracts, deployment governance, capability boundaries per agent |
+| Layer 3 — Agent Identity (Agent 365) | Tier 1 + Tier 2 | Automated | Federated identity per agent, managed credentials, cross-agent trust controls |
+| Layer 4 — Security Fabric | Tier 1 + Tier 2 | Automated | Content filtering, PII blocking, jailbreak detection, threat signal collection |
+
+Layer 1 and Layer 2 primarily serve Tier 1 by ensuring that every agent — regardless of service line — is subject to centralized authentication, audit logging, and model governance. Layer 3 and Layer 4 bridge both tiers: they provide firmwide security foundations (identity federation, content safety) while also enabling service-line-specific calibrations (custom trust boundaries, tailored PII policies, line-specific threat detection rules).
+
+### How Layer 1 Satisfies Tier 1
+
+Layer 1, the Governance Hub built on Azure API Management (APIM), acts as the single front door for all AI traffic. Because every request passes through APIM, it is the ideal place to enforce firmwide authentication, rate limiting, and comprehensive audit logging. This directly satisfies Tier 1 requirements for common identity standards and InfoSec audit expectations. No agent can bypass Layer 1 — making it a non-negotiable control point.
+
+### How Layer 2 Satisfies Tier 1
+
+Layer 2, the AI Control Plane centered on Azure AI Foundry, governs which models an agent can access, under what conditions, and at what cost. Access contracts define these boundaries in code, ensuring that model governance is consistent across the firm. This maps directly to Tier 1's need for standardized technology selection and deployment governance.
+
+### How Layers 3 and 4 Bridge Both Tiers
+
+Layer 3 (Agent Identity via Agent 365) and Layer 4 (Security Fabric) add granularity. While they provide baseline controls that all agents benefit from (firmwide Tier 1), they also allow service lines to define custom policies. For example, one service line may require additional PII blocking rules for healthcare data, while another may tighten jailbreak detection thresholds for customer-facing agents. These service-line-specific adjustments are Tier 2 controls, and Citadel supports them without fragmenting the overall architecture.
+
+## Enforcement Matrix — Automated vs Manual
+
+Not every EY governance requirement can be automated inside Citadel. The matrix below clarifies which requirements are fully covered by the platform, which are partially covered, and which remain manual process gates outside the system.
+
+| EY Governance Requirement | Citadel Coverage | Enforcement Type | Notes |
+|---|---|---|---|
+| AIRA registration for all AI systems | Not covered | Manual | Teams register in EY's AIRA application; Citadel does not connect to AIRA directly |
+| AI QRM review (medium/high risk) | Not covered | Manual | AI QRM is an EY-internal process; Citadel provides audit logs to support the review |
+| Data Protection review | Partial | Hybrid | Purview data classification is automated; formal DP review is a manual approval gate |
+| InfoSec approval | Partial | Hybrid | Defender for AI provides threat signals; InfoSec sign-off remains a manual gate |
+| Identity and authentication enforcement | Fully covered | Automated | Layer 1 (APIM) + Layer 3 (Agent Identity) enforce Entra ID, OAuth 2.0, managed identities |
+| Content filtering and harm prevention | Fully covered | Automated | Layer 4 (Security Fabric) enforces Content Safety, PII blocking, injection detection |
+| Audit logging of AI interactions | Fully covered | Automated | Layer 1 logs every request with who/what/when/where/why/how via APIM + Event Hub |
+| Model access governance | Fully covered | Automated | Layer 2 enforces access contracts — models, rate limits, cost controls per agent |
+| Service-line risk calibration | Not covered | Manual | Tailored controls per function are defined outside Citadel; Citadel provides the enforcement runtime |
+
+The key principle here is that Citadel automates the *technical enforcement* of governance, while EY retains ownership of the *process approval* steps. For example, Citadel can block a PII-laden prompt in real time (automated), but it cannot complete the Data Protection review form on behalf of a service line (manual). Similarly, Citadel logs every AI interaction for audit purposes, but the AIRA registration itself must be performed by the team in EY's internal system.
+
+## Governance Enforcement Map
+
+The ASCII diagram below summarizes how EY's two tiers map onto Citadel's four layers. Tier 1 is satisfied primarily through Layers 1 and 2, while Tier 2 gains additional controls through Layers 3 and 4.
+
+```
+EY Two-Tiered Governance → Citadel Enforcement Map
+
+TIER 1 (FIRMWIDE)                    TIER 2 (SERVICE LINE)
+         │                                     │
+         ▼                                     ▼
+┌─────────────────────┐         ┌─────────────────────────┐
+│  Layer 1            │         │  Layer 3                 │
+│  Governance Hub     │◀────────│  Agent Identity          │
+│  (APIM)             │         │  (Agent 365)             │
+│  Auth + Audit       │         │  Federated ID + Trust    │
+└─────────────────────┘         └─────────────────────────┘
+         │                                     │
+         ▼                                     ▼
+┌─────────────────────┐         ┌─────────────────────────┐
+│  Layer 2            │         │  Layer 4                 │
+│  AI Control Plane   │◀────────│  Security Fabric         │
+│  (Foundry)          │         │  Content + PII + Threats │
+│  Access Contracts   │         │                          │
+└─────────────────────┘         └─────────────────────────┘
+
+  ▲ Firmwide (Tier 1): All agents governed by Layers 1 & 2
+  ▲ Service Line (Tier 2): Additional controls via Layers 3 & 4
+```
+
+This architecture ensures that no agent can bypass the firmwide baseline: every request flows through Layer 1 for authentication and logging, and every model interaction is governed by Layer 2 access contracts. Service lines that require stricter controls can layer on Tier 2 enforcement through Agent Identity (Layer 3) and Security Fabric (Layer 4) policies without rebuilding the underlying infrastructure.
+
+For architects designing Citadel deployments within EY, this mapping provides a clear rationale for which layers to prioritize during rollout. A minimal viable deployment must include Layers 1 and 2 to satisfy Tier 1 firmwide governance. Layers 3 and 4 should be added as service lines mature their AI programs and require more granular control. The modular nature of Citadel means these layers can be adopted incrementally rather than all at once. This phased approach reduces upfront complexity while ensuring that governance keeps pace with adoption.
+
+### Cross-References
+
+For a deeper explanation of each Citadel layer, see the [Citadel 4-Layer Model](../architecture/citadel-4-layer-model). For the policy-as-code approach that underpins automated enforcement, refer to [Governance Overview](../governance/governance-overview). For the broader framework alignment map, see the [Alignment Map](./alignment-map). For compliance tooling details, continue to the next page.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Compliance Tooling" icon="shield-check" href="./compliance-tooling">
+    How Azure Policy, Defender for AI, and Purview map to EY's AIRA and AI QRM requirements
+  </Card>
+  <Card title="AI Guardrails Configuration" icon="filter" href="./guardrails-config">
+    Step-by-step guidance for implementing Content Safety, PII blocking, and jailbreak detection via APIM policies
+  </Card>
+</CardGroup>
+
