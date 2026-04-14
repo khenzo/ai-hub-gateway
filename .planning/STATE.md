@@ -1,36 +1,46 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Open Platform Agent Factory
-status: completed
-stopped_at: Milestone v1.2 archived
-last_updated: "2026-04-14T00:25:00.000Z"
-last_activity: "2026-04-14 — Archived v1.2 milestone and tagged release"
+milestone: v1.3
+milestone_name: EY Framework Alignment
+status: in_progress
+stopped_at: Roadmap created — ready to plan phases
+last_updated: "2026-04-14T00:00:00.000Z"
+last_activity: "2026-04-14 — v1.3 roadmap created (Phases 16-20)"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
-:# Project State
+# Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-13)
+See: .planning/PROJECT.md (updated 2026-04-14)
 
 **Core value:** Enable organizations to deploy enterprise-grade AI infrastructure with confidence
-**Current focus:** Planning next milestone (v1.3) — run `/gsd:new-milestone`
+**Current focus:** Milestone v1.3 — EY Framework Alignment
 
 ## Current Position
 
-Phase: 15 of 15 (Navigation & Integration) - **COMPLETE**
-Plan: 1 of 1 in current phase - **COMPLETE**
-Status: Milestone v1.2 in progress. Phase 13 complete. Phase 14 complete. Phase 15 complete.
-Last activity: 2026-04-13 — Completed Phase 15: Navigation & Integration
+Phase: Phase 16 — EY Framework Alignment Overview (not started)
+Plan: —
+Status: Roadmap defined, ready to plan Phase 16
+Last activity: 2026-04-14 — v1.3 roadmap created (Phases 16-20)
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0% (0/5 phases complete)
+
+## v1.3 Phase Summary
+
+| Phase | Goal | Requirements | Status |
+|-------|------|--------------|--------|
+| 16. EY Framework Alignment Overview | Readers can navigate a dedicated EY section and view the full alignment map | ALIGN-01, ALIGN-02 | Not started |
+| 17. Kubernetes & DevOps Patterns | Pro-code engineers can deploy agents to AKS and wire CI/CD with Citadel | KUBE-01, KUBE-02, KUBE-03 | Not started |
+| 18. Security & Governance at Scale | Architects can map EY two-tiered governance to Citadel 4-layer architecture | GOVN-01, GOVN-02, GOVN-03 | Not started |
+| 19. MCP, A2A & Agent Discovery | Architects can understand Citadel's role in MCP, A2A trust, and agent discovery | PROTO-01, PROTO-02, PROTO-03 | Not started |
+| 20. Attention Points & Recommendations | Readers receive actionable gap analysis and supplemental tool recommendations | GAPS-01 | Not started |
 
 ## Performance Metrics
 
@@ -140,80 +150,21 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- Phase 2: Core Architecture (COMPLETE - 3 of 3 plans done)
-  - ✓ 02-01: Document Citadel Governance Hub 4-layer architecture
-  - ✓ 02-02: Document hub-spoke networking patterns
-  - ✓ 02-03: Create architecture diagrams and decision documentation
-
-- Phase 3: AI Patterns (COMPLETE - 3 of 3 plans done)
-  - ✓ 03-01: Document AI Landing Zone patterns (overview, APIM reference, Foundry integration, comparison)
-  - ✓ 03-02: AI Access Contracts and governance documentation (contracts, policies, identity)
-  - ✓ 03-03: Security and compliance patterns (Content Safety, PII protection, compliance frameworks)
-
-- Phase 4: Implementation Guides (COMPLETE - 3 of 3 plans done)
-  - ✓ 04-01: Create getting started guide for architects
-  - ✓ 04-02: Create deployment and implementation guide
-  - ✓ 04-03: Document configuration examples and troubleshooting
-
-- Phase 5: Integration & Validation (COMPLETE - 3 of 3 plans done)
-  - ✓ 05-01: Document Foundry Control Plane integration
-  - ✓ 05-02: Create business stakeholder value proposition content
-  - ✓ 05-03: Create validation and testing guides
-
-- Phase 6: Guides Documentation Section (COMPLETE - 9 of 9 tasks done)
-  - ✓ 06-PLAN: Convert @guides/ to Mintlify docs (9 tasks)
-    - ✓ Task 1: Create docs/guides/ directory structure
-    - ✓ Task 2: Convert 13 markdown guides to .mdx format
-    - ✓ Task 3: Integrate @bicep/ code snippets
-    - ✓ Task 4: Update docs.json navigation
-    - ✓ Task 5: Add cross-references from existing sections
-    - ✓ Task 6: Create bicep snippet includes
-    - ✓ Task 7: Test and validate
-    - ✓ Task 8: Document @shared/, @scripts/, @src/ resources
-    - ✓ Task 9: Update navigation and cross-references for new resources
-
-### Pending Todos
-
-- Phase 7: Agent Factory Foundation (COMPLETE - 1 of 1 plans)
-  - ✓ 07: Document Agent Factory overview, builder personas, intelligence layers, and Citadel mapping
-
-- Phase 8: Agentic Web Stack Architecture (COMPLETE - 2 of 2 plans)
-  - ✓ 08-01: Document the 8 essential stack components
-  - ✓ 08-02: Create architecture diagrams showing agentic web stack on Citadel
-
-- Phase 9: Agentic AI Design Patterns (COMPLETE - 2 of 2 plans)
-  - ✓ 09-01: Document tool-use, reflection, and planning patterns
-  - ✓ 09-02: Document multi-agent and ReAct patterns
-
-- Phase 10: Enterprise Use Cases (COMPLETE - 2 of 2 plans)
-  - ✓ 10-01: Document employee self-service and data analytics scenarios
-  - ✓ 10-02: Document sales lead engagement and customer support scenarios
-
-- Phase 11: Open Standards Integration (COMPLETE - 2 of 2 plans)
-  - ✓ 11-01: Document MCP server integration and tool invocation patterns
-  - ✓ 11-02: Document A2A cross-agent collaboration and interoperability
-
-- Phase 12: Agent Security & Observability (COMPLETE - 2 of 2 plans)
-  - ✓ 12-01: Document agent security blueprint
-  - ✓ 12-02: Document observability best practices and operational runbooks
-
-- Phase 13: Open Platform Transformation (COMPLETE - 1 of 1 plans)
-  - ✓ 13-01: Transform Agent Factory to open-platform narrative
-
-- Phase 14: Deep Agents Architecture (COMPLETE - 1 of 1 plans)
-  - ✓ 14-01: Add Agent Harness & Tools and Context Engineering pages with Citadel integration
-
-- Phase 15: Navigation & Integration (COMPLETE - 1 of 1 plans)
-  - ✓ 15-01: Update docs.json navigation and validate cross-links
+**v1.3 Phases — all pending:**
+- Phase 16: EY Framework Alignment Overview (plans TBD)
+- Phase 17: Kubernetes & DevOps Patterns (plans TBD)
+- Phase 18: Security & Governance at Scale (plans TBD)
+- Phase 19: MCP, A2A & Agent Discovery (plans TBD)
+- Phase 20: Attention Points & Recommendations (plans TBD)
 
 ### Blockers/Concerns
 
-None yet.
+None.
 
 ## Session Continuity
 
-Last session: 2026-04-13T22:19:26.000Z
-Stopped at: Completed 15-01-PLAN.md
+Last session: 2026-04-14T00:00:00.000Z
+Stopped at: v1.3 roadmap created — Phases 16-20 defined
 Resume file: None
 
 ## Milestone Status
@@ -239,3 +190,12 @@ Resume file: None
 - Phase 13: Complete
 - Phase 14: Complete
 - Phase 15: Complete
+
+**Milestone v1.3: EY Framework Alignment — IN PROGRESS**
+- 5 phases defined (Phases 16-20)
+- 11 requirements mapped, 0% complete
+- Phase 16: Not started
+- Phase 17: Not started
+- Phase 18: Not started
+- Phase 19: Not started
+- Phase 20: Not started

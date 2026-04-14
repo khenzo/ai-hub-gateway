@@ -36,13 +36,13 @@ A comprehensive documentation hub for implementing AI Landing Zones with Citadel
 
 ### Active
 
-- [ ] Performance optimization guides for high-scale deployments
-- [ ] Video walkthroughs for complex deployment scenarios
-- [ ] Troubleshooting runbook expansion based on user feedback
-- [ ] Terraform deployment pattern documentation
-- [ ] Multi-agent orchestration implementation examples with code samples
-- [ ] Agent Factory cost and sizing guidance for enterprise deployments
-- [ ] Deeper A2A federation patterns for cross-organization agent collaboration
+- [ ] EY Framework overview and Citadel alignment map (gap analysis)
+- [ ] Development spectrum coverage on Citadel (no-code, low-code, pro-code paths)
+- [ ] Kubernetes/AKS deployment patterns and GitHub scaffolding for agent delivery
+- [ ] DevOps pattern reproduction (CI/CD pipelines for agents on Azure)
+- [ ] Security and governance at scale — Citadel vs EY two-tiered governance model
+- [ ] MCP, A2A, and agent discovery protocol alignment
+- [ ] Attention points and gaps documentation
 
 ### Out of Scope
 
@@ -120,15 +120,17 @@ This documentation synthesizes content from three primary sources:
    - Defender for AI threat protection
    - Purview for data governance and PII protection
 
-## Next Milestone Goals (v1.3)
+## Current Milestone: v1.3 EY Framework Alignment
 
-- Add performance and scaling guidance for high-scale agentic deployments
-- Create video/visual supplements for complex Agent Factory architectures
-- Expand troubleshooting runbooks based on deployment feedback
-- Add multi-agent orchestration implementation examples with code samples
-- Consider adding Terraform deployment patterns as alternative to Bicep
-- Add Agent Factory cost and sizing guidance for enterprise deployments
-- Deeper A2A federation patterns for cross-organization agent collaboration
+**Goal:** Document how the Citadel AI Landing Zone addresses the EY AI Agent Development Framework — where it enforces the patterns, how, and where attention is needed.
+
+**Target features:**
+- EY Framework overview and Citadel alignment map (gap analysis table)
+- Development spectrum coverage: no-code → low-code → pro-code on Azure/Microsoft stack
+- Kubernetes (AKS) deployment patterns and GitHub scaffolding / DevOps patterns
+- Security and governance at scale — Citadel 4-layer vs EY two-tiered governance model
+- MCP, A2A, and agent discovery protocol alignment
+- Attention points and gaps page
 
 ## Constraints
 
@@ -201,4 +203,4 @@ All outcomes were marked "— Pending" before v1.0 shipment.
 </details>
 
 ---
-*Last updated: 2026-04-14 after v1.2 milestone completion*
+*Last updated: 2026-04-14 after v1.3 milestone start*

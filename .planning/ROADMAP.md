@@ -5,6 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1-6 (shipped 2026-04-13)
 - ✅ **v1.1 AI Agent Factory Integration** — Phases 7-12 (shipped 2026-04-13)
 - ✅ **v1.2 Open Platform Agent Factory** — Phases 13-15 (shipped 2026-04-13)
+- 🔄 **v1.3 EY Framework Alignment** — Phases 16-20 (in progress)
 
 ## Phases
 
@@ -44,6 +45,69 @@ _For full details, see `.planning/milestones/v1.1-ROADMAP.md`_
 _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
 </details>
 
+### v1.3 EY Framework Alignment (Phases 16-20)
+
+- [ ] **Phase 16: EY Framework Alignment Overview** - Alignment map and dedicated EY section in site navigation
+- [ ] **Phase 17: Kubernetes & DevOps Patterns** - AKS deployment, GitHub scaffolding, and CI/CD pipeline guidance
+- [ ] **Phase 18: Security & Governance at Scale** - EY two-tiered governance mapped to Citadel 4-layer architecture
+- [ ] **Phase 19: MCP, A2A & Agent Discovery** - Protocol alignment and APIM as agent registry
+- [ ] **Phase 20: Attention Points & Recommendations** - Gap analysis and actionable add-on recommendations
+
+## Phase Details
+
+### Phase 16: EY Framework Alignment Overview
+**Goal**: Readers can see at a glance how the EY AI Agent Development Framework maps to Citadel components, and can navigate a dedicated EY alignment section in the documentation site
+**Depends on**: Phases 1-15 (existing documentation foundation)
+**Requirements**: ALIGN-01, ALIGN-02
+**Success Criteria** (what must be TRUE):
+  1. Reader can open a single alignment map page and see every EY framework criterion listed with its corresponding Citadel component and enforcement status (enforced / partial / attention point)
+  2. Reader can navigate to the EY Framework Alignment section from the Mintlify top-level navigation without needing to search
+  3. Reader can distinguish at a glance which EY criteria are fully covered by Citadel vs. which require supplemental tooling
+  4. Reader who is unfamiliar with EY's framework can orient themselves via a brief framework overview before reaching the alignment table
+**Plans**: TBD
+
+### Phase 17: Kubernetes & DevOps Patterns
+**Goal**: A pro-code engineer can follow step-by-step guidance to deploy an agent container to AKS behind Citadel APIM, scaffold a GitHub repository to EY standards, and wire a CI/CD pipeline that applies Citadel access contracts on deploy
+**Depends on**: Phase 16
+**Requirements**: KUBE-01, KUBE-02, KUBE-03
+**Success Criteria** (what must be TRUE):
+  1. Reader can understand how a containerized agent connects to AKS, integrates with the Citadel APIM gateway, and applies namespace isolation — with a concrete network integration diagram
+  2. Reader can follow a prescribed GitHub repository folder structure and branch policy convention that aligns to EY agent delivery standards
+  3. Reader can implement a GitHub Actions workflow that builds the agent image, runs tests, and deploys to AKS with Citadel access contracts applied at deploy time
+  4. Reader can identify which Citadel layer (Gateway, Control Plane, Identity, Security Fabric) is enforced at each stage of the CI/CD pipeline
+**Plans**: TBD
+
+### Phase 18: Security & Governance at Scale
+**Goal**: An architect or compliance officer can map EY's two-tiered governance model onto Citadel's 4-layer architecture, configure AI guardrails via APIM policies, and understand how Azure Policy, Defender, and Purview satisfy EY's AIRA/AI QRM compliance requirements
+**Depends on**: Phase 16
+**Requirements**: GOVN-01, GOVN-02, GOVN-03
+**Success Criteria** (what must be TRUE):
+  1. Reader can view a side-by-side mapping of EY's firmwide and service-line governance tiers against Citadel's four layers, with a clear statement of which layer satisfies which tier
+  2. Reader can follow configuration guidance to implement Content Safety filtering, PII blocking, and jailbreak/injection detection using Citadel APIM policies — with example policy snippets
+  3. Reader can understand how Azure Policy initiatives, Defender for AI threat signals, and Purview data classification maps to EY's AIRA and AI QRM compliance process requirements
+  4. Reader can identify which governance requirements are automatically enforced by Citadel vs. which require manual process controls outside the platform
+**Plans**: TBD
+
+### Phase 19: MCP, A2A & Agent Discovery
+**Goal**: An architect can understand how Citadel governs MCP tool exposure, acts as an A2A trust broker for cross-agent authentication, and uses APIM API Center as an agent registry that satisfies EY's future agent discovery requirement today
+**Depends on**: Phase 16
+**Requirements**: PROTO-01, PROTO-02, PROTO-03
+**Success Criteria** (what must be TRUE):
+  1. Reader can understand how MCP server endpoints are exposed through and governed by the Citadel APIM layer — including tool invocation flows and policy enforcement points aligned to EY MCP standards
+  2. Reader can understand how Citadel APIM acts as a trust broker for A2A interactions — covering cross-agent authentication, federation patterns, and the security guarantees Citadel provides for agent-to-agent calls
+  3. Reader can see how APIM API Center functions as an agent registry and discovery catalog — with a concrete mapping to the "future agent discovery" requirement in EY's framework, showing it is addressable today
+**Plans**: TBD
+
+### Phase 20: Attention Points & Recommendations
+**Goal**: A reader who has completed the EY alignment documentation can clearly understand what Citadel does not cover, what supplemental tools to evaluate, and have actionable next steps for fully satisfying the EY AI Agent Development Framework
+**Depends on**: Phases 16-19
+**Requirements**: GAPS-01
+**Success Criteria** (what must be TRUE):
+  1. Reader can view a consolidated list of EY framework requirements that Citadel does not fully address, with a plain-language explanation of each gap
+  2. Reader can see specific recommended supplemental tools for each gap (e.g., AIRA/AI QRM tooling for governance process, LangSmith for LLM observability, EY-approved guardrail vendors) with enough context to evaluate them
+  3. Reader can distinguish between gaps that require adding a tool vs. gaps that require a process change — so they can prioritize their roadmap
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -63,3 +127,8 @@ _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
 | 13. Open Platform Transformation | v1.2 | 1/1 | Complete | 2026-04-13 |
 | 14. Deep Agents Architecture | v1.2 | 1/1 | Complete | 2026-04-13 |
 | 15. Navigation & Integration | v1.2 | 1/1 | Complete | 2026-04-13 |
+| 16. EY Framework Alignment Overview | v1.3 | 0/TBD | Not started | - |
+| 17. Kubernetes & DevOps Patterns | v1.3 | 0/TBD | Not started | - |
+| 18. Security & Governance at Scale | v1.3 | 0/TBD | Not started | - |
+| 19. MCP, A2A & Agent Discovery | v1.3 | 0/TBD | Not started | - |
+| 20. Attention Points & Recommendations | v1.3 | 0/TBD | Not started | - |
