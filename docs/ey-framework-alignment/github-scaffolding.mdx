@@ -1,0 +1,110 @@
+---
+title: "GitHub Repository Scaffolding"
+description: "Prescribed GitHub repository folder structure, branch policies, and naming conventions for EY pro-code agent projects aligned to the EY AI Agent Development Framework"
+icon: "github"
+---
+
+The EY AI Agent Development Framework requires all pro-code agents to follow a standardised GitHub repository structure before submission to EYQ Marketplace or deployment to AKS. This page defines the canonical scaffold, naming conventions, and branch policies that align to EY delivery standards.
+
+## Repository Folder Structure
+
+```
+<agent-name>/
+├── .github/
+│   ├── workflows/
+│   │   ├── ci.yml              # Build + test on PR
+│   │   └── cd.yml              # Deploy to AKS on merge to main
+│   └── CODEOWNERS              # EY delivery lead as required reviewer
+├── chart/                      # Helm chart for AKS deployment
+│   ├── Chart.yaml
+│   ├── values.yaml             # Default values (non-secret)
+│   ├── values.prod.yaml        # Production overrides
+│   └── templates/
+│       ├── deployment.yaml
+│       ├── service.yaml
+│       └── ingress.yaml
+├── policies/                   # Citadel APIM policy XML files
+│   ├── inbound.xml             # Subscription key + JWT validation
+│   └── outbound.xml            # Response scrubbing policy
+├── src/                        # Agent source code
+│   ├── agent/
+│   │   ├── __init__.py
+│   │   └── main.py
+│   └── tools/                  # Agent tool implementations
+├── tests/
+│   ├── unit/
+│   └── integration/
+├── Dockerfile
+├── requirements.txt            # or pyproject.toml
+├── .env.example                # Non-secret env var template
+└── README.md
+```
+
+| Directory | Purpose |
+| --------- | ------- |
+| `.github/workflows` | GitHub Actions pipelines for continuous integration and deployment |
+| `chart/` | Helm chart used to deploy the agent container to AKS |
+| `policies/` | Citadel APIM policy definitions that enforce the access contract |
+| `src/` | Agent implementation code, organised by module or framework |
+| `tests/` | Automated test suites split into unit and integration coverage |
+
+## Naming Conventions
+
+| Artefact | Convention | Example |
+| ---------- | ---------- | ------- |
+| Repository | `ey-agent-<domain>-<name>` | `ey-agent-finance-invoice-processor` |
+| Container image | `<acr>.azurecr.io/agents/<name>:<semver>` | `eyacrdemo.azurecr.io/agents/invoice-processor:v1.2.0` |
+| Helm release name | `<agent-name>-<env>` | `invoice-processor-prod` |
+| Kubernetes namespace | `citadel-agents` (shared) or `citadel-<team>` (team-isolated) | `citadel-finance` |
+| APIM API path | `/agents/<name>/v<major>` | `/agents/invoice-processor/v1` |
+
+## Branch Policy Convention
+
+EY agent repositories follow a three-tier branch strategy to enforce peer review and separation of concerns across development, integration, and production stages.
+
+| Branch | Purpose | Protection Rules |
+| ------ | ------- | ---------------- |
+| `main` | Production-ready code | Require 2 reviewers, require status checks (CI passes), no direct push |
+| `develop` | Integration branch for tested features | Require 1 reviewer, require CI pass |
+| `feature/<ticket-id>-<description>` | Individual feature or fix work | No restrictions — merges to `develop` via pull request |
+
+<Info>
+The `CODEOWNERS` file in `.github/` must name the EY delivery lead as a required reviewer for both `develop` and `main`. This is a mandatory governance control per the EY AI Agent Development Framework (Section 3.4 — EYQ Agent Onboarding Governance).
+</Info>
+
+## Required Repository Secrets
+
+| Secret Name | Purpose | Where to Obtain |
+| ----------- | ------- | --------------- |
+| `ACR_LOGIN_SERVER` | Azure Container Registry URL | Azure Portal — ACR Overview |
+| `ACR_USERNAME` | ACR service principal or managed identity | Azure Portal — ACR Access Keys |
+| `ACR_PASSWORD` | ACR credential | Azure Portal — ACR Access Keys |
+| `AKS_KUBECONFIG` | Base64-encoded kubeconfig for AKS | `az aks get-credentials` output |
+| `APIM_SUBSCRIPTION_KEY` | Citadel APIM subscription key for integration tests | APIM Portal — Subscriptions |
+
+<Warning>
+Never commit secrets, `.env` files, or kubeconfig files to the repository. Use GitHub Actions secrets or Azure Key Vault references only.
+</Warning>
+
+## Repository Init Checklist
+
+Use this checklist when creating a new EY agent repository:
+
+- [ ] Repository name follows `ey-agent-<domain>-<name>` convention
+- [ ] `CODEOWNERS` file created with EY delivery lead assigned
+- [ ] Branch protection rules configured for `main` and `develop`
+- [ ] `.env.example` added with non-secret variable names only
+- [ ] Helm chart initialised under `chart/` with default `values.yaml`
+- [ ] APIM policy stubs created under `policies/`
+- [ ] GitHub Actions secrets populated in repository settings
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="AKS Deployment & Citadel Integration" icon="kubernetes" href="/ey-framework-alignment/aks-deployment">
+    Deploy your scaffolded agent container to AKS behind the Citadel APIM gateway with namespace isolation and access contract wiring.
+  </Card>
+  <Card title="CI/CD Pipeline" icon="code-branch" href="/ey-framework-alignment/cicd-pipeline">
+    Automate build, test, and deployment from GitHub Actions to AKS and Citadel APIM.
+  </Card>
+</CardGroup>
