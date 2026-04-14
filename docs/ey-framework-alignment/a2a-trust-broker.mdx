@@ -1,0 +1,108 @@
+---
+title: "A2A Trust Broker"
+description: "How Citadel APIM acts as a trust broker for A2A interactions — cross-agent authentication, federation patterns, and security guarantees for agent-to-agent calls"
+icon: "arrows-left-right"
+---
+
+# A2A Trust Broker
+
+EY's AI Agent Development Framework identifies Agent-to-Agent (A2A) communication as a foundational protocol for building a connected AI future. As agents become more specialized, they must be able to delegate tasks, share context, and coordinate outcomes across team and organizational boundaries. EY Fabric plans to enhance its Standard Starter Kit for A2A by FY26 Q3, reflecting the growing importance of multi-agent collaboration in enterprise environments.
+
+A critical gap in the current framework is how agents authenticate and trust one another when crossing organizational or service-line boundaries. Without a centralized trust mechanism, every agent pair would need bilateral integration and manual credential management — an approach that does not scale. Citadel solves this today by using Azure API Management as an A2A trust broker. Every inter-agent message passes through a centrally governed gateway where both sender and receiver identities are verified before any payload is delivered.
+
+## A2A Trust Broker Architecture
+
+The diagram below illustrates how Citadel mediates agent-to-agent communication. APIM sits between Agent A and Agent B, enforcing identity, authorization, and security checks on every message.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    A2A TRUST BROKER ON CITADEL                              │
+│                                                                              │
+│   Agent A (Sender)                                                           │
+│        │                                                                     │
+│        │  A2A Message + Entra ID Token                                       │
+│        ▼                                                                     │
+│   ┌─────────────────────────────────────┐                                    │
+│   │  Layer 1: Governance Hub (APIM)     │  ← Trust broker / message gateway │
+│   │  ─ Verify Agent A identity          │                                    │
+│   │  ─ Verify Agent A authorized to     │                                    │
+│   │    send to Agent B                  │                                    │
+│   │  ─ Validate message schema          │                                    │
+│   └─────────────────────┬───────────────┘                                    │
+│                         │                                                    │
+│                         ▼                                                    │
+│   ┌─────────────────────────────────────┐                                    │
+│   │  Layer 3: Agent Identity            │  ← Confirm Agent B exists +       │
+│   │  ─ Resolve Agent B in Agent 365     │    is reachable                   │
+│   │  ─ Check federation trust           │                                    │
+│   └─────────────────────┬───────────────┘                                    │
+│                         │                                                    │
+│                         ▼                                                    │
+│   ┌─────────────────────────────────────┐                                    │
+│   │  Layer 4: Security Fabric           │  ─ Threat scan on payload         │
+│   │  ─ Defender for AI anomaly check    │                                    │
+│   └─────────────────────┬───────────────┘                                    │
+│                         │                                                    │
+│                         ▼                                                    │
+│   Agent B (Receiver)    ←  Message delivered only if all checks pass        │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+In this architecture, Agent A cannot send a message directly to Agent B. Instead, the message is submitted to the Citadel Governance Hub (APIM), which performs a series of verified handoffs across the layers. If any check fails — identity verification, authorization, federation trust, or security scan — the message is rejected and logged for audit.
+
+## Cross-Agent Authentication & Federation
+
+Citadel enables three trust patterns for A2A communication, each aligned to a different enterprise scenario.
+
+| Trust Pattern | How Citadel Enforces It | EY Relevance |
+|---|---|---|
+| Same-tenant agents | Both agents authenticate via Entra ID in the same directory; APIM validates tokens against the tenant | Default for agents within the same EY service line |
+| Cross-tenant federation | Agent A's tenant trusts Agent B's tenant via B2B or cross-tenant synchronization; APIM validates the federated token | Agents collaborating across EY service lines or with approved external vendors |
+| Managed identity to managed identity | Agents use Azure Managed Identities; APIM checks role assignments and access contracts | High-security scenarios where human credentials are not involved |
+
+These patterns give architects flexibility without sacrificing control. Whether agents are in the same tenant or separated by organizational boundaries, Citadel ensures that trust is established through centrally managed identity infrastructure rather than ad-hoc credentials.
+
+### Same-Tenant Agents
+
+In the same-tenant pattern, both Agent A and Agent B are registered in the same Microsoft Entra ID directory. When Agent A sends an A2A message, APIM validates its token against the tenant and then checks whether Agent B is also a member of the same directory. This is the simplest and most common pattern for agents operating within a single EY service line or business unit.
+
+### Cross-Tenant Federation
+
+Cross-tenant federation enables collaboration when Agent A and Agent B reside in different Entra ID tenants. A trust relationship must exist between the two tenants, typically established via Entra ID B2B collaboration or cross-tenant synchronization. APIM validates the federated token and ensures the cross-tenant relationship is still active before allowing the message to proceed. This pattern supports multi-service-line workflows and approved external partnerships.
+
+### Managed Identity to Managed Identity
+
+For high-security or fully automated scenarios, agents can authenticate using Azure Managed Identities instead of service principals or user credentials. In this pattern, APIM verifies the managed identity token and checks Azure RBAC assignments to confirm the sender is authorized to communicate with the recipient. Because no human credentials are involved, this pattern eliminates password rotation risks and supports continuous automation pipelines.
+
+## Security Guarantees for A2A Calls
+
+Citadel provides four security guarantees that the EY framework requires but does not yet specify an implementation for. These guarantees are enforced automatically when A2A traffic routes through APIM.
+
+- **Non-repudiation**: Every A2A message is logged with sender identity, timestamp, and message hash. Logs are immutable once written to Azure Monitor and Event Hub, providing a verifiable record for compliance investigations.
+- **Least-privilege routing**: APIM policies ensure Agent A can only send messages to explicitly allowed recipients. Default-deny applies to all unknown agent pairs, preventing lateral movement in the agent ecosystem.
+- **Payload inspection**: Layer 4 scans A2A message payloads for anomalous patterns, prompt injection attempts, and sensitive data exfiltration before delivery to the receiving agent.
+- **Session boundary enforcement**: Long-running A2A sessions must refresh tokens periodically. APIM enforces token expiry and requires re-authentication, preventing session hijacking and credential replay.
+
+## How This Maps to EY A2A Standards
+
+EY's framework states that future A2A releases will include "Agent Binding i.e. Agent Registration and Discovery." Citadel already provides the trust infrastructure that makes secure agent binding possible:
+
+- Before any agent can send or receive A2A messages, it must be registered in Agent 365 and have an access contract defined in APIM.
+- APIM acts as the registration enforcement point — unregistered agents cannot communicate, even if they possess valid credentials.
+- This means EY's future agent registration requirement is already enforceable today through Citadel's Layer 1 and Layer 3 integration.
+
+<Tip>
+For the technical implementation of A2A delegation, coordination, and handoff patterns on Citadel, see the [A2A Integration](../agent-factory/a2a-integration) page in the Agent Factory section.
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="A2A Integration" icon="arrows-left-right" href="../agent-factory/a2a-integration">
+    Technical deep-dive: A2A architecture, collaboration patterns, and implementation on Citadel
+  </Card>
+  <Card title="Agent Discovery" icon="search" href="./agent-discovery">
+    How APIM API Center functions as an agent registry and discovery catalog today
+  </Card>
+</CardGroup>
