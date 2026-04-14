@@ -241,7 +241,10 @@
         "tab": "EY Alignment",
         "pages": [
           "ey-framework-alignment/index",
-          "ey-framework-alignment/alignment-map"
+          "ey-framework-alignment/alignment-map",
+          "ey-framework-alignment/aks-deployment",
+          "ey-framework-alignment/github-scaffolding",
+          "ey-framework-alignment/cicd-pipeline"
         ]
       }
     ]
