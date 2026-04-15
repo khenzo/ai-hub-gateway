@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: EY Framework Alignment
 status: in_progress
-stopped_at: Completed 21-01-PLAN.md
-last_updated: "2026-04-15T10:53:45.000Z"
-last_activity: "2026-04-15 — Completed Plan 01 of Phase 21 (Restructured Guides into ALZ and Citadel Hub sections)"
+stopped_at: Completed 21-02-PLAN.md
+last_updated: "2026-04-15T11:07:11.000Z"
+last_activity: "2026-04-15 — Completed Plan 02 of Phase 21 (Updated navigation and fixed cross-references)"
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 12
   completed_plans: 12
-  percent: 83
+  percent: 100
 ---
 
 # Project State
@@ -26,13 +26,13 @@ See: .planning/PROJECT.md (updated 2026-04-14)
 ## Current Position
 
 Phase: Phase 21 — Refactor Mintlify doc tabs for Guides and Operations (in progress)
-Plan: 01 (complete)
-Status: Plan 01 complete — restructured Guides into ALZ and Citadel Hub sections, removed Operations tab
-Last activity: 2026-04-15 — Completed Plan 01 of Phase 21 (Restructured Guides into ALZ and Citadel Hub sections)
+Plan: 02 (complete)
+Status: Plan 02 complete — updated Mintlify navigation and fixed all cross-references to old guide paths
+Last activity: 2026-04-15 — Completed Plan 02 of Phase 21 (Updated navigation and fixed cross-references)
 
-Next Phase: Phase 21 — Refactor Mintlify doc tabs for Guides and Operations
+Next Phase: Milestone v1.3 completion
 
-Progress: [████████░░] 83% (5/6 phases complete, 12/12 plans overall in v1.3)
+Progress: [████████████] 100% (6/6 phases complete, 12/12 plans overall in v1.3)
 
 ## v1.3 Phase Summary
 
@@ -43,7 +43,7 @@ Progress: [████████░░] 83% (5/6 phases complete, 12/12 plans
 | 18. Security & Governance at Scale | Architects can map EY two-tiered governance to Citadel 4-layer architecture | GOVN-01, GOVN-02, GOVN-03 | Complete (3/3 plans) |
 | 19. MCP, A2A & Agent Discovery | Architects can understand Citadel's role in MCP, A2A trust, and agent discovery | PROTO-01, PROTO-02, PROTO-03 | Complete (3/3 plans) |
 | 20. Attention Points & Recommendations | Readers receive actionable gap analysis and supplemental tool recommendations | GAPS-01 | Complete |
-| 21. Refactor Mintlify doc tabs for Guides and Operations | Simplify docs navigation by consolidating Guides/Operations into a single section linking to official GitHub repos | REFACTOR-01, REFACTOR-02 | In Progress (1/2 plans) |
+| 21. Refactor Mintlify doc tabs for Guides and Operations | Simplify docs navigation by consolidating Guides/Operations into a single section linking to official GitHub repos | REFACTOR-01, REFACTOR-02 | Complete (2/2 plans) |
 
 ## Performance Metrics
 
@@ -103,6 +103,7 @@ Progress: [████████░░] 83% (5/6 phases complete, 12/12 plans
 | Phase 20-attention-points-recommendations P01 | 6min | 2 tasks | 3 files |
 | Phase 20-attention-points-recommendations P02 | 3min | 2 tasks | 1 files |
 | Phase 21-refactor-operations-docs P01 | 4min | 4 tasks | 45 files |
+| Phase 21-refactor-operations-docs P02 | 8min | 5 tasks | 54 files |
 
 ## Accumulated Context
 
@@ -172,6 +173,9 @@ Recent decisions affecting current work:
 - [Phase 21-refactor-operations-docs]: Consolidated all remaining how-to guides under Citadel Hub since they relate to the APIM-based AI gateway accelerator
 - [Phase 21-refactor-operations-docs]: Removed the Operations tab entirely rather than merging, since the standalone Operations section was redundant with Citadel Hub operations guides and runbooks
 - [Phase 21-refactor-operations-docs]: Preserved implementation/ paths in docs.json navigation under Citadel Hub since they were outside the Guides directory restructure scope
+- [Phase 21-refactor-operations-docs]: Flattened Citadel Hub navigation by removing Integrations and Validation subgroups (pages belong under Implementation tab)
+- [Phase 21-refactor-operations-docs]: Preserved Operations as a Citadel Hub subgroup since operational guides exist under guides/citadel-hub/operations/
+- [Phase 21-refactor-operations-docs]: Moved troubleshooting and checklist pages to the root of the Citadel Hub pages array for simpler navigation
 
 ### Roadmap Evolution
 
@@ -185,7 +189,7 @@ Recent decisions affecting current work:
 - Phase 18: Security & Governance at Scale (complete — 3/3 plans complete)
 - Phase 19: MCP, A2A & Agent Discovery (complete — 3/3 plans complete)
 - Phase 20: Attention Points & Recommendations (complete — 2/2 plans complete)
-- Phase 21: Refactor Mintlify doc tabs for Guides and Operations (in progress — 1/2 plans complete)
+- Phase 21: Refactor Mintlify doc tabs for Guides and Operations (complete — 2/2 plans complete)
 
 ### Blockers/Concerns
 
@@ -193,8 +197,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-15T10:53:45.000Z
-Stopped at: Completed 21-01-PLAN.md
+Last session: 2026-04-15T11:07:11.000Z
+Stopped at: Completed 21-02-PLAN.md
 Resume file: None
 
 ## Milestone Status
@@ -229,4 +233,4 @@ Resume file: None
 - Phase 18: Complete (3/3 plans complete)
 - Phase 19: Complete (3/3 plans complete)
 - Phase 20: Complete (2/2 plans complete)
-- Phase 21: In Progress (1/2 plans complete)
+- Phase 21: Complete (2/2 plans complete)
