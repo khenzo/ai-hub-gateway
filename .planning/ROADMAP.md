@@ -45,13 +45,14 @@ _For full details, see `.planning/milestones/v1.1-ROADMAP.md`_
 _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
 </details>
 
-### v1.3 EY Framework Alignment (Phases 16-20)
+### v1.3 EY Framework Alignment (Phases 16-21)
 
 - [x] **Phase 16: EY Framework Alignment Overview** - Alignment map and dedicated EY section in site navigation (completed 2026-04-14)
 - [x] **Phase 17: Kubernetes & DevOps Patterns** - AKS deployment, GitHub scaffolding, and CI/CD pipeline guidance (completed 2026-04-14)
 - [x] **Phase 18: Security & Governance at Scale** - EY two-tiered governance mapped to Citadel 4-layer architecture (completed 2026-04-14)
 - [x] **Phase 19: MCP, A2A & Agent Discovery** - Protocol alignment and APIM as agent registry (completed 2026-04-15)
 - [x] **Phase 20: Attention Points & Recommendations** - Gap analysis and actionable add-on recommendations (completed 2026-04-15)
+- [ ] **Phase 21: Refactor Mintlify doc tabs for Guides and Operations** - Consolidate how-to pages into a single Operations section with links to official GitHub repos
 
 ## Phase Details
 
@@ -121,6 +122,19 @@ Plans:
 - [x] 20-01-PLAN.md — Create gaps-and-recommendations content page with gap analysis and supplemental tools
 - [x] 20-02-PLAN.md — Wire gaps-and-recommendations page into EY Alignment navigation in docs.json
 
+### Phase 21: Refactor Mintlify doc tabs for Guides and Operations
+**Goal**: Simplify the documentation navigation by removing redundant how-to pages from Guides and Operations, consolidating them into a single Operations section that links directly to the official GitHub repositories for AI Landing Zone and Citadel APIM
+**Depends on**: Phase 20
+**Requirements**: TBD
+**Success Criteria** (what must be TRUE):
+  1. All how-to pages under Guides and Operations are removed from the documentation
+  2. A single Operations section exists as the last item in the navigation sidebar
+  3. The Operations section contains one page with direct links to the official GitHub repos (AI Landing Zone and Citadel APIM)
+  4. docs.json is updated to reflect the new navigation structure
+**Plans**: 0 plans
+Plans:
+- [ ] TBD (run /gsd-plan-phase 21 to break down)
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -145,3 +159,4 @@ Plans:
 | 18. Security & Governance at Scale | 3/3 | Complete    | 2026-04-14 | - |
 | 19. MCP, A2A & Agent Discovery | 3/3 | Complete    | 2026-04-15 | - |
 | 20. Attention Points & Recommendations | v1.3 | Complete    | 2026-04-15 | 2026-04-15 |
+| 21. Refactor Mintlify doc tabs for Guides and Operations | 1/2 | In Progress|  | - |
