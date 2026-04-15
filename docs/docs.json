@@ -124,7 +124,7 @@
             "pages": [
               "guides/ai-landing-zone/index",
               "guides/ai-landing-zone/network-approach",
-              "guides/ai-landing-zone/llm-routing-architecture",
+              "guides/ai-landing-zone/llm-routing",
               "guides/ai-landing-zone/networking",
               "guides/ai-landing-zone/llm-routing"
             ]
