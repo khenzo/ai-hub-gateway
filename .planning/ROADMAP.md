@@ -179,4 +179,4 @@ Plans:
 | 19. MCP, A2A & Agent Discovery | 3/3 | Complete    | 2026-04-15 | - |
 | 20. Attention Points & Recommendations | v1.3 | Complete    | 2026-04-15 | 2026-04-15 |
 | 21. Refactor Mintlify doc tabs for Guides and Operations | 2/2 | Complete    | 2026-04-15 | - |
-| 22. Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform | 1/4 | In Progress|  | - |
+| 22. Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform | 2/4 | In Progress|  | - |
