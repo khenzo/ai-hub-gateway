@@ -33,15 +33,15 @@ A comprehensive documentation hub for implementing AI Landing Zones with Citadel
 - ✓ Add deep agent architecture content (Agent Harness & Tools, Context Engineering) — v1.2
 - ✓ Maintain Citadel + AI Landing Zone integration across all Agent Factory pages — v1.2
 - ✓ Navigation consistency for 14-page Agent Factory group in docs.json — v1.2
+- ✓ EY Framework overview and Citadel alignment map (gap analysis) — Phase 16
+- ✓ Kubernetes/AKS deployment patterns and GitHub scaffolding for agent delivery — Phase 17
+- ✓ DevOps pattern reproduction (CI/CD pipelines for agents on Azure) — Phase 17
+- ✓ Security and governance at scale — Citadel vs EY two-tiered governance model — Phase 18
+- ✓ MCP, A2A, and agent discovery protocol alignment — Phase 19
 
 ### Active
 
-- [ ] EY Framework overview and Citadel alignment map (gap analysis)
 - [ ] Development spectrum coverage on Citadel (no-code, low-code, pro-code paths)
-- [ ] Kubernetes/AKS deployment patterns and GitHub scaffolding for agent delivery
-- [ ] DevOps pattern reproduction (CI/CD pipelines for agents on Azure)
-- [ ] Security and governance at scale — Citadel vs EY two-tiered governance model
-- [ ] MCP, A2A, and agent discovery protocol alignment
 - [ ] Attention points and gaps documentation
 
 ### Out of Scope
@@ -160,6 +160,7 @@ This documentation synthesizes content from three primary sources:
 | Deep architecture pages | Harness engineering and context engineering are advanced topics that differentiate this documentation from basic tutorials | ✓ Good — both pages exceed length minimums and include formal Citadel integration sections |
 | Tool-gated execution principle | "Model never executes anything directly" is the core safety pattern for agentic systems | ✓ Good — clearly articulated with middleware chain and sandbox provider comparisons |
 | Cross-link over duplicate | Citadel integration references use cross-links rather than repeating architecture content | ✓ Good — keeps Agent Factory pages focused while preserving 4-layer alignment |
+| EY protocol alignment structure | MCP, A2A, and agent discovery pages follow a consistent EY-requirement-to-Citadel-capability mapping with ASCII diagrams and CardGroup next-steps | ✓ Good — architects can clearly see how Citadel satisfies EY protocol requirements without technical duplication |
 
 ---
 
@@ -203,4 +204,4 @@ All outcomes were marked "— Pending" before v1.0 shipment.
 </details>
 
 ---
-*Last updated: 2026-04-14 after v1.3 milestone start*
+*Last updated: 2026-04-15 after Phase 19 completion*
