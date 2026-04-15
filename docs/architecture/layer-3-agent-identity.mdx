@@ -8,7 +8,7 @@ icon: id-card
 
 ## Overview
 
-**Layer 3 — Agent Identity (Agent 365)** transforms agents into enterprise assets with **unique identities, lifecycle management, and access controls**. Built on **Microsoft Entra ID**, this layer addresses shadow AI and enables scale with trust by ensuring no agent operates anonymously at scale.
+**Layer 3 — Agent Identity (Agent 365)** is the **identity and lifecycle layer** of the SOF1A 2.0 AI Governance Platform. It transforms agents into enterprise assets with **unique identities, lifecycle management, and access controls**. Built on **Microsoft Entra ID**, this layer addresses shadow AI and enables scale with trust by ensuring no agent operates anonymously at scale.
 
 ## Strategic Significance
 
@@ -128,11 +128,11 @@ Fine-grained permissions based on agent attributes:
 
 ```mermaid
 graph TB
-    A["Agent A (Finance)<br/>Object ID · Sponsor · Access Package"]
-    B["Agent B (Sales)<br/>Object ID · Sponsor · Access Package"]
-    C["Agent C (Support)<br/>Object ID · Sponsor · Access Package"]
-    EID["Microsoft Entra ID<br/>Service Principals · Access Policies · Lifecycle Workflows"]
-    GC["Governance &amp; Compliance<br/>Access Reviews · Audit Logs · Compliance Reports"]
+    A["Agent A (Finance)\nObject ID · Sponsor · Access Package"]
+    B["Agent B (Sales)\nObject ID · Sponsor · Access Package"]
+    C["Agent C (Support)\nObject ID · Sponsor · Access Package"]
+    EID["Microsoft Entra ID\nService Principals · Access Policies · Lifecycle Workflows"]
+    GC["Governance &amp; Compliance\nAccess Reviews · Audit Logs · Compliance Reports"]
 
     A --> EID
     B --> EID

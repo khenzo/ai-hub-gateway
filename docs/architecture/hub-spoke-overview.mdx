@@ -1,12 +1,12 @@
 ---
 title: Hub-Spoke Architecture Overview
-description: 'Understand the hub-spoke architecture of Citadel Governance Hub, including the central governance layer and connected agent spokes'
+description: 'Understand the hub-spoke architecture of the SOF1A 2.0 AI Governance Platform, including the central governance layer and connected agent spokes'
 icon: network-wired
 ---
 
 # Hub-Spoke Architecture Overview
 
-The Citadel Governance Hub implements a **hub-spoke architecture** that provides centralized governance while enabling distributed AI development across your organization. This pattern aligns with Microsoft's Azure Landing Zone architecture and supports enterprise-scale AI governance.
+The **SOF1A 2.0 AI Governance Platform** implements a **hub-spoke architecture** that provides centralized governance while enabling distributed AI development across your organization. This pattern aligns with Microsoft's Azure Landing Zone architecture and supports enterprise-scale AI governance.
 
 ## Architecture Principles
 
@@ -61,9 +61,9 @@ The **Citadel Governance Hub** is the central control plane that governs all AI 
 ```mermaid
 graph TB
     subgraph CGH["Central Governance Hub (CGH)"]
-        GW["AI Gateway<br/>Routing · Auth · Rate Limit"]
-        PE["Policy Engine<br/>Safety · Compliance · Filtering"]
-        OB["Observability<br/>Usage · Cost Attribution · Audit Logs"]
+        GW["AI Gateway\nRouting · Auth · Rate Limit"]
+        PE["Policy Engine\nSafety · Compliance · Filtering"]
+        OB["Observability\nUsage · Cost Attribution · Audit Logs"]
     end
     CGH -->|VNet Peering / Private Connectivity| HR["Spoke: HR"]
     CGH --> FIN["Spoke: Finance"]
@@ -138,14 +138,14 @@ graph TB
             IS["Identity Sub"]
         end
         subgraph HubVNet["Enterprise Hub Virtual Network"]
-            SS["Shared Services<br/>AD DS · DNS · NVA"]
-            FW["Azure Firewall<br/>Traffic Inspect · Threat Intel"]
+            SS["Shared Services\nAD DS · DNS · NVA"]
+            FW["Azure Firewall\nTraffic Inspect · Threat Intel"]
         end
     end
     subgraph CGH["Citadel Governance Hub (CGH)"]
         GW2["AI Gateway (API Management)"]
         PE2["Policy Engine (Content Safety)"]
-        OB2["Observability<br/>App Insights · Log Analytics"]
+        OB2["Observability\nApp Insights · Log Analytics"]
     end
     subgraph Spokes["Agent Spokes"]
         S1["Spoke 1 (Finance)"]

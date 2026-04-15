@@ -8,7 +8,7 @@ icon: shield
 
 ## Overview
 
-**Layer 4 — Security Fabric** provides **real-time defense against AI-specific threats** and integrates across all governance layers. By weaving together **Microsoft Defender**, **Microsoft Purview**, and **Microsoft Entra**, this layer delivers unified protection that closes the loop from policy definition to runtime defense.
+**Layer 4 — Security Fabric** is the **unified protection layer** of the SOF1A 2.0 AI Governance Platform. It provides **real-time defense against AI-specific threats** and integrates across all governance layers. By weaving together **Microsoft Defender**, **Microsoft Purview**, and **Microsoft Entra**, this layer delivers unified protection that closes the loop from policy definition to runtime defense.
 
 ## Strategic Purpose
 
@@ -146,10 +146,10 @@ The Security Fabric enables coordinated response across components:
 
 ```mermaid
 graph TB
-    DEF["🛡️ Defender<br/>Threats &amp; Posture"]
-    PUR["📚 Purview<br/>Data Governance"]
-    ENT["🔐 Entra<br/>Identity"]
-    USO["Unified Security Operations<br/>Cross-signal correlation · Coordinated response<br/>Single pane of glass · Automated remediation"]
+    DEF["🛡️ Defender\nThreats &amp; Posture"]
+    PUR["📚 Purview\nData Governance"]
+    ENT["🔐 Entra\nIdentity"]
+    USO["Unified Security Operations\nCross-signal correlation · Coordinated response\nSingle pane of glass · Automated remediation"]
     L1["→ Layer 1: Gateway protection"]
     L2["→ Layer 2: Compliance signals"]
     L3["→ Layer 3: Identity governance"]
@@ -213,10 +213,10 @@ Security is built into every layer:
 
 ```mermaid
 graph LR
-    L1["Layer 1<br/>Gateway"] --> SF["Security Fabric<br/>Defender · Purview · Entra"]
-    L2["Layer 2<br/>Control Plane"] --> SF
-    L3["Layer 3<br/>Identity"] --> SF
-    L4["Layer 4<br/>Security"] --> SF
+    L1["Layer 1\nGateway"] --> SF["Security Fabric\nDefender · Purview · Entra"]
+    L2["Layer 2\nControl Plane"] --> SF
+    L3["Layer 3\nIdentity"] --> SF
+    L4["Layer 4\nSecurity"] --> SF
     SF --> UR["Unified Response"]
     UR --> BT["Block Threat"]
     UR --> AP["Apply Policy"]

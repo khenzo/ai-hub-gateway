@@ -8,7 +8,7 @@ icon: building-columns
 
 ## Overview
 
-**Layer 1 — Governance Hub** serves as the **runtime enforcement plane** that mediates all AI traffic between agents, LLMs, tools, and other agents. It establishes the physical gateway through which every AI interaction flows, ensuring consistent policy enforcement across the enterprise.
+**Layer 1 — Governance Hub** serves as the **runtime enforcement plane** of the SOF1A 2.0 AI Governance Platform. It mediates all AI traffic between agents, LLMs, tools, and other agents, establishing the physical gateway through which every AI interaction flows and ensuring consistent policy enforcement across the enterprise.
 
 ## Strategic Purpose
 
@@ -45,12 +45,12 @@ Built on **Azure API Management**, the Unified AI Gateway is the central control
 
 ```mermaid
 flowchart LR
-    Req(["Incoming Request"]) --> A["1. Authentication<br/>Entra ID · API Keys"]
-    A --> B["2. Rate Limiting<br/>Token quotas · Request limits"]
-    B --> C["3. Content Safety<br/>Prompt shields · Filtering"]
-    C --> D["4. Routing<br/>Load balancing · Failover"]
-    D --> E["5. Logging<br/>Usage telemetry · Audit trails"]
-    E --> Resp(["6. Response<br/>Safety checks · PII masking"])
+    Req(["Incoming Request"]) --> A["1. Authentication\nEntra ID · API Keys"]
+    A --> B["2. Rate Limiting\nToken quotas · Request limits"]
+    B --> C["3. Content Safety\nPrompt shields · Filtering"]
+    C --> D["4. Routing\nLoad balancing · Failover"]
+    D --> E["5. Logging\nUsage telemetry · Audit trails"]
+    E --> Resp(["6. Response\nSafety checks · PII masking"])
 ```
 
 ### 📖 Universal Registry (Azure API Center)
@@ -120,9 +120,9 @@ graph TB
         Mon["Monitoring"]
         PE["Policy Engine"]
     end
-    Hub --> S1["Spoke 1 (Finance)<br/>AI Agents · Workloads · Data"]
-    Hub --> S2["Spoke 2 (Sales)<br/>AI Agents · Workloads · Data"]
-    Hub --> SN["Spoke N (Operations)<br/>AI Agents · Workloads · Data"]
+    Hub --> S1["Spoke 1 (Finance)\nAI Agents · Workloads · Data"]
+    Hub --> S2["Spoke 2 (Sales)\nAI Agents · Workloads · Data"]
+    Hub --> SN["Spoke N (Operations)\nAI Agents · Workloads · Data"]
 ```
 
 ## Governance & Security Pillar Alignment
