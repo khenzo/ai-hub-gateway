@@ -147,50 +147,20 @@
                 ]
               },
               {
-                "group": "Integrations",
-                "icon": "link",
-                "pages": [
-                  "implementation/integration/index",
-                  "implementation/integration/foundry-control-plane",
-                  "guides/citadel-hub/features/llm-backend-onboarding"
-                ]
-              },
-              {
-                "group": "Validation",
-                "icon": "clipboard-check",
-                "pages": [
-                  "implementation/validation/index",
-                  "implementation/validation/pre-deployment-checklist",
-                  "implementation/validation/post-deployment-validation",
-                  "implementation/validation/troubleshooting"
-                ]
-              },
-              {
                 "group": "Features",
                 "icon": "sparkles",
                 "pages": [
+                  "guides/citadel-hub/features/llm-backend-onboarding",
                   "guides/citadel-hub/features/pii-masking",
                   "guides/citadel-hub/features/throttling-handling"
                 ]
               },
               {
-                "group": "Operations",
-                "icon": "gears",
+                "group": "Development",
+                "icon": "code",
                 "pages": [
-                  "guides/citadel-hub/operations/citadel-sizing",
-                  "guides/citadel-hub/operations/estimation-guide",
-                  "guides/citadel-hub/operations/power-bi-dashboard",
-                  "guides/citadel-hub/operations/scripts-reference",
-                  "guides/citadel-hub/operations/usage-analytics"
-                ]
-              },
-              {
-                "group": "Troubleshooting & Checklists",
-                "icon": "clipboard-check",
-                "pages": [
-                  "guides/citadel-hub/validation-checklist",
-                  "guides/citadel-hub/troubleshooting",
-                  "guides/citadel-hub/common-issues"
+                  "guides/citadel-hub/development/shared-resources",
+                  "guides/citadel-hub/development/testing-tools"
                 ]
               },
               {
@@ -204,13 +174,19 @@
                 ]
               },
               {
-                "group": "Development",
-                "icon": "code",
+                "group": "Operations",
+                "icon": "gears",
                 "pages": [
-                  "guides/citadel-hub/development/shared-resources",
-                  "guides/citadel-hub/development/testing-tools"
+                  "guides/citadel-hub/operations/citadel-sizing",
+                  "guides/citadel-hub/operations/estimation-guide",
+                  "guides/citadel-hub/operations/power-bi-dashboard",
+                  "guides/citadel-hub/operations/scripts-reference",
+                  "guides/citadel-hub/operations/usage-analytics"
                 ]
-              }
+              },
+              "guides/citadel-hub/validation-checklist",
+              "guides/citadel-hub/troubleshooting",
+              "guides/citadel-hub/common-issues"
             ]
           }
         ]
