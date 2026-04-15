@@ -123,17 +123,19 @@ Plans:
 - [x] 20-02-PLAN.md — Wire gaps-and-recommendations page into EY Alignment navigation in docs.json
 
 ### Phase 21: Refactor Mintlify doc tabs for Guides and Operations
-**Goal**: Simplify the documentation navigation by removing redundant how-to pages from Guides and Operations, consolidating them into a single Operations section that links directly to the official GitHub repositories for AI Landing Zone and Citadel APIM
+**Goal**: Simplify the documentation navigation by restructuring Guides into AI Landing Zone and Citadel Hub sections, linking to official GitHub repositories, and removing the standalone Operations tab
 **Depends on**: Phase 20
-**Requirements**: TBD
+**Requirements**: REFACTOR-01, REFACTOR-02, REFACTOR-03, REFACTOR-04
 **Success Criteria** (what must be TRUE):
-  1. All how-to pages under Guides and Operations are removed from the documentation
-  2. A single Operations section exists as the last item in the navigation sidebar
-  3. The Operations section contains one page with direct links to the official GitHub repos (AI Landing Zone and Citadel APIM)
+  1. Guides section is restructured into two subsections: AI Landing Zone and Citadel Hub
+  2. The Guides introduction and quickstart pages link directly to the official GitHub repositories
+  3. The Operations tab is removed from the top-level navigation
   4. docs.json is updated to reflect the new navigation structure
-**Plans**: 0 plans
+  5. No broken internal links remain in modified pages
+**Plans**: 2 plans
 Plans:
-- [ ] TBD (run /gsd-plan-phase 21 to break down)
+- [x] 21-01-PLAN.md — Restructure Guides into AI Landing Zone and Citadel Hub sections with repo links
+- [x] 21-02-PLAN.md — Update docs.json navigation and fix cross-references
 
 ## Progress
 
@@ -159,4 +161,4 @@ Plans:
 | 18. Security & Governance at Scale | 3/3 | Complete    | 2026-04-14 | - |
 | 19. MCP, A2A & Agent Discovery | 3/3 | Complete    | 2026-04-15 | - |
 | 20. Attention Points & Recommendations | v1.3 | Complete    | 2026-04-15 | 2026-04-15 |
-| 21. Refactor Mintlify doc tabs for Guides and Operations | 2/2 | Complete   | 2026-04-15 | - |
+| 21. Refactor Mintlify doc tabs for Guides and Operations | 2/2 | Complete    | 2026-04-15 | - |
