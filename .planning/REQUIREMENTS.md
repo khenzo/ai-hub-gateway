@@ -39,6 +39,14 @@
 - [x] **REFACTOR-03**: Mintlify navigation (docs.json) reflects the restructured Guides with no standalone Operations tab
 - [x] **REFACTOR-04**: All internal cross-references to old guide and operations paths are updated to new locations
 
+### SOF1A 2.0 Rebrand (REBRAND)
+
+- [x] **REBRAND-01**: Architecture docs clearly communicate AI Landing Zone and Citadel Governance Hub as the two pillars of the SOF1A 2.0 AI Governance Platform
+- [x] **REBRAND-02**: Getting-started docs reflect the new SOF1A 2.0 platform narrative and visual identity
+- [x] **REBRAND-03**: Separation of concepts between AI Landing Zone and APIM Gateway is maintained while showing how they interact
+- [x] **REBRAND-04**: Existing architecture diagrams are preserved and updated where needed
+- [x] **REBRAND-05**: Mintlify navigation and site metadata align with the SOF1A 2.0 platform structure
+
 ## Future Requirements
 
 *(None defined for v1.4 at this time)*
@@ -72,10 +80,15 @@
 | REFACTOR-02 | Phase 21 | Complete |
 | REFACTOR-03 | Phase 21 | Complete |
 | REFACTOR-04 | Phase 21 | Complete |
+| REBRAND-01 | Phase 22 | Complete |
+| REBRAND-02 | Phase 22 | Complete |
+| REBRAND-03 | Phase 22 | Complete |
+| REBRAND-04 | Phase 22 | Complete |
+| REBRAND-05 | Phase 22 | Complete |
 
 **Coverage:**
-- v1.3 requirements: 15 total
-- Mapped to phases: 15
+- v1.3 requirements: 20 total
+- Mapped to phases: 20
 - Unmapped: 0 ✓
 
 ---
