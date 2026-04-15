@@ -262,7 +262,8 @@
               "ey-framework-alignment/a2a-trust-broker",
               "ey-framework-alignment/agent-discovery"
             ]
-          }
+          },
+          "ey-framework-alignment/gaps-and-recommendations"
         ]
       }
     ]
