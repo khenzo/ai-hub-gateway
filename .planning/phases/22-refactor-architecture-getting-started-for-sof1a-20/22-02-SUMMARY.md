@@ -65,7 +65,7 @@ Each task was committed atomically:
 2. **Task 2: Update Core Concepts for platform terminology** - `b1bfb32` (feat)
 3. **Task 3: Cross-check links in introduction and concepts pages** - No code changes (verification passed)
 
-**Plan metadata:** `ab8e3a1` (docs: complete plan)
+**Plan metadata:** `24faf88` (docs: complete plan)
 
 ## Files Created/Modified
 - `docs/getting-started/introduction.mdx` - Repositioned as SOF1A 2.0 AI Governance Platform welcome page with ALZ and Citadel as components
@@ -94,7 +94,7 @@ None - no external service configuration required.
 - [x] `docs/getting-started/concepts.mdx` exists and contains required content
 - [x] Commit `7d075fe` (Task 1) found in git history
 - [x] Commit `b1bfb32` (Task 2) found in git history
-- [x] Commit `ab8e3a1` (plan metadata) found in git history
+- [x] Commit `24faf88` (plan metadata) found in git history
 - [x] All internal links in both files verified valid
 
 ---

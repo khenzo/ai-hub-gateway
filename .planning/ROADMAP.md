@@ -53,7 +53,7 @@ _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
 - [x] **Phase 19: MCP, A2A & Agent Discovery** - Protocol alignment and APIM as agent registry (completed 2026-04-15)
 - [x] **Phase 20: Attention Points & Recommendations** - Gap analysis and actionable add-on recommendations (completed 2026-04-15)
 - [x] **Phase 21: Refactor Mintlify doc tabs for Guides and Operations** - Consolidate how-to pages into a single Operations section with links to official GitHub repos (completed 2026-04-15)
-- [ ] **Phase 22: Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform** - Rebrand and restructure architecture and getting-started docs to reflect the SOF1A 2.0 AI Governance Platform vision (not started)
+- [ ] **Phase 22: Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform** - Rebrand and restructure architecture and getting-started docs to reflect the SOF1A 2.0 AI Governance Platform vision (in progress — 2/4 plans complete)
 
 ## Phase Details
 
@@ -149,9 +149,9 @@ Plans:
   4. Existing architecture diagrams are preserved and updated where needed
 **Plans**: 4 plans
 Plans:
-- [ ] 22-01-PLAN.md — Rebrand and restructure architecture documentation for SOF1A 2.0
-- [ ] 22-02-PLAN.md — Rebrand getting-started introduction and concepts for SOF1A 2.0
-- [ ] 22-03-PLAN.md — Rebrand getting-started quick-start, prerequisites, and roles for SOF1A 2.0
+- [x] 22-01-PLAN.md — Rebrand and restructure architecture documentation for SOF1A 2.0
+- [x] 22-02-PLAN.md — Rebrand getting-started introduction and concepts for SOF1A 2.0
+- [x] 22-03-PLAN.md — Rebrand getting-started quick-start, prerequisites, and roles for SOF1A 2.0
 - [ ] 22-04-PLAN.md — Update docs.json navigation and verify cross-references
 
 ## Progress
@@ -179,4 +179,4 @@ Plans:
 | 19. MCP, A2A & Agent Discovery | 3/3 | Complete    | 2026-04-15 | - |
 | 20. Attention Points & Recommendations | v1.3 | Complete    | 2026-04-15 | 2026-04-15 |
 | 21. Refactor Mintlify doc tabs for Guides and Operations | 2/2 | Complete    | 2026-04-15 | - |
-| 22. Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform | 2/4 | In Progress|  | - |
+| 22. Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform | 3/4 | In Progress|  | - |

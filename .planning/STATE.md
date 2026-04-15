@@ -107,6 +107,7 @@ Progress: [███████████░] 93% (6/7 phases complete, 13/14
 | Phase 21-refactor-operations-docs P02 | 8min | 5 tasks | 54 files |
 | Phase 22-refactor-architecture-getting-started-for-sof1a-20 P02 | 2 min | 3 tasks | 2 files |
 | Phase 22-refactor-architecture-getting-started-for-sof1a-20 P03 | 3 min | 3 tasks | 3 files |
+| Phase 22-refactor-architecture-getting-started-for-sof1a-20 P01 | 6 min | 4 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -179,6 +180,8 @@ Recent decisions affecting current work:
 - [Phase 21-refactor-operations-docs]: Flattened Citadel Hub navigation by removing Integrations and Validation subgroups (pages belong under Implementation tab)
 - [Phase 21-refactor-operations-docs]: Preserved Operations as a Citadel Hub subgroup since operational guides exist under guides/citadel-hub/operations/
 - [Phase 21-refactor-operations-docs]: Moved troubleshooting and checklist pages to the root of the Citadel Hub pages array for simpler navigation
+- [Phase 22-refactor-architecture-getting-started-for-sof1a-20]: Retained 'Citadel' for governance hub/layer references, replaced only umbrella platform references with SOF1A 2.0 AI Governance Platform
+- [Phase 22-refactor-architecture-getting-started-for-sof1a-20]: Added Platform Vision section to 4-layer model to explicitly unify ALZ workloads and Citadel governance
 
 ### Roadmap Evolution
 
