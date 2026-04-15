@@ -1,0 +1,334 @@
+---
+title: Deployment Checklist
+description: Pre-deployment and deployment phase checklists for the AI Landing Zone (Citadel Governance Hub)
+---
+
+# Deployment Checklist
+
+This checklist guides deployment teams through every step required for a complete AI Landing Zone (Citadel Governance Hub) deployment. Work through each section in order and sign off each item before proceeding to the next phase.
+
+<Note>
+Print or copy this checklist to a tracking document (Confluence, Azure DevOps, etc.) and assign owners to each item before starting deployment. See the [Deployment Guide](/guides/deployment-guide) for detailed instructions on each step.
+</Note>
+
+---
+
+## How to Use This Checklist
+
+**Before starting:** Assign an owner to each checklist section and agree on a RACI matrix (see [Roles and Responsibilities](/getting-started/roles-and-responsibilities)).
+
+**Tracking symbols:**
+- `[ ]` — Not started
+- `[~]` — In progress
+- `[x]` — Complete
+- `[!]` — Blocked (document blocker in notes column)
+
+**Deployment environments:** Run this checklist once per environment (dev, staging, prod).
+
+| Environment | Owner | Date Started | Date Completed |
+|-------------|-------|-------------|----------------|
+| Development | | | |
+| Staging | | | |
+| Production | | | |
+
+---
+
+## Section 1: Pre-Deployment Checklist
+
+### 1.1 Azure Subscription Access and Permissions
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 1.1.1 | Azure subscription Owner or Contributor role verified | Platform Engineer | `[ ]` | |
+| 1.1.2 | Azure Active Directory (Entra ID) access to create app registrations | Identity Admin | `[ ]` | |
+| 1.1.3 | Azure Policy `ResourcePolicyContributor` or Owner role confirmed | Platform Engineer | `[ ]` | Required for Azure Policy assignments |
+| 1.1.4 | User Access Administrator role confirmed (for RBAC assignments) | Platform Engineer | `[ ]` | |
+| 1.1.5 | Access to target Azure region confirmed (data residency check) | Security/Compliance | `[ ]` | |
+
+### 1.2 Service Principal Configuration
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 1.2.1 | Service principal created for deployment automation | Platform Engineer | `[ ]` | Name: `sp-citadel-deploy-<env>` |
+| 1.2.2 | Service principal assigned Contributor role on subscription | Platform Engineer | `[ ]` | |
+| 1.2.3 | Service principal assigned User Access Administrator role | Platform Engineer | `[ ]` | Required for RBAC at deployment |
+| 1.2.4 | Service principal credentials stored in CI/CD secrets store | DevOps Engineer | `[ ]` | Never in source control |
+| 1.2.5 | Service principal credentials tested (az login with SP) | DevOps Engineer | `[ ]` | |
+
+### 1.3 Resource Provider Registration
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 1.3.1 | `Microsoft.ApiManagement` provider registered | Platform Engineer | `[ ]` | |
+| 1.3.2 | `Microsoft.CognitiveServices` provider registered | Platform Engineer | `[ ]` | Required for Azure OpenAI |
+| 1.3.3 | `Microsoft.MachineLearningServices` provider registered | Platform Engineer | `[ ]` | Required for AI Foundry |
+| 1.3.4 | `Microsoft.Network` provider registered | Platform Engineer | `[ ]` | |
+| 1.3.5 | `Microsoft.KeyVault` provider registered | Platform Engineer | `[ ]` | |
+| 1.3.6 | `Microsoft.OperationalInsights` provider registered | Platform Engineer | `[ ]` | Required for Log Analytics |
+| 1.3.7 | `Microsoft.Insights` provider registered | Platform Engineer | `[ ]` | Required for App Insights |
+| 1.3.8 | All providers show "Registered" status | Platform Engineer | `[ ]` | Verify: `az provider show --namespace X --query registrationState` |
+
+### 1.4 Subscription Quota Verification
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 1.4.1 | Azure API Management quota checked (default: 1 Premium per sub) | Platform Engineer | `[ ]` | Increase if deploying Premium × 2+ |
+| 1.4.2 | Azure OpenAI token quota confirmed by region and model | AI/ML Engineer | `[ ]` | Document TPM per deployment |
+| 1.4.3 | VNet peering limit checked (default: 500) | Network Engineer | `[ ]` | |
+| 1.4.4 | Core vCPU quota confirmed for AI Foundry compute (if used) | AI/ML Engineer | `[ ]` | |
+| 1.4.5 | Quota increase requests submitted and approved | Platform Engineer | `[ ]` | Allow 2-5 business days |
+
+### 1.5 Network Address Planning
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 1.5.1 | Hub VNet address space documented and approved | Network Engineer | `[ ]` | Default: `10.0.0.0/16` |
+| 1.5.2 | APIM subnet size meets minimum (/27 for Premium) | Network Engineer | `[ ]` | Recommended: `/24` |
+| 1.5.3 | Private endpoint subnet defined | Network Engineer | `[ ]` | |
+| 1.5.4 | Spoke VNet address spaces planned (no overlaps) | Network Engineer | `[ ]` | One per team/workload |
+| 1.5.5 | On-premises address ranges documented (if hybrid) | Network Engineer | `[ ]` | Validate no overlap |
+| 1.5.6 | Network diagram reviewed and approved | Network Engineer + Security | `[ ]` | |
+| 1.5.7 | DNS strategy defined (Azure DNS vs custom) | Network Engineer | `[ ]` | |
+
+### 1.6 Naming Convention Preparation
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 1.6.1 | Naming convention documented and shared with team | Platform Engineer | `[ ]` | See `abbreviations.json` |
+| 1.6.2 | Environment suffix defined (`dev`, `stg`, `prod`) | Platform Engineer | `[ ]` | |
+| 1.6.3 | Resource group naming confirmed | Platform Engineer | `[ ]` | Pattern: `rg-citadel-<component>-<env>` |
+| 1.6.4 | APIM name confirmed (globally unique — 50 char max) | Platform Engineer | `[ ]` | |
+| 1.6.5 | Key Vault name confirmed (globally unique — 24 char max) | Platform Engineer | `[ ]` | |
+
+### 1.7 Key Vault Preparation
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 1.7.1 | Key Vault created for deployment secrets | Platform Engineer | `[ ]` | Before CI/CD pipeline runs |
+| 1.7.2 | Deployment service principal granted Key Vault access | Platform Engineer | `[ ]` | Role: `Key Vault Secrets User` |
+| 1.7.3 | Required secrets pre-staged in Key Vault | Platform Engineer | `[ ]` | APIM publisher email, etc. |
+| 1.7.4 | Key Vault access policies or RBAC mode confirmed | Security | `[ ]` | RBAC mode recommended |
+
+### 1.8 CI/CD Pipeline Configuration (if applicable)
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 1.8.1 | Repository cloned and accessible | DevOps Engineer | `[ ]` | |
+| 1.8.2 | CI/CD pipeline YAML reviewed and configured | DevOps Engineer | `[ ]` | `.azdo/pipelines/azure-dev.yml` |
+| 1.8.3 | Azure service connection created in Azure DevOps / GitHub | DevOps Engineer | `[ ]` | |
+| 1.8.4 | Variable groups created with required secrets | DevOps Engineer | `[ ]` | |
+| 1.8.5 | Pipeline dry-run completed (what-if mode) | DevOps Engineer | `[ ]` | |
+
+### 1.9 Governance and Compliance Pre-Checks
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 1.9.1 | Data classification requirements documented | Security/Compliance | `[ ]` | |
+| 1.9.2 | Compliance frameworks identified (SOC 2, GDPR, HIPAA) | Compliance Officer | `[ ]` | |
+| 1.9.3 | Data residency requirements validated against target regions | Compliance Officer | `[ ]` | |
+| 1.9.4 | Change management ticket raised (for production) | Change Manager | `[ ]` | |
+| 1.9.5 | Security review scheduled or completed | Security Architect | `[ ]` | |
+
+---
+
+## Section 2: Infrastructure Deployment Checklist
+
+### 2.1 Hub Network Deployment
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 2.1.1 | Hub resource group created | Platform Engineer | `[ ]` | `rg-citadel-hub-<env>` |
+| 2.1.2 | Hub VNet deployed with correct address space | Platform Engineer | `[ ]` | Verify: `az network vnet show` |
+| 2.1.3 | APIM subnet created with minimum /27 sizing | Network Engineer | `[ ]` | |
+| 2.1.4 | Private endpoint subnet created | Network Engineer | `[ ]` | |
+| 2.1.5 | Gateway subnet created (for VPN/ExpressRoute, if applicable) | Network Engineer | `[ ]` | |
+| 2.1.6 | NSGs created and associated with subnets | Network Engineer | `[ ]` | |
+| 2.1.7 | NSG inbound rules validated (APIM required ports open) | Network Engineer | `[ ]` | Ports: 443, 3443, 6390 |
+| 2.1.8 | Route tables configured if using custom routing | Network Engineer | `[ ]` | Required if using Firewall/NVA |
+
+**APIM Required NSG Rules:**
+
+| Port | Protocol | Direction | Source | Purpose |
+|------|----------|-----------|--------|---------|
+| 443 | TCP | Inbound | `Internet` or VNet | API gateway traffic |
+| 3443 | TCP | Inbound | `ApiManagement` | APIM management |
+| 6390 | TCP | Inbound | `AzureLoadBalancer` | Internal health probe |
+| 443 | TCP | Outbound | VNet | Backend connectivity |
+
+### 2.2 Azure API Management Deployment
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 2.2.1 | APIM deployment started (`Provisioning` state) | Platform Engineer | `[ ]` | Allow 30-45 min |
+| 2.2.2 | APIM deployed and in `Succeeded` provisioning state | Platform Engineer | `[ ]` | |
+| 2.2.3 | APIM VNet integration confirmed (`Internal` mode) | Network Engineer | `[ ]` | |
+| 2.2.4 | APIM system-assigned managed identity enabled | Platform Engineer | `[ ]` | |
+| 2.2.5 | APIM gateway URL accessible from within VNet | Network Engineer | `[ ]` | Requires jumpbox or VPN |
+| 2.2.6 | APIM SKU and capacity units confirmed | Platform Engineer | `[ ]` | Premium × 2 for HA |
+| 2.2.7 | APIM publisher email and name configured | Platform Engineer | `[ ]` | |
+
+### 2.3 Private DNS Zones
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 2.3.1 | `privatelink.openai.azure.com` DNS zone created | Network Engineer | `[ ]` | |
+| 2.3.2 | `privatelink.api.azureml.ms` DNS zone created | Network Engineer | `[ ]` | |
+| 2.3.3 | `privatelink.vaultcore.azure.net` DNS zone created | Network Engineer | `[ ]` | |
+| 2.3.4 | `privatelink.management.azure-api.net` DNS zone created | Network Engineer | `[ ]` | |
+| 2.3.5 | All private DNS zones linked to Hub VNet | Network Engineer | `[ ]` | |
+| 2.3.6 | DNS zone links use auto-registration if applicable | Network Engineer | `[ ]` | |
+
+### 2.4 Private Endpoints
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 2.4.1 | Private endpoint created for Azure OpenAI | Network Engineer | `[ ]` | |
+| 2.4.2 | Private endpoint created for Key Vault | Network Engineer | `[ ]` | |
+| 2.4.3 | Private endpoint created for AI Foundry (if deployed) | Network Engineer | `[ ]` | |
+| 2.4.4 | All private endpoints in `Approved` connection state | Network Engineer | `[ ]` | |
+| 2.4.5 | DNS A records created in private DNS zones | Network Engineer | `[ ]` | |
+| 2.4.6 | Private endpoint DNS resolution verified | Network Engineer | `[ ]` | `nslookup` returns private IP |
+
+### 2.5 Monitoring Resources
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 2.5.1 | Log Analytics workspace deployed | Platform Engineer | `[ ]` | |
+| 2.5.2 | Application Insights deployed and linked to Log Analytics | Platform Engineer | `[ ]` | |
+| 2.5.3 | APIM diagnostic settings configured (logs to Log Analytics) | Platform Engineer | `[ ]` | |
+| 2.5.4 | Azure OpenAI diagnostic settings configured | Platform Engineer | `[ ]` | |
+| 2.5.5 | Log retention period configured (30d dev, 90d prod) | Platform Engineer | `[ ]` | |
+| 2.5.6 | Azure Monitor alert rules deployed | Platform Engineer | `[ ]` | |
+
+### 2.6 Key Vault
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 2.6.1 | Key Vault deployed in hub resource group | Platform Engineer | `[ ]` | |
+| 2.6.2 | Key Vault soft-delete enabled | Security | `[ ]` | Enabled by default |
+| 2.6.3 | Key Vault purge protection enabled (production only) | Security | `[ ]` | |
+| 2.6.4 | Key Vault network access restricted to VNet | Security | `[ ]` | |
+| 2.6.5 | APIM managed identity granted `Key Vault Secrets User` role | Platform Engineer | `[ ]` | |
+| 2.6.6 | All deployment secrets migrated from environment variables to Key Vault | Security | `[ ]` | |
+
+---
+
+## Section 3: Spoke Deployment Checklist
+
+*Complete this section for each spoke VNet deployed.*
+
+**Spoke name:** _________________ | **Business unit:** _________________
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 3.1 | Spoke resource group created | Platform Engineer | `[ ]` | `rg-citadel-spoke<n>-<env>` |
+| 3.2 | Spoke VNet deployed with correct address space | Platform Engineer | `[ ]` | No overlap with hub or other spokes |
+| 3.3 | Workload subnets created and sized appropriately | Network Engineer | `[ ]` | |
+| 3.4 | NSGs applied to workload subnets | Network Engineer | `[ ]` | Inbound from APIM subnet only |
+| 3.5 | Hub-to-spoke VNet peering created | Network Engineer | `[ ]` | Allow forwarded traffic |
+| 3.6 | Spoke-to-hub VNet peering created | Network Engineer | `[ ]` | Allow forwarded traffic |
+| 3.7 | Both peerings in `Connected` state | Network Engineer | `[ ]` | |
+| 3.8 | Route tables configured (if using centralized firewall) | Network Engineer | `[ ]` | |
+| 3.9 | AI workload resources deployed (OpenAI, Foundry, etc.) | AI/ML Engineer | `[ ]` | |
+| 3.10 | AI resources restricted to private access only | Security | `[ ]` | No public network access |
+| 3.11 | APIM backend registered for spoke AI resources | Platform Engineer | `[ ]` | Via llm-backend-onboarding |
+| 3.12 | Spoke private DNS zones linked to hub DNS zones | Network Engineer | `[ ]` | |
+
+---
+
+## Section 4: Governance and Policy Deployment Checklist
+
+### 4.1 AI Access Contracts
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 4.1.1 | Access contracts designed for each AI workload/team | AI Platform Lead | `[ ]` | Document in access contract request JSON |
+| 4.1.2 | Rate limits defined per contract (tokens/min, calls/min) | AI Platform Lead | `[ ]` | |
+| 4.1.3 | Allowed model list defined per contract | AI Platform Lead | `[ ]` | |
+| 4.1.4 | Content Safety categories and thresholds configured | Security | `[ ]` | |
+| 4.1.5 | PII protection requirements defined per contract | Security/Privacy | `[ ]` | |
+| 4.1.6 | Access contract Bicep deployed to APIM | Platform Engineer | `[ ]` | |
+| 4.1.7 | APIM products created for each contract | Platform Engineer | `[ ]` | Verify in APIM portal |
+| 4.1.8 | Subscription keys distributed to contract owners | Platform Engineer | `[ ]` | Via Key Vault or secure channel |
+
+### 4.2 API Management Policies
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 4.2.1 | Global inbound policy applied (Entra ID token validation) | Platform Engineer | `[ ]` | |
+| 4.2.2 | Rate limiting policy applied to all AI products | Platform Engineer | `[ ]` | |
+| 4.2.3 | Content Safety policy fragment deployed and active | Platform Engineer | `[ ]` | |
+| 4.2.4 | PII anonymization policy fragment deployed (if required) | Platform Engineer | `[ ]` | |
+| 4.2.5 | Usage tracking policy active (tokens, latency, user) | Platform Engineer | `[ ]` | |
+| 4.2.6 | Throttling event alerts configured | Platform Engineer | `[ ]` | |
+| 4.2.7 | Circuit breaker policies configured for backends | Platform Engineer | `[ ]` | |
+
+### 4.3 Monitoring and Alerting
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 4.3.1 | APIM usage dashboard created in Azure Portal | Platform Engineer | `[ ]` | |
+| 4.3.2 | Log Analytics query alerts created | Platform Engineer | `[ ]` | |
+| 4.3.3 | Action groups configured (email, Teams, PagerDuty) | Operations | `[ ]` | |
+| 4.3.4 | Budget alerts configured for AI spend | FinOps | `[ ]` | |
+| 4.3.5 | Cost tags applied to all resources | FinOps | `[ ]` | `Environment`, `CostCenter`, `Team` |
+| 4.3.6 | Power BI dashboard deployed (if applicable) | Analytics | `[ ]` | See `src/usage-reports/` |
+
+### 4.4 Backup and Disaster Recovery
+
+| # | Item | Owner | Status | Notes |
+|---|------|-------|--------|-------|
+| 4.4.1 | APIM backup scheduled (production only) | Operations | `[ ]` | Daily to Azure Storage |
+| 4.4.2 | Key Vault backup policy configured | Operations | `[ ]` | |
+| 4.4.3 | DR runbook written and stored | Operations | `[ ]` | |
+| 4.4.4 | RPO and RTO targets documented | Architecture | `[ ]` | |
+| 4.4.5 | Multi-region APIM configured (Premium, production) | Platform Engineer | `[ ]` | |
+
+---
+
+## Section 5: Deployment Sign-Off
+
+Complete this sign-off section before proceeding to validation.
+
+| Role | Name | Sign-Off Date | Notes |
+|------|------|--------------|-------|
+| Platform Engineer | | | |
+| Network Engineer | | | |
+| Security Architect | | | |
+| AI/ML Engineer | | | |
+| Operations Lead | | | |
+| Project/Program Manager | | | |
+
+**Deployment approved for validation:** `[ ]` Yes / `[ ]` No
+
+**Blocker items (if No):**
+
+1. ______________________________________________________
+2. ______________________________________________________
+
+---
+
+## Common Deployment Issues
+
+| Issue | Cause | Resolution |
+|-------|-------|-----------|
+| APIM deployment timeout | APIM Premium takes 30-45 min | Wait and verify: `az apim show --query provisioningState` |
+| NSG blocking APIM management | Port 3443 not open to `ApiManagement` service tag | Add NSG rule: Allow 3443 from `ApiManagement` tag |
+| Private DNS not resolving | DNS zone not linked to VNet | Link private DNS zone to hub VNet |
+| Service principal lacks permissions | Missing User Access Administrator | Grant role at subscription scope |
+| Quota exceeded for APIM | Single Premium unit default limit | Request limit increase via Support ticket |
+
+---
+
+## Next Steps
+
+After completing this checklist, proceed to validation:
+
+<CardGroup cols={2}>
+  <Card title="Validation Checklist" icon="check-circle" href="/guides/validation-checklist">
+    Post-deployment validation procedures
+  </Card>
+  <Card title="Deployment Guide" icon="rocket" href="/guides/deployment-guide">
+    Detailed instructions for each deployment step
+  </Card>
+</CardGroup>

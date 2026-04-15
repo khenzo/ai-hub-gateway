@@ -1,0 +1,803 @@
+---
+title: Best Practices
+description: Implementation best practices and optimization patterns for the AI Landing Zone, covering architecture, security, performance, cost, governance, and operational excellence
+---
+
+# Best Practices
+
+This guide distills real-world lessons learned from AI Landing Zone deployments. Adopt these patterns from day one to avoid costly retrofits, security incidents, and operational headaches.
+
+<Note>
+These practices align with the [Microsoft Azure Well-Architected Framework (WAF)](https://learn.microsoft.com/en-us/azure/well-architected/). References to WAF pillars are noted throughout: **Reliability**, **Security**, **Cost Optimization**, **Operational Excellence**, **Performance Efficiency**.
+</Note>
+
+---
+
+## Architecture Best Practices
+
+### Right-Sizing APIM Tier Selection
+
+Select the APIM tier based on your governance and availability requirements — not just traffic volume.
+
+| Decision Driver | Recommended Tier |
+|----------------|-----------------|
+| Evaluation / POC (< 2 weeks) | Developer |
+| Single-region, non-critical | Standard |
+| Multi-team, production, internal | Standard |
+| Multi-region, zone redundancy required | Premium |
+| External API consumers + enterprise SLA | Premium |
+| Hybrid on-premises connectivity | Premium |
+
+**Key insight:** Migrating from Standard to Premium requires a new deployment (not in-place upgrade). If you expect enterprise requirements within 6 months, start with Premium to avoid migration downtime.
+
+**WAF Pillar: Reliability** — Premium tier provides 99.99% SLA with zone redundancy enabled.
+
+---
+
+### Spoke Design Patterns by Workload Type
+
+Design spoke VNets to match workload isolation requirements:
+
+```
+Pattern A: Team-Isolated Spoke (Recommended for most cases)
+  - One spoke per business unit / application team
+  - Team owns all resources in their spoke
+  - Hub provides shared APIM gateway and monitoring
+  - Best for: Enterprise teams with separate budgets and compliance requirements
+
+Pattern B: Environment-Isolated Spoke
+  - One spoke per environment (dev, staging, prod)
+  - All teams share a production spoke
+  - Best for: Small organizations with few AI workloads
+
+Pattern C: Compliance-Isolated Spoke
+  - Separate spoke for regulated data (healthcare, finance)
+  - Strict NSG rules and dedicated private endpoints
+  - Best for: Mixed-sensitivity workloads requiring data segregation
+```
+
+**Recommendation:** Start with Pattern A. It provides the best balance of isolation and operational simplicity.
+
+---
+
+### Network Segmentation Strategy
+
+Segment networks to limit blast radius of security incidents:
+
+```
+Hub VNet (10.0.0.0/16)
+├── snet-apim (10.0.1.0/24)           — API Management only
+├── snet-private-endpoints (10.0.2.0/24) — All PaaS private endpoints
+├── snet-management (10.0.3.0/24)     — Bastion, jump servers
+└── snet-monitoring (10.0.4.0/24)     — Optional: monitoring agents
+
+Spoke VNet (10.x.0.0/24 per spoke)
+├── snet-ai-workload (10.x.0.0/25)   — Compute for AI workload
+└── snet-data (10.x.0.128/26)        — Databases, storage
+```
+
+**Rules:**
+- Never put AI workload compute in the hub VNet
+- Use /24 or larger for subnets that will host private endpoints (each endpoint = 1 IP)
+- Reserve consecutive CIDR ranges across spokes (prevents overlap errors during scale-out)
+
+---
+
+### DNS and Naming Conventions
+
+Consistent naming prevents confusion and enables automation:
+
+```bash
+# Resource naming pattern: <type>-<workload>-<env>-<region>
+# Examples:
+apim-citadel-prod-eus       # API Management, production, East US
+vnet-hub-ai-prod-eus        # Hub VNet
+vnet-spoke-hr-prod-eus      # HR team spoke VNet
+kv-citadel-prod-eus         # Key Vault (max 24 chars)
+oai-hr-prod-eus             # OpenAI account
+pep-oai-hub-prod-eus        # Private endpoint for OpenAI
+
+# DNS zone naming — always use Azure standard private link zones:
+privatelink.openai.azure.com
+privatelink.cognitiveservices.azure.com
+privatelink.api.azureml.ms
+```
+
+**Abbreviation reference:** See `bicep/infra/abbreviations.json` for the complete naming convention list used by this project.
+
+---
+
+### Tagging and Resource Organization
+
+Implement tags at deployment time — retrofitting is expensive:
+
+```bicep
+// tags.bicep — Consistent tags across all resources
+var commonTags = {
+  Environment: environmentName            // dev | staging | prod
+  Workload: workloadName                  // hr-ai | sales-ai | citadel-core
+  CostCenter: costCenterCode              // Billing code for chargeback
+  Owner: ownerEmail                       // Team DL or individual
+  ManagedBy: 'Bicep'                      // IaC tooling
+  CreatedDate: utcNow('yyyy-MM-dd')       // Deployment date
+  DataClassification: dataClass           // public | internal | confidential | restricted
+}
+```
+
+---
+
+## Security Best Practices
+
+### Zero Trust Implementation Patterns
+
+The AI Landing Zone implements Zero Trust through layered controls:
+
+**Layer 1 — Identity (Never Trust Implicitly)**
+- All API consumers authenticate with Entra ID tokens (no anonymous access in production)
+- Managed identities for service-to-service authentication (no stored credentials)
+- Conditional Access policies for human access to management plane
+
+**Layer 2 — Network (Verify Explicitly)**
+- All PaaS services behind private endpoints (no public network access)
+- NSG rules on every subnet (default-deny posture)
+- APIM in internal VNet mode (not accessible from internet)
+- Azure Front Door or Application Gateway as internet-facing ingress
+
+**Layer 3 — Data (Least Privilege Access)**
+- RBAC on all resources (Key Vault, OpenAI, Foundry)
+- PII anonymization before data reaches AI models
+- Content Safety filtering on all model inputs/outputs
+- Audit logging retained 90+ days
+
+```bicep
+// Enforce no public network access on all AI resources
+resource openAiAccount 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
+  properties: {
+    publicNetworkAccess: 'Disabled'        // * Always disable in production
+    networkAcls: {
+      defaultAction: 'Deny'
+      virtualNetworkRules: []              // Access only via private endpoint
+    }
+  }
+}
+```
+
+**WAF Pillar: Security** — Zero trust aligns with WAF Security principle of "assume breach."
+
+---
+
+### Secret Rotation Schedules
+
+| Secret Type | Rotation Frequency | Automation Method |
+|-------------|-------------------|-------------------|
+| APIM subscription keys | 90 days | Key Vault rotation + APIM named value update |
+| Managed identity (system-assigned) | Never | Azure-managed, no rotation needed |
+| Service principal client secrets | 90 days | Key Vault rotation policy |
+| TLS/SSL certificates | Before expiry (monitor 60 days prior) | App Service Certificates or Let's Encrypt |
+| API backend API keys | Per vendor recommendation | Key Vault rotation |
+
+**Implementation:**
+```bash
+# Configure Key Vault rotation policy (example: 90-day auto-rotation)
+az keyvault key rotation-policy update \
+  --vault-name <kv-name> \
+  --name <key-name> \
+  --value '{
+    "lifetimeActions": [
+      {
+        "trigger": {"daysBeforeExpiry": 30},
+        "action": {"type": "Rotate"}
+      },
+      {
+        "trigger": {"daysBeforeExpiry": 7},
+        "action": {"type": "Notify"}
+      }
+    ],
+    "attributes": {"expiryTime": "P90D"}
+  }'
+```
+
+---
+
+### RBAC Least Privilege Patterns
+
+Assign roles at the most specific scope with the minimum required permissions:
+
+```
+Principle: Grant the minimum role at the most specific scope
+
+GOOD: Cognitive Services User on specific OpenAI account
+BAD:  Contributor on entire resource group
+
+Role Assignment Matrix for AI Landing Zone:
+
+| Identity | Resource | Role |
+|----------|----------|------|
+| APIM System Identity | Key Vault | Key Vault Secrets User |
+| APIM System Identity | OpenAI Account | Cognitive Services User |
+| AI Workload Identity | OpenAI Account | Cognitive Services User |
+| DevOps Service Principal | Resource Group | Contributor + User Access Admin |
+| Platform Team | APIM Service | API Management Service Contributor |
+| Workload Team | APIM Products | API Management Service Reader |
+```
+
+**Avoid these anti-patterns:**
+- Do not assign `Owner` to service principals (use `Contributor` + `User Access Administrator`)
+- Do not assign roles at subscription scope unless explicitly required
+- Do not use legacy Key Vault access policies (use RBAC model)
+
+---
+
+### Network Security Hardening
+
+```bash
+# Verify no public access on key resources
+for resource_id in $(az cognitiveservices account list --query "[].id" -o tsv); do
+  az cognitiveservices account show \
+    --ids "$resource_id" \
+    --query "{name:name, publicAccess:properties.publicNetworkAccess}" \
+    --output table
+done
+
+# Enforce TLS 1.2 minimum on all APIM APIs
+az apim update \
+  --name <apim-name> \
+  --resource-group <rg> \
+  --set customProperties.Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10=False \
+  customProperties.Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11=False
+```
+
+---
+
+## Performance Best Practices
+
+### Caching Strategy for AI Workloads
+
+Not all AI requests are unique. Implement tiered caching:
+
+**Tier 1 — APIM Response Cache (deterministic requests)**
+```xml
+<!-- Cache identical requests for temperature=0 model calls -->
+<cache-lookup vary-by-developer="false" vary-by-developer-groups="false">
+  <vary-by-header>Accept</vary-by-header>
+  <!-- Cache key includes the request body hash -->
+  <vary-by-query-parameter>api-version</vary-by-query-parameter>
+</cache-lookup>
+<!-- Cache 5 minutes for static content queries -->
+<cache-store duration="300" />
+```
+
+**Tier 2 — Redis Cache (semantic similarity)**
+- Use Azure Cache for Redis for semantic caching (similar questions → cached answer)
+- Requires embedding comparison logic (custom APIM policy or external service)
+- Reduces OpenAI costs by 20-40% for FAQ-style workloads
+
+**Tier 3 — Context Caching (long documents)**
+- Use OpenAI Prompt Caching for repeated system prompts
+- Automatically active for prompts > 1024 tokens that repeat across requests
+- Reduces latency and costs on document analysis workloads
+
+**WAF Pillar: Performance Efficiency** — Caching can reduce P95 latency from 3s to under 200ms for cached requests.
+
+---
+
+### Connection Pooling Configuration
+
+```bicep
+// Configure connection limits on APIM backend
+resource backend 'Microsoft.ApiManagement/service/backends@2023-05-01-preview' = {
+  properties: {
+    url: openAiEndpoint
+    protocol: 'http'
+    tls: {
+      validateCertificateChain: true
+      validateCertificateName: true
+    }
+    proxy: null
+    credentials: {
+      // Use managed identity (no connection pooling of credentials)
+    }
+  }
+}
+```
+
+For APIM Premium with multiple units, ensure backend pool distributes load:
+```xml
+<!-- Load balancing across multiple OpenAI accounts -->
+<set-backend-service backend-id="@{
+  var pool = new [] { "openai-account-1", "openai-account-2", "openai-account-3" };
+  return pool[(int)(DateTime.UtcNow.Ticks % pool.Length)];
+}" />
+```
+
+---
+
+### Auto-Scaling Thresholds
+
+```bicep
+// Auto-scale APIM capacity (Premium tier only)
+resource apimAutoscale 'Microsoft.Insights/autoscalesettings@2022-10-01' = {
+  name: 'autoscale-apim'
+  location: location
+  properties: {
+    enabled: true
+    targetResourceUri: apimService.id
+    profiles: [
+      {
+        name: 'Default Profile'
+        capacity: { minimum: '1', maximum: '4', default: '1' }
+        rules: [
+          {
+            // Scale out when capacity > 70%
+            metricTrigger: {
+              metricName: 'Capacity'
+              metricResourceUri: apimService.id
+              timeGrain: 'PT1M'
+              statistic: 'Average'
+              timeWindow: 'PT10M'
+              timeAggregation: 'Average'
+              operator: 'GreaterThan'
+              threshold: 70
+            }
+            scaleAction: {
+              direction: 'Increase'
+              type: 'ChangeCount'
+              value: '1'
+              cooldown: 'PT20M'         // Wait 20 min before scaling again
+            }
+          }
+          {
+            // Scale in when capacity < 30%
+            metricTrigger: {
+              metricName: 'Capacity'
+              operator: 'LessThan'
+              threshold: 30
+              timeWindow: 'PT60M'       // Scale in slowly to avoid thrashing
+            }
+            scaleAction: {
+              direction: 'Decrease'
+              type: 'ChangeCount'
+              value: '1'
+              cooldown: 'PT60M'
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+---
+
+### Latency Optimization Techniques
+
+1. **Deploy OpenAI in the same region as APIM** — cross-region adds 20-100ms per call
+2. **Use private endpoints** — eliminates public internet routing (saves 10-50ms)
+3. **Enable APIM compression** for large responses:
+   ```xml
+   <outbound>
+     <set-header name="Accept-Encoding" exists-action="override">
+       <value>gzip</value>
+     </set-header>
+   </outbound>
+   ```
+4. **Pre-warm model deployments** — send a warm-up request after deployment
+5. **Use streaming** for long responses — reduces perceived latency significantly:
+   ```python
+   # Client-side streaming example
+   response = client.chat.completions.create(
+     model="gpt-4o",
+     messages=[{"role": "user", "content": prompt}],
+     stream=True  # Stream tokens as they're generated
+   )
+   ```
+
+---
+
+## Cost Optimization
+
+### SKU Selection Guidance
+
+| Component | Dev/Test | Production |
+|-----------|---------|-----------|
+| APIM | Developer (~$50/mo) | Standard/Premium (start with Standard) |
+| Azure OpenAI | Pay-as-you-go | Pay-as-you-go or PTU for predictable volume |
+| Log Analytics | 5GB/day free tier | Standard with data cap set |
+| AI Foundry | Pay-as-you-go | Consider hub-based sharing to reduce per-workspace costs |
+| Azure Cache for Redis | C0 Basic (evaluation only) | C1 Standard minimum for production |
+
+---
+
+### Reserved Capacity Planning
+
+Use Azure OpenAI Provisioned Throughput Units (PTUs) when:
+- Monthly token volume is predictable (variance < 30%)
+- Volume exceeds 10M tokens/month per model
+- P99 latency requirements are strict (PTU provides consistent throughput)
+
+PTU break-even calculation:
+```
+Pay-as-you-go cost: $0.005 / 1K input tokens × monthly_tokens
+PTU cost: $2/hour × 730 hours × ptu_units (1 PTU ≈ 2,500 TPM for GPT-4o)
+
+Break-even: typically at ~5-10M tokens/month for GPT-4o
+```
+
+---
+
+### Dev/Test Environment Optimization
+
+```bicep
+// Save 60-80% in dev environments
+var devConfig = {
+  apimSku: 'Developer'           // vs Premium in prod
+  logRetentionDays: 7            // vs 90 in prod
+  enableZoneRedundancy: false    // vs true in prod
+  enablePrivateEndpoints: false  // vs true in prod
+  openAiDeploymentCapacity: 1   // vs 10+ in prod
+  enableBudget: true
+  monthlyBudgetUSD: 200
+}
+```
+
+**Set automatic shutdown for non-production resources:**
+```bash
+# Alert when dev spending exceeds threshold
+az consumption budget create \
+  --budget-name "dev-monthly-cap" \
+  --amount 200 \
+  --time-grain Monthly \
+  --resource-group <dev-rg> \
+  --notifications '[{
+    "enabled": true,
+    "operator": "GreaterThan",
+    "threshold": 80,
+    "contactEmails": ["dev-team@contoso.com"],
+    "contactRoles": ["Owner"]
+  }]'
+```
+
+---
+
+### Monitoring and Alerting on Spend
+
+```kql
+// Daily token cost estimate by workload
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(7d)
+| extend
+    inputTokens = toint(ResponseHeaders_x_prompt_tokens_s),
+    outputTokens = toint(ResponseHeaders_x_completion_tokens_s)
+| summarize
+    TotalInputTokens = sum(inputTokens),
+    TotalOutputTokens = sum(outputTokens),
+    // GPT-4o pricing: $5/1M input, $15/1M output
+    EstimatedCostUSD = (sum(inputTokens) / 1000000.0 * 5.0) + (sum(outputTokens) / 1000000.0 * 15.0)
+  by ProductName, bin(TimeGenerated, 1d)
+| order by EstimatedCostUSD desc
+```
+
+---
+
+## Governance Best Practices
+
+### AI Access Contract Versioning
+
+Treat AI Access Contracts like software — version them:
+
+```
+Contract versioning convention: <name>-v<major>.<minor>
+- Major version: Breaking changes (new required fields, model changes, rate limit reductions)
+- Minor version: Additive changes (new optional fields, limit increases)
+
+Examples:
+  hr-chat-agent-v1.0  → Initial contract
+  hr-chat-agent-v1.1  → Added PII protection (non-breaking)
+  hr-chat-agent-v2.0  → Changed from GPT-4 to GPT-4o (breaking: model change)
+```
+
+**Deprecation pattern:**
+1. Deploy new contract version alongside old version
+2. Notify workload team with 30-day migration window
+3. Monitor traffic shifting from v1 to v2 in APIM logs
+4. Deactivate old contract version after migration complete
+
+---
+
+### Policy Lifecycle Management
+
+```bash
+# Export all APIM policies for version control
+for api in $(az apim api list --service-name <apim> --resource-group <rg> --query "[].name" -o tsv); do
+  az apim api policy show \
+    --resource-group <rg> \
+    --service-name <apim> \
+    --api-id "$api" \
+    --query "value" \
+    -o tsv > "policies/api-${api}.xml"
+done
+
+# Store policies in git with semantic versioning
+# Use Azure DevOps or GitHub Actions to sync policy changes
+```
+
+**Policy change management:**
+- Test all policy changes in dev environment first
+- Use APIM policy trace to verify policy behavior before production
+- Document the intent of each policy fragment in comments
+- Peer review policy changes that affect rate limits or security
+
+---
+
+### Compliance Monitoring Automation
+
+```bicep
+// Azure Policy initiative for AI workload compliance
+resource complianceInitiative 'Microsoft.Authorization/policySetDefinitions@2021-06-01' = {
+  name: 'ai-landing-zone-compliance'
+  properties: {
+    displayName: 'AI Landing Zone Compliance Controls'
+    policyDefinitions: [
+      {
+        policyDefinitionId: '/providers/Microsoft.Authorization/policyDefinitions/<deny-public-network>'
+        parameters: { effect: { value: 'Deny' } }
+      }
+      {
+        policyDefinitionId: '/providers/Microsoft.Authorization/policyDefinitions/<require-tags>'
+        parameters: {
+          tagName: { value: 'CostCenter' }
+          effect: { value: 'Deny' }
+        }
+      }
+    ]
+  }
+}
+```
+
+---
+
+### Audit Log Retention
+
+| Log Type | Minimum Retention | Recommended |
+|----------|------------------|-------------|
+| APIM Gateway Logs | 90 days | 1 year (compliance) |
+| Entra ID Sign-in Logs | 30 days (P1/P2) | 90 days |
+| Azure Activity Logs | 90 days | 1 year |
+| Key Vault Audit Logs | 90 days | 1 year |
+| Content Safety Audit | 90 days | 2 years (regulated industries) |
+
+```bicep
+// Set Log Analytics retention at workspace level
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
+  properties: {
+    retentionInDays: 365               // 1 year retention
+    features: {
+      enableLogAccessUsingOnlyResourcePermissions: true
+    }
+    workspaceCapping: {
+      dailyQuotaGb: 10                 // Prevent cost overruns
+    }
+  }
+}
+```
+
+---
+
+## Operational Excellence
+
+### Runbook Templates
+
+Maintain runbooks for common operational tasks. Key runbooks to create:
+
+| Runbook | Trigger | Owner | Frequency |
+|---------|---------|-------|-----------|
+| APIM Health Check | Weekly | Platform Team | Automated |
+| Subscription Key Rotation | 90-day schedule | Platform Team | Automated |
+| Quota Review | Monthly | Platform + Workload Teams | Manual |
+| DR Test | Quarterly | Platform Team | Scheduled |
+| Certificate Renewal | 60 days before expiry | Platform Team | Alert-driven |
+| Cost Review | Monthly | Finance + Platform | Manual |
+
+---
+
+### Change Management Procedures
+
+All production changes must follow:
+
+1. **Change Request** — Describe impact, rollback plan, test evidence
+2. **Staging Validation** — Deploy to staging, run validation checklist
+3. **Change Window** — Schedule during low-traffic period (typically 2-6 AM UTC)
+4. **Deployment** — Use Bicep `what-if` before applying:
+   ```bash
+   az deployment group what-if \
+     --resource-group <prod-rg> \
+     --template-file main.bicep \
+     --parameters main.parameters.prod.bicepparam
+   ```
+5. **Verification** — Run post-deployment validation checklist
+6. **Rollback** — If validation fails, redeploy previous version within 30 minutes
+
+---
+
+### Incident Response Playbooks
+
+**Severity 1 (Complete Outage): AI API Unavailable**
+
+```
+T+0: Alert fires → On-call notified
+T+5: Acknowledge alert, join incident bridge
+T+10: Quick diagnosis:
+  - Is APIM service healthy? (az apim show)
+  - Are backends reachable? (test connectivity)
+  - Are DNS names resolving? (nslookup from VNet)
+T+20: Implement workaround if available (failover to secondary region)
+T+30: Root cause hypothesis → implement fix
+T+60: Verify resolution → close incident
+T+120: Write incident report, update runbook
+```
+
+**Severity 2 (Degraded Performance): High Latency or Error Rate**
+```
+T+0: Alert fires → team notified via Teams
+T+15: Identify affected component via Log Analytics queries
+T+30: Apply fix (clear cache, adjust rate limits, restart unhealthy backend)
+T+60: Verify metrics returning to normal
+T+240: Root cause analysis → update monitoring thresholds
+```
+
+---
+
+### Backup and DR Testing Schedule
+
+| Component | Backup Method | RTO | RPO | Test Frequency |
+|-----------|--------------|-----|-----|----------------|
+| APIM Configuration | ARM export + git | 1 hour | 1 day | Quarterly |
+| APIM Policies | Git-synced | 30 min | Real-time | Monthly (in staging) |
+| Key Vault Secrets | Soft-delete + backup | 1 hour | 1 day | Quarterly |
+| Log Analytics | Data export to Storage | N/A (monitoring) | 15 min | Annually |
+| OpenAI Model Deployments | Bicep IaC | 30 min | N/A (stateless) | Quarterly |
+
+```bash
+# Export APIM configuration for backup
+az apim export \
+  --resource-group <rg> \
+  --name <apim-name> \
+  --format OpenApiJson \
+  --output-folder ./backups/$(date +%Y%m%d)/
+```
+
+---
+
+## Migration and Upgrade
+
+### Zero-Downtime Deployment Patterns
+
+Use blue-green deployment for all breaking APIM changes:
+
+```
+Blue environment: Current production (APIM v1 + OpenAI account A)
+Green environment: New version (APIM v2 + OpenAI account B)
+
+1. Deploy green environment alongside blue (same resource group, different names)
+2. Validate green with test traffic (10%)
+3. Shift traffic via APIM backend pool weights:
+   90% blue, 10% green → 50/50 → 10% blue, 90% green → 100% green
+4. Monitor for 24 hours at 100% green
+5. Decommission blue
+```
+
+### Canary Release Approach for New AI Models
+
+```xml
+<!-- Canary policy: route 10% of traffic to new model -->
+<choose>
+  <when condition="@(new Random().NextDouble() < 0.10)">
+    <!-- Canary: new model -->
+    <set-backend-service backend-id="openai-gpt4o-new-deployment" />
+    <set-header name="x-canary" exists-action="override">
+      <value>true</value>
+    </set-header>
+  </when>
+  <otherwise>
+    <!-- Stable: existing model -->
+    <set-backend-service backend-id="openai-gpt4o-stable" />
+  </otherwise>
+</choose>
+```
+
+Monitor canary vs. stable in Log Analytics:
+```kql
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(1h)
+| extend isCanary = tostring(RequestHeaders_x_canary_s) == "true"
+| summarize
+    AvgLatency = avg(totalTime),
+    ErrorRate = 100.0 * countif(responseCode >= 400) / count()
+  by isCanary
+```
+
+### Rollback Procedures
+
+```bash
+# Rollback APIM to previous Bicep deployment
+# Method 1: Redeploy previous parameter file from git
+git checkout HEAD~1 -- main.parameters.prod.bicepparam
+az deployment group create \
+  --resource-group <rg> \
+  --template-file main.bicep \
+  --parameters main.parameters.prod.bicepparam
+
+# Method 2: Restore APIM from backup export
+az apim import \
+  --resource-group <rg> \
+  --name <apim-name> \
+  --path openai \
+  --specification-format OpenApiJson \
+  --specification-path ./backups/<date>/api-backup.json
+```
+
+---
+
+## Decision Trees
+
+### Should I use APIM Internal or External VNet Mode?
+
+```
+Q: Do external (internet) consumers need direct access to APIM?
+├── YES → Use External VNet mode or no VNet (add WAF/Front Door for protection)
+└── NO → Continue...
+
+Q: Do workloads span multiple Azure subscriptions/VNets?
+├── YES → Use Internal VNet mode (peering handles cross-VNet access)
+└── NO → Continue...
+
+Q: Is all traffic internal to Azure VNets?
+├── YES → Use Internal VNet mode (most secure, private endpoints on all backends)
+└── NO (hybrid on-prem) → Use Internal VNet mode + ExpressRoute
+```
+
+### Should I Use PTU or Pay-as-You-Go for OpenAI?
+
+```
+Q: Is your monthly token volume > 5M tokens for GPT-4o?
+├── NO → Pay-as-you-go (lower cost at low volumes)
+└── YES → Continue...
+
+Q: Is volume predictable (< 30% variance month-to-month)?
+├── NO → Pay-as-you-go (avoid paying for unused PTUs)
+└── YES → Continue...
+
+Q: Do you need guaranteed throughput (no throttling)?
+├── YES → PTU (provides committed capacity, no throttling up to limit)
+└── NO → Pay-as-you-go with rate limiting policies in APIM
+```
+
+---
+
+## Well-Architected Framework Alignment
+
+This guide's practices map to Microsoft WAF pillars:
+
+| Practice Category | WAF Pillars |
+|-------------------|------------|
+| Architecture design | Reliability, Performance Efficiency |
+| Security hardening | Security |
+| Performance optimization | Performance Efficiency, Cost Optimization |
+| Cost management | Cost Optimization |
+| Governance automation | Operational Excellence, Security |
+| Runbooks and change management | Operational Excellence, Reliability |
+| DR testing | Reliability |
+| Migration patterns | Reliability, Operational Excellence |
+
+Learn more: [Azure Well-Architected Framework](https://learn.microsoft.com/en-us/azure/well-architected/) | [AI workloads guidance](https://learn.microsoft.com/en-us/azure/well-architected/ai/)
+
+---
+
+## Next Steps
+
+With best practices adopted, your AI Landing Zone is ready for long-term operational success:
+
+- **Deploy now**: Follow [Deployment Guide](/guides/deployment-guide) with these patterns built in from day one
+- **Review configuration**: Check your setup against [Configuration Examples](/guides/configuration-examples)
+- **Bookmark for issues**: [Common Issues and FAQ](/guides/common-issues) and [Troubleshooting Guide](/guides/troubleshooting)

@@ -1,0 +1,982 @@
+---
+title: Configuration Examples
+description: Copy-paste ready configuration examples for all major AI Landing Zone components including network, APIM, access contracts, monitoring, security, and multi-environment patterns
+---
+
+# Configuration Examples
+
+This guide provides real-world configuration examples for every major component of the AI Landing Zone (Citadel Governance Hub). All examples are production-tested and include inline explanations of required vs. optional parameters.
+
+<Note>
+All examples use placeholder values (`<your-value>`). Replace with environment-specific values before deployment. See the [Deployment Guide](/guides/deployment-guide) for context on where each configuration applies.
+</Note>
+
+---
+
+## Network Configuration Examples
+
+### Hub VNet with Multiple Spokes
+
+The hub VNet hosts shared services (APIM, monitoring, private DNS). Spoke VNets host individual AI workloads.
+
+```bicep
+// hub-vnet.bicep — Required parameters marked with *
+param location string = 'eastus'                   // * Azure region
+param hubVnetName string = 'vnet-hub-ai-prod-eus'  // * Hub VNet name
+param hubAddressPrefix string = '10.0.0.0/16'      // * Hub address space
+
+resource hubVnet 'Microsoft.Network/virtualNetworks@2023-09-01' = {
+  name: hubVnetName
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: [hubAddressPrefix]
+    }
+    subnets: [
+      {
+        name: 'snet-apim'                    // * Required: APIM subnet
+        properties: {
+          addressPrefix: '10.0.1.0/24'
+          serviceEndpoints: [
+            { service: 'Microsoft.KeyVault' }
+            { service: 'Microsoft.Storage' }
+          ]
+          networkSecurityGroup: { id: nsgApim.id }
+        }
+      }
+      {
+        name: 'snet-private-endpoints'       // * Required: Private endpoint subnet
+        properties: {
+          addressPrefix: '10.0.2.0/24'
+          privateEndpointNetworkPolicies: 'Disabled'  // Required for private endpoints
+        }
+      }
+      {
+        name: 'snet-management'              // Optional: Bastion/management
+        properties: {
+          addressPrefix: '10.0.3.0/24'
+        }
+      }
+      {
+        name: 'AzureBastionSubnet'           // Optional: Named exactly for Bastion
+        properties: {
+          addressPrefix: '10.0.4.0/26'       // /26 minimum for Bastion
+        }
+      }
+    ]
+  }
+}
+
+// Spoke VNet — Deploy once per AI workload team
+resource spokeVnet 'Microsoft.Network/virtualNetworks@2023-09-01' = {
+  name: 'vnet-spoke-hr-ai-prod-eus'
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: ['10.1.0.0/24']      // Non-overlapping with hub and other spokes
+    }
+    subnets: [
+      {
+        name: 'snet-ai-workload'
+        properties: {
+          addressPrefix: '10.1.0.0/25'
+          delegations: [
+            {
+              name: 'delegation-aci'
+              properties: {
+                serviceName: 'Microsoft.ContainerInstance/containerGroups'
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+
+// VNet Peering — Hub-to-spoke (repeat for each spoke)
+resource hubToSpokePeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-09-01' = {
+  name: '${hubVnet.name}/peer-to-spoke-hr'
+  properties: {
+    remoteVirtualNetwork: { id: spokeVnet.id }
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: true              // Hub provides gateway transit to spokes
+    useRemoteGateways: false
+  }
+}
+```
+
+### Network Security Group Rules for AI Workloads
+
+```bicep
+// nsg-apim.bicep — NSG for APIM subnet
+resource nsgApim 'Microsoft.Network/networkSecurityGroups@2023-09-01' = {
+  name: 'nsg-apim-hub-prod'
+  location: location
+  properties: {
+    securityRules: [
+      // Required inbound rules for APIM
+      {
+        name: 'AllowAPIMManagement'         // * Required for APIM management plane
+        properties: {
+          priority: 100
+          protocol: 'Tcp'
+          sourceAddressPrefix: 'ApiManagement'
+          sourcePortRange: '*'
+          destinationAddressPrefix: 'VirtualNetwork'
+          destinationPortRange: '3443'
+          access: 'Allow'
+          direction: 'Inbound'
+        }
+      }
+      {
+        name: 'AllowClientInbound'          // * Allow API consumers
+        properties: {
+          priority: 200
+          protocol: 'Tcp'
+          sourceAddressPrefix: 'VirtualNetwork'
+          sourcePortRange: '*'
+          destinationAddressPrefix: 'VirtualNetwork'
+          destinationPortRanges: ['443', '80']
+          access: 'Allow'
+          direction: 'Inbound'
+        }
+      }
+      {
+        name: 'AllowInternetInbound'        // Optional: External API consumers
+        properties: {
+          priority: 300
+          protocol: 'Tcp'
+          sourceAddressPrefix: 'Internet'
+          sourcePortRange: '*'
+          destinationAddressPrefix: 'VirtualNetwork'
+          destinationPortRange: '443'
+          access: 'Allow'
+          direction: 'Inbound'
+        }
+      }
+      {
+        name: 'AllowAzureLoadBalancer'      // * Required: Azure health probes
+        properties: {
+          priority: 400
+          protocol: 'Tcp'
+          sourceAddressPrefix: 'AzureLoadBalancer'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '*'
+          access: 'Allow'
+          direction: 'Inbound'
+        }
+      }
+      // Required outbound rules
+      {
+        name: 'AllowAPIMOutbound'           // * APIM to backends and Azure services
+        properties: {
+          priority: 100
+          protocol: 'Tcp'
+          sourceAddressPrefix: 'VirtualNetwork'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRanges: ['443', '5671', '5672', '1433']
+          access: 'Allow'
+          direction: 'Outbound'
+        }
+      }
+    ]
+  }
+}
+```
+
+### Private Endpoint Configuration
+
+```bicep
+// private-endpoint-openai.bicep
+param openAiAccountId string    // * Resource ID of Azure OpenAI account
+param subnetId string           // * Private endpoint subnet resource ID
+param privateDnsZoneId string   // * privatelink.openai.azure.com DNS zone ID
+
+resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-09-01' = {
+  name: 'pep-openai-hub-prod'
+  location: location
+  properties: {
+    subnet: { id: subnetId }
+    privateLinkServiceConnections: [
+      {
+        name: 'plsc-openai'
+        properties: {
+          privateLinkServiceId: openAiAccountId
+          groupIds: ['account']              // * Service-specific group ID
+          requestMessage: 'AI Landing Zone auto-approval'
+        }
+      }
+    ]
+  }
+}
+
+// DNS zone group — links private endpoint to DNS zone
+resource privateDnsZoneGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2023-09-01' = {
+  name: '${privateEndpoint.name}/dnszonegroup'
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'config-openai'
+        properties: {
+          privateDnsZoneId: privateDnsZoneId
+        }
+      }
+    ]
+  }
+}
+```
+
+### DNS Zone and Resolution Setup
+
+```bicep
+// private-dns-zones.bicep — Deploy in hub subscription
+var aiDnsZones = [
+  'privatelink.openai.azure.com'
+  'privatelink.cognitiveservices.azure.com'
+  'privatelink.api.azureml.ms'
+  'privatelink.notebooks.azure.net'
+  'privatelink.blob.core.windows.net'
+  'privatelink.vault.azure.net'
+]
+
+resource privateDnsZones 'Microsoft.Network/privateDnsZones@2020-06-01' = [for zone in aiDnsZones: {
+  name: zone
+  location: 'global'
+}]
+
+// Link each DNS zone to hub VNet
+resource dnsZoneVnetLinks 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = [for (zone, i) in aiDnsZones: {
+  name: '${privateDnsZones[i].name}/link-hub'
+  location: 'global'
+  properties: {
+    virtualNetwork: { id: hubVnet.id }
+    registrationEnabled: false              // False for private endpoints
+  }
+}]
+
+// Link DNS zones to spoke VNets (repeat per spoke)
+resource dnsZoneSpokeLinks 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = [for (zone, i) in aiDnsZones: {
+  name: '${privateDnsZones[i].name}/link-spoke-hr'
+  location: 'global'
+  properties: {
+    virtualNetwork: { id: spokeVnet.id }
+    registrationEnabled: false
+  }
+}]
+```
+
+---
+
+## API Management Configuration Examples
+
+### API Definition with OpenAPI Spec
+
+```bicep
+// apim-api.bicep — Register an AI API in APIM
+resource openAiApi 'Microsoft.ApiManagement/service/apis@2023-05-01-preview' = {
+  name: '${apimService.name}/azure-openai'
+  properties: {
+    displayName: 'Azure OpenAI Service API'
+    description: 'AI Landing Zone managed OpenAI endpoint with governance controls'
+    serviceUrl: 'https://${openAiAccount.name}.openai.azure.com'
+    path: 'openai'                          // * URL path prefix in APIM
+    protocols: ['https']
+    subscriptionRequired: true             // Require subscription key
+    subscriptionKeyParameterNames: {
+      header: 'api-key'
+      query: 'api-key'
+    }
+    format: 'openapi+json-link'            // Import from URL
+    value: 'https://raw.githubusercontent.com/.../oai-api-spec-2024-10-21.yaml'
+    isCurrent: true
+  }
+}
+```
+
+### Rate Limiting Policy Template
+
+```xml
+<!-- rate-limiting-policy.xml — Apply at product or API level -->
+<policies>
+  <inbound>
+    <base />
+    <!-- Token-based rate limiting for AI workloads -->
+    <azure-openai-token-limit
+      counter-key="@(context.Subscription.Id)"
+      tokens-per-minute="100000"           <!-- Adjust per workload SLA -->
+      estimate-prompt-tokens="true"
+      tokens-consumed-header-name="x-tokens-consumed"
+      remaining-tokens-header-name="x-remaining-tokens" />
+
+    <!-- Request rate limiting (fallback) -->
+    <rate-limit-by-key
+      calls="60"
+      renewal-period="60"
+      counter-key="@(context.Subscription.Id)"
+      increment-condition="@(context.Response.StatusCode == 200)"
+      remaining-calls-header-name="x-ratelimit-remaining"
+      retry-after-header-name="Retry-After" />
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+    <return-response>
+      <set-status code="429" reason="Too Many Requests" />
+      <set-header name="Retry-After" exists-action="override">
+        <value>@(context.Response.Headers.GetValueOrDefault("Retry-After", "60"))</value>
+      </set-header>
+      <set-body>{"error": {"code": "429", "message": "Rate limit exceeded. Retry after indicated seconds."}}</set-body>
+    </return-response>
+  </on-error>
+</policies>
+```
+
+### Entra ID Authentication Policy
+
+```xml
+<!-- entra-auth-policy.xml — JWT validation for Entra ID tokens -->
+<policies>
+  <inbound>
+    <base />
+    <validate-jwt
+      header-name="Authorization"
+      failed-validation-httpcode="401"
+      failed-validation-error-message="Unauthorized: Invalid or missing token"
+      require-expiration-time="true"
+      require-scheme="Bearer"
+      require-signed-tokens="true">
+      <openid-config url="https://login.microsoftonline.com/<tenant-id>/v2.0/.well-known/openid-configuration" />
+      <required-claims>
+        <claim name="aud">
+          <value>api://<your-app-registration-id></value>  <!-- * Your app reg client ID -->
+        </claim>
+      </required-claims>
+    </validate-jwt>
+    <!-- Extract and forward caller identity -->
+    <set-header name="x-caller-objectid" exists-action="override">
+      <value>@(context.Request.Headers.GetValueOrDefault("Authorization","").Split(' ').Last().Split('.')[1])</value>
+    </set-header>
+  </inbound>
+</policies>
+```
+
+### Request/Response Transformation Policy
+
+```xml
+<!-- transformation-policy.xml -->
+<policies>
+  <inbound>
+    <base />
+    <!-- Add tracing headers -->
+    <set-header name="x-request-id" exists-action="skip">
+      <value>@(Guid.NewGuid().ToString())</value>
+    </set-header>
+    <set-header name="x-forwarded-for" exists-action="override">
+      <value>@(context.Request.IpAddress)</value>
+    </set-header>
+    <!-- Remove sensitive headers before forwarding to backend -->
+    <set-header name="Authorization" exists-action="delete" />
+    <!-- Add managed identity auth for backend -->
+    <authentication-managed-identity resource="https://cognitiveservices.azure.com" />
+  </inbound>
+  <outbound>
+    <base />
+    <!-- Remove internal headers from response -->
+    <set-header name="x-ms-request-id" exists-action="delete" />
+    <set-header name="x-envoy-upstream-service-time" exists-action="delete" />
+    <!-- Add CORS headers if not using CORS policy -->
+    <set-header name="Access-Control-Allow-Origin" exists-action="override">
+      <value>*</value>
+    </set-header>
+  </outbound>
+</policies>
+```
+
+### CORS Policy Configuration
+
+```xml
+<!-- cors-policy.xml — Configure at API or global level -->
+<cors allow-credentials="false">
+  <allowed-origins>
+    <origin>https://portal.example.com</origin>  <!-- * Replace with actual origins -->
+    <origin>https://app.example.com</origin>
+  </allowed-origins>
+  <allowed-methods preflight-result-max-age="300">
+    <method>GET</method>
+    <method>POST</method>
+    <method>PUT</method>
+    <method>DELETE</method>
+    <method>OPTIONS</method>
+  </allowed-methods>
+  <allowed-headers>
+    <header>Content-Type</header>
+    <header>Authorization</header>
+    <header>api-key</header>
+    <header>x-request-id</header>
+  </allowed-headers>
+  <expose-headers>
+    <header>x-tokens-consumed</header>
+    <header>x-remaining-tokens</header>
+    <header>Retry-After</header>
+  </expose-headers>
+</cors>
+```
+
+### Named Values and Secrets Management
+
+```bicep
+// apim-named-values.bicep — Store config and secrets in APIM
+resource namedValueEndpoint 'Microsoft.ApiManagement/service/namedValues@2023-05-01-preview' = {
+  name: '${apimService.name}/openai-endpoint'
+  properties: {
+    displayName: 'OpenAI-Endpoint'         // Referenced in policies as {{OpenAI-Endpoint}}
+    value: 'https://${openAiAccount.name}.openai.azure.com'
+    secret: false                          // Non-secret config value
+    tags: ['ai', 'endpoint']
+  }
+}
+
+// Key Vault-backed named value for secrets
+resource namedValueSecret 'Microsoft.ApiManagement/service/namedValues@2023-05-01-preview' = {
+  name: '${apimService.name}/content-safety-key'
+  properties: {
+    displayName: 'ContentSafety-Key'
+    secret: true                           // Marks as secret (hidden in portal)
+    keyVault: {
+      secretIdentifier: 'https://${keyVault.name}.vault.azure.net/secrets/content-safety-key'
+      identityClientId: null               // null = system-assigned managed identity
+    }
+  }
+}
+```
+
+---
+
+## AI Access Contract Examples
+
+### Basic Contract Template
+
+```json
+// access-contract-request.json — Minimum viable contract
+{
+  "contractName": "basic-ai-access",
+  "workloadName": "my-ai-workload",
+  "description": "Standard AI API access for internal teams",
+  "subscriptionId": "<azure-subscription-id>",
+  "resourceGroup": "<resource-group-name>",
+  "apimServiceName": "<apim-service-name>",
+  "foundryConnectionId": "<foundry-resource-id>",
+
+  "rateLimits": {
+    "tokensPerMinute": 50000,              // Tokens per minute (TPM)
+    "requestsPerMinute": 60                // Requests per minute (RPM)
+  },
+
+  "allowedModels": [
+    "gpt-4o",
+    "gpt-4o-mini"
+  ],
+
+  "contentSafety": {
+    "enabled": true,
+    "mode": "default"                      // "default" | "strict" | "custom"
+  },
+
+  "piiProtection": {
+    "enabled": false                       // Enable for sensitive workloads
+  }
+}
+```
+
+### Multi-Tenant Contract Pattern
+
+```bicepparam
+// multi-tenant-contract.bicepparam
+using 'main.bicep'
+
+param contractName = 'mt-analytics-platform'
+param apimProductName = 'analytics-platform'
+param apimProductDisplayName = 'Analytics Platform AI Access'
+
+// Each tenant gets their own subscription (isolated metering)
+param subscriptions = [
+  {
+    name: 'tenant-contoso-sub'
+    displayName: 'Contoso Analytics'
+    state: 'active'
+    allowTracing: false                    // Disable for production tenants
+  }
+  {
+    name: 'tenant-fabrikam-sub'
+    displayName: 'Fabrikam Analytics'
+    state: 'active'
+    allowTracing: false
+  }
+]
+
+// Shared rate limits at product level
+param productRateLimits = {
+  tokensPerMinute: 500000                  // Aggregate across all tenants
+  requestsPerMinute: 600
+}
+
+// Per-subscription limits
+param subscriptionRateLimits = {
+  tokensPerMinute: 100000                  // Per-tenant limit
+  requestsPerMinute: 120
+}
+```
+
+### Contract with Full Governance Configuration
+
+```bicepparam
+// hr-chatagent-contract.bicepparam — Full governance example
+using 'main.bicep'
+
+param contractName = 'hr-chat-agent-v2'
+param workloadDescription = 'HR Employee Chat Assistant with PII protection'
+
+// * Required: APIM onboarding
+param apimServiceName = 'apim-citadel-prod-eus'
+param apimProductName = 'hr-chat-agent'
+param apimSubscriptionName = 'hr-team-subscription'
+
+// Rate limiting per SLA
+param tokenLimits = {
+  tokensPerMinute: 75000
+  model: 'gpt-4o'
+}
+
+// * Required: Foundry connection
+param foundryProjectId = '<foundry-project-resource-id>'
+param modelDeploymentName = 'gpt-4o-hr-prod'
+
+// Content safety — strict mode for HR scenarios
+param contentSafetyEnabled = true
+param contentSafetyMode = 'strict'
+param contentSafetyCategories = {
+  hate: 'high'                             // Block at high threshold
+  sexual: 'low'                            // Block at low threshold for workplace
+  violence: 'medium'
+  selfHarm: 'medium'
+}
+
+// PII protection — anonymize before sending to model
+param piiProtection = {
+  enabled: true
+  mode: 'anonymize'                        // "anonymize" | "block" | "audit"
+  categories: [
+    'PersonType'
+    'PhoneNumber'
+    'EmailAddress'
+    'SSNType'
+    'UKNationalInsuranceNumber'
+  ]
+  auditLog: true
+}
+
+// Budget control
+param budgetControl = {
+  monthlyTokenBudget: 50000000            // 50M tokens/month
+  alertThresholdPercent: 80              // Alert at 80%
+  actionOnExceed: 'throttle'             // "throttle" | "block"
+}
+```
+
+---
+
+## Monitoring Configuration Examples
+
+### Log Analytics Workspace Queries
+
+```kql
+// query-ai-usage.kql — Token usage by workload
+AzureDiagnostics
+| where ResourceType == "SERVICE" and Category == "GatewayLogs"
+| where OperationName == "Microsoft.ApiManagement/GatewayLogs"
+| extend
+    workload = tostring(parse_json(tostring(parse_json(requestBody_s).messages[0])).content),
+    product = ProductName,
+    tokensConsumed = toint(ResponseHeaders_x_tokens_consumed_s),
+    subscriptionId = SubscriptionName
+| where isnotempty(tokensConsumed)
+| summarize
+    TotalTokens = sum(tokensConsumed),
+    RequestCount = count(),
+    AvgTokensPerRequest = avg(tokensConsumed)
+  by product, bin(TimeGenerated, 1h)
+| order by TotalTokens desc
+
+// query-error-rates.kql — API error rate by endpoint
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(1h)
+| summarize
+    TotalRequests = count(),
+    ErrorCount = countif(responseCode >= 400),
+    ThrottleCount = countif(responseCode == 429)
+  by apiId, bin(TimeGenerated, 5m)
+| extend ErrorRate = round(100.0 * ErrorCount / TotalRequests, 2)
+| where ErrorRate > 5                     // Alert threshold: >5% errors
+| order by ErrorRate desc
+
+// query-content-safety.kql — Content safety block events
+AzureDiagnostics
+| where Category == "GatewayLogs"
+| where statusCode_d == 400
+| extend policyError = tostring(parse_json(lastError_source_s))
+| where policyError contains "content-safety"
+| summarize
+    BlockedRequests = count(),
+    UniqueSubscriptions = dcount(subscriptionId_s)
+  by bin(TimeGenerated, 1h), policyError
+```
+
+### Alert Rule Definitions
+
+```bicep
+// alert-rules.bicep — Key operational alerts
+resource alertTokenQuota 'Microsoft.Insights/scheduledQueryRules@2023-03-15-preview' = {
+  name: 'alert-token-quota-high'
+  location: location
+  properties: {
+    displayName: 'AI Token Quota > 90% (1 hour)'
+    description: 'Token consumption exceeds 90% of hourly quota'
+    enabled: true
+    evaluationFrequency: 'PT5M'            // Check every 5 minutes
+    windowSize: 'PT1H'                     // Over 1-hour window
+    scopes: [logAnalyticsWorkspace.id]
+    criteria: {
+      allOf: [
+        {
+          query: '''
+            ApiManagementGatewayLogs
+            | where TimeGenerated > ago(1h)
+            | summarize TokensConsumed = sum(toint(ResponseHeaders_x_tokens_consumed_s))
+            | extend QuotaPercent = (TokensConsumed / 100000.0) * 100
+            | where QuotaPercent > 90
+          '''
+          timeAggregation: 'Count'
+          operator: 'GreaterThan'
+          threshold: 0
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+    actions: {
+      actionGroups: [actionGroup.id]
+      customProperties: {
+        severity: 'warning'
+        component: 'ai-gateway'
+      }
+    }
+    severity: 2                            // 0=Critical, 1=Error, 2=Warning
+  }
+}
+
+resource alertHighErrorRate 'Microsoft.Insights/scheduledQueryRules@2023-03-15-preview' = {
+  name: 'alert-apim-error-rate-high'
+  location: location
+  properties: {
+    displayName: 'APIM Error Rate > 5%'
+    enabled: true
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT15M'
+    scopes: [logAnalyticsWorkspace.id]
+    criteria: {
+      allOf: [
+        {
+          query: '''
+            ApiManagementGatewayLogs
+            | summarize ErrorRate = 100.0 * countif(responseCode >= 500) / count()
+            | where ErrorRate > 5
+          '''
+          timeAggregation: 'Count'
+          operator: 'GreaterThan'
+          threshold: 0
+        }
+      ]
+    }
+    severity: 1
+  }
+}
+```
+
+### Diagnostic Settings Configuration
+
+```bicep
+// diagnostic-settings.bicep — Enable logging for all AI components
+resource apimDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'diag-apim-to-law'
+  scope: apimService
+  properties: {
+    workspaceId: logAnalyticsWorkspace.id
+    logs: [
+      {
+        category: 'GatewayLogs'
+        enabled: true
+        retentionPolicy: { enabled: true, days: 90 }
+      }
+      {
+        category: 'WebSocketConnectionLogs'
+        enabled: true
+        retentionPolicy: { enabled: true, days: 30 }
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+        retentionPolicy: { enabled: true, days: 30 }
+      }
+    ]
+  }
+}
+
+// Also enable on OpenAI accounts
+resource openAiDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'diag-openai-to-law'
+  scope: openAiAccount
+  properties: {
+    workspaceId: logAnalyticsWorkspace.id
+    logs: [
+      { category: 'Audit', enabled: true }
+      { category: 'RequestResponse', enabled: true }
+    ]
+    metrics: [
+      { category: 'AllMetrics', enabled: true }
+    ]
+  }
+}
+```
+
+---
+
+## Security Configuration Examples
+
+### Key Vault Access Policies (RBAC Model)
+
+```bicep
+// keyvault-rbac.bicep — Use RBAC (not legacy access policies)
+resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
+  name: 'kv-citadel-prod-eus'
+  location: location
+  properties: {
+    sku: { family: 'A', name: 'premium' }  // Premium for HSM keys
+    tenantId: subscription().tenantId
+    enableRbacAuthorization: true          // * Use RBAC, not access policies
+    enableSoftDelete: true                 // * Always enable soft delete
+    softDeleteRetentionInDays: 90          // 90-day minimum for production
+    enablePurgeProtection: true            // * Prevent permanent deletion
+    networkAcls: {
+      defaultAction: 'Deny'               // * Deny by default
+      bypass: 'AzureServices'
+      virtualNetworkRules: [
+        { id: apimSubnet.id }
+        { id: managementSubnet.id }
+      ]
+    }
+    publicNetworkAccess: 'Disabled'        // Force private endpoint access
+  }
+}
+
+// APIM system identity gets Key Vault Secrets User
+resource kvRoleApim 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(keyVault.id, apimService.id, 'kv-secrets-user')
+  scope: keyVault
+  properties: {
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      '4633458b-17de-408a-b874-0445c86b69e6'  // Key Vault Secrets User
+    )
+    principalId: apimService.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+```
+
+### Managed Identity Assignments
+
+```bicep
+// managed-identity.bicep — System and user-assigned identities
+// APIM uses system-assigned; foundry workloads use user-assigned for auditability
+resource apimIdentity 'Microsoft.ApiManagement/service@2023-05-01-preview' = {
+  name: apimServiceName
+  identity: {
+    type: 'SystemAssigned'                 // APIM gets system-assigned identity
+  }
+}
+
+// Workload identity (user-assigned) — can be pre-authorized
+resource workloadIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: 'id-hr-ai-workload-prod'
+  location: location
+}
+
+// Grant workload identity access to OpenAI (Cognitive Services User)
+resource openAiRoleWorkload 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(openAiAccount.id, workloadIdentity.id, 'cognitive-user')
+  scope: openAiAccount
+  properties: {
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      'a97b65f3-24c7-4388-baec-2e87135dc908'  // Cognitive Services User
+    )
+    principalId: workloadIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+```
+
+### Private Link Service Configuration
+
+```bicep
+// private-link.bicep — Expose APIM via private link to external consumers
+resource privateLinkService 'Microsoft.Network/privateLinkServices@2023-09-01' = {
+  name: 'pls-apim-prod'
+  location: location
+  properties: {
+    loadBalancerFrontendIpConfigurations: [
+      { id: apimInternalLoadBalancer.properties.frontendIPConfigurations[0].id }
+    ]
+    ipConfigurations: [
+      {
+        name: 'pls-ip-config'
+        properties: {
+          privateIPAllocationMethod: 'Dynamic'
+          subnet: { id: privateLinkSubnet.id }
+          primary: true
+        }
+      }
+    ]
+    // Control which subscriptions can connect
+    visibility: {
+      subscriptions: [
+        '<consumer-subscription-id>'       // Add approved consumer subscriptions
+      ]
+    }
+    autoApproval: {
+      subscriptions: [
+        subscription().subscriptionId      // Auto-approve same-subscription connections
+      ]
+    }
+  }
+}
+```
+
+---
+
+## Multi-Environment Configuration
+
+### Dev/Staging/Prod Parameter Files
+
+```bicepparam
+// main.parameters.dev.bicepparam — Development environment (cost-optimized)
+using 'main.bicep'
+
+param environmentName = 'dev'
+param location = 'eastus'
+
+// Smaller SKUs for dev
+param apimSku = {
+  name: 'Developer'                        // Dev tier: no SLA, lower cost
+  capacity: 1
+}
+
+param logAnalyticsRetentionDays = 30       // Shorter retention for dev
+param enablePrivateEndpoints = false       // Skip private endpoints in dev
+param enableBudgetAlerts = true
+param monthlyBudgetUSD = 500              // Low budget for dev environment
+```
+
+```bicepparam
+// main.parameters.prod.bicepparam — Production environment
+using 'main.bicep'
+
+param environmentName = 'prod'
+param location = 'eastus'
+
+param apimSku = {
+  name: 'Premium'                          // Premium: zone redundancy, multi-region
+  capacity: 2                              // 2 units minimum for HA
+}
+
+param enableZoneRedundancy = true
+param availabilityZones = ['1', '2', '3']
+param logAnalyticsRetentionDays = 90
+param enablePrivateEndpoints = true
+param enableBudgetAlerts = true
+param monthlyBudgetUSD = 10000
+
+// Production security hardening
+param allowPublicNetworkAccess = false
+param requireHttps = true
+param minimumTlsVersion = '1.2'
+```
+
+### Environment-Specific Overrides Pattern
+
+```bicep
+// main.bicep — Pattern for environment-driven configuration
+@allowed(['dev', 'staging', 'prod'])
+param environmentName string
+
+var environmentConfig = {
+  dev: {
+    apimSku: 'Developer'
+    apimCapacity: 1
+    enablePrivateEndpoints: false
+    logRetentionDays: 30
+    enablePurgeProtection: false          // Allow cleanup in dev
+    replicaCount: 0
+  }
+  staging: {
+    apimSku: 'Standard'
+    apimCapacity: 1
+    enablePrivateEndpoints: true
+    logRetentionDays: 60
+    enablePurgeProtection: true
+    replicaCount: 0
+  }
+  prod: {
+    apimSku: 'Premium'
+    apimCapacity: 2
+    enablePrivateEndpoints: true
+    logRetentionDays: 90
+    enablePurgeProtection: true
+    replicaCount: 1                       // Secondary region replica
+  }
+}
+
+var config = environmentConfig[environmentName]
+
+// All resources reference var config for environment-specific settings
+resource apimService 'Microsoft.ApiManagement/service@2023-05-01-preview' = {
+  sku: {
+    name: config.apimSku
+    capacity: config.apimCapacity
+  }
+}
+```
+
+---
+
+## Next Steps
+
+After reviewing configuration examples:
+
+- **Deploy**: Follow the [Deployment Guide](/guides/deployment-guide) with these configuration templates
+- **Modules**: Reference [Bicep Modules Reference](/guides/bicep-modules) for module parameters
+- **Troubleshoot**: Use the [Troubleshooting Guide](/guides/troubleshooting) if configurations fail
+- **Operations**: Adopt [Best Practices](/guides/best-practices) for ongoing operational excellence

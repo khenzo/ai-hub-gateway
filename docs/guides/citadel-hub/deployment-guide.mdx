@@ -1,0 +1,854 @@
+---
+title: Deployment Guide
+description: Comprehensive step-by-step guide for deploying the AI Landing Zone (Citadel Governance Hub) using Infrastructure-as-Code with Azure Bicep
+---
+
+# Deployment Guide
+
+This guide provides complete, step-by-step instructions for deploying the AI Landing Zone (Citadel Governance Hub) across multiple environments. It covers greenfield, brownfield, and hybrid deployment scenarios using Azure Bicep Infrastructure-as-Code.
+
+<Note>
+Before starting deployment, complete the [Prerequisites](/getting-started/prerequisites) and readiness assessment. Ensure you have reviewed the [Network Approach Guide](/guides/network-approach) and the [Bicep Modules Reference](/guides/bicep-modules).
+</Note>
+
+---
+
+## Deployment Overview
+
+### Deployment Timeline
+
+A typical production deployment follows four phases over 3-5 days:
+
+| Phase | Duration | Activities |
+|-------|----------|-----------|
+| **Pre-Deployment** | 4-8 hours | Environment validation, service principal setup, planning |
+| **Phase 1: Hub Infrastructure** | 2-4 hours | Network, APIM, monitoring, private connectivity |
+| **Phase 2: Spoke Infrastructure** | 1-2 hours per spoke | VNets, peering, workload resources, security |
+| **Phase 3: Governance & Policies** | 2-3 hours | Access contracts, APIM policies, monitoring, DR |
+| **Post-Deployment** | 1-2 hours | Smoke testing, validation, handoff |
+
+### Environment Strategy
+
+Deploy the Citadel Governance Hub across three environments following a promotion pipeline:
+
+```
+Development → Staging → Production
+   (Quick-start)   (Validation)   (Full-scale)
+```
+
+| Environment | APIM Tier | Redundancy | Purpose |
+|-------------|-----------|------------|---------|
+| **Development** | Developer | Single region | Feature development, testing |
+| **Staging** | Standard v2 | Single region | Integration testing, validation |
+| **Production** | Premium | Multi-region | Live workloads, HA/DR |
+
+### Deployment Scenarios
+
+#### Greenfield Deployment
+
+Deploy a new Citadel Governance Hub into a clean Azure subscription or Landing Zone:
+
+- No existing network infrastructure
+- Full control over address space planning
+- Recommended for new AI initiatives
+- Estimated time: 1-2 days end-to-end
+
+#### Brownfield Deployment
+
+Integrate Citadel Governance Hub into an existing Azure environment:
+
+- Existing VNets and network topology
+- Existing Azure Policy assignments
+- Requires coordination with platform team
+- Estimated time: 2-3 days end-to-end (additional planning)
+
+#### Hybrid Deployment
+
+Extend Citadel Governance Hub to connect on-premises AI workloads:
+
+- Requires ExpressRoute or VPN gateway
+- On-premises AI endpoints integrated via private connectivity
+- Estimated time: 3-5 days end-to-end
+
+### Deployment Architecture
+
+```
+┌─────────────────── Azure Landing Zone ───────────────────────┐
+│                                                                │
+│  ┌──────────── Hub Subscription ────────────┐                 │
+│  │                                           │                 │
+│  │  Hub VNet (10.0.0.0/16)                  │                 │
+│  │  ┌──────────────────────────────────┐    │                 │
+│  │  │  APIM Subnet   │  GW Subnet      │    │                 │
+│  │  │  10.0.1.0/24   │  10.0.2.0/24   │    │                 │
+│  │  └──────────────────────────────────┘    │                 │
+│  │  ┌──────────────────────────────────┐    │                 │
+│  │  │  Azure API Management (Premium)   │    │                 │
+│  │  │  Log Analytics  │  Key Vault      │    │                 │
+│  │  └──────────────────────────────────┘    │                 │
+│  └───────────────────┬───────────────────────┘                │
+│                      │ VNet Peering                           │
+│  ┌───── Spoke 1 ─────┴────┐  ┌──── Spoke 2 ────────────┐    │
+│  │ AI Foundry Workloads    │  │ OpenAI Direct Access     │    │
+│  │ 10.1.0.0/16            │  │ 10.2.0.0/16              │    │
+│  └────────────────────────┘  └──────────────────────────┘    │
+└───────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Pre-Deployment Preparation
+
+### Step 0.1 — Environment Validation
+
+Verify your Azure environment is ready for deployment:
+
+```bash
+# Verify Azure CLI version (requires 2.50+)
+az version
+
+# Verify Bicep CLI version (requires 0.24+)
+az bicep version
+
+# Login and set subscription
+az login
+az account set --subscription "<YOUR_SUBSCRIPTION_ID>"
+az account show
+```
+
+**Expected output:** Active subscription with Owner or Contributor role.
+
+### Step 0.2 — Service Principal Configuration
+
+Create a service principal for CI/CD deployments:
+
+```bash
+# Create service principal with Contributor role
+az ad sp create-for-rbac \
+  --name "sp-citadel-deploy-<environment>" \
+  --role Contributor \
+  --scopes /subscriptions/<SUBSCRIPTION_ID> \
+  --sdk-auth
+
+# Grant User Access Administrator for RBAC assignments
+az role assignment create \
+  --assignee "<SP_CLIENT_ID>" \
+  --role "User Access Administrator" \
+  --scope /subscriptions/<SUBSCRIPTION_ID>
+```
+
+Store the service principal credentials in your CI/CD secrets store.
+
+### Step 0.3 — Register Resource Providers
+
+```bash
+# Register required Azure resource providers
+az provider register --namespace Microsoft.ApiManagement
+az provider register --namespace Microsoft.CognitiveServices
+az provider register --namespace Microsoft.MachineLearningServices
+az provider register --namespace Microsoft.Network
+az provider register --namespace Microsoft.KeyVault
+az provider register --namespace Microsoft.OperationalInsights
+az provider register --namespace Microsoft.Insights
+az provider register --namespace Microsoft.ContainerRegistry
+
+# Verify registration (wait until all show "Registered")
+az provider show --namespace Microsoft.ApiManagement --query registrationState
+```
+
+**Estimated time:** 5-15 minutes per provider.
+
+### Step 0.4 — Subscription Quota Verification
+
+```bash
+# Check APIM quota
+az apim list --query "length(@)"
+
+# Check Azure OpenAI quota by region
+az cognitiveservices usage list --location eastus
+
+# Request quota increases via Azure Portal if needed
+# Portal: Subscriptions > Usage + quotas
+```
+
+Key quotas to verify before deployment:
+
+| Service | Default Quota | Recommended |
+|---------|--------------|-------------|
+| APIM Premium units | 1 | 2+ for HA |
+| Azure OpenAI TPM | Varies by model | 100K+ per deployment |
+| VNet peerings | 500 | Check current usage |
+
+### Step 0.5 — Network Address Planning
+
+Plan your network address space to avoid conflicts:
+
+| Network | Address Space | Notes |
+|---------|--------------|-------|
+| Hub VNet | 10.0.0.0/16 | 65,536 addresses |
+| APIM Subnet | 10.0.1.0/24 | Min /27 required for APIM Premium |
+| Gateway Subnet | 10.0.2.0/24 | For VPN/ExpressRoute gateway |
+| Private Endpoints | 10.0.3.0/24 | AI services private endpoints |
+| Management Subnet | 10.0.4.0/24 | Jumpbox, management VMs |
+| Spoke 1 VNet | 10.1.0.0/16 | First AI workload spoke |
+| Spoke 2 VNet | 10.2.0.0/16 | Second AI workload spoke |
+
+<Warning>
+Ensure address spaces do not overlap with your on-premises networks or existing Azure VNets. Document the planned topology before deploying.
+</Warning>
+
+### Step 0.6 — Clone the Repository
+
+```bash
+# Clone the ai-hub-gateway repository
+git clone https://github.com/Azure/ai-hub-gateway-solution-accelerator.git
+cd ai-hub-gateway-solution-accelerator
+
+# Review parameter files
+ls bicep/infra/
+```
+
+---
+
+## Phase 1: Hub Infrastructure
+
+### Step 1 — Deploy Network Foundation
+
+Deploy the Hub VNet, subnets, and Network Security Groups.
+
+**Time estimate:** 10-15 minutes
+
+```bash
+# Navigate to infra directory
+cd bicep/infra
+
+# Review and customize parameters
+cp main.parameters.dev.bicepparam main.parameters.custom.bicepparam
+
+# Edit custom parameters
+# Key parameters to configure:
+# - environmentName: "dev" | "staging" | "prod"
+# - location: Target Azure region
+# - networkConfig: Address spaces
+```
+
+Key parameters in `main.bicepparam`:
+
+```bicep
+// Network configuration
+param vnetAddressPrefix = '10.0.0.0/16'
+param apimSubnetPrefix = '10.0.1.0/24'
+param privateEndpointSubnetPrefix = '10.0.3.0/24'
+```
+
+**Deploy network foundation:**
+
+```bash
+az deployment sub create \
+  --name "citadel-network-$(date +%Y%m%d)" \
+  --location eastus \
+  --template-file main.bicep \
+  --parameters main.parameters.custom.bicepparam \
+  --parameters deployNetwork=true deployAPIM=false deploySpokes=false
+```
+
+**Validation checkpoint:**
+
+```bash
+# Verify VNet deployed
+az network vnet show \
+  --name "vnet-hub-<environment>" \
+  --resource-group "rg-citadel-hub-<environment>" \
+  --query "{name:name, addressSpace:addressSpace, subnets:subnets[].name}"
+
+# Verify NSGs
+az network nsg list \
+  --resource-group "rg-citadel-hub-<environment>" \
+  --query "[].{name:name, rules:securityRules[].name}"
+```
+
+**Expected result:** Hub VNet with subnets and NSGs in "Succeeded" provisioning state.
+
+---
+
+### Step 2 — Deploy Azure API Management
+
+Deploy Azure API Management in the hub VNet with VNet integration.
+
+**Time estimate:** 45-60 minutes (APIM deployment is slow)
+
+<Note>
+APIM Premium tier deployment takes 30-45 minutes. Plan accordingly and do not interrupt the deployment.
+</Note>
+
+```bash
+# Deploy APIM (Premium tier, VNet-injected)
+az deployment sub create \
+  --name "citadel-apim-$(date +%Y%m%d)" \
+  --location eastus \
+  --template-file main.bicep \
+  --parameters main.parameters.custom.bicepparam \
+  --parameters deployAPIM=true
+```
+
+Key APIM configuration in parameters:
+
+```bicep
+// APIM configuration
+param apimName = 'apim-citadel-<environment>'
+param apimSku = 'Premium'      // 'Developer' for dev/test
+param apimSkuCount = 2          // Scale units (1 for dev, 2+ for prod)
+param apimPublisherEmail = 'admin@yourdomain.com'
+param apimPublisherName = 'Your Organization'
+param apimVirtualNetworkType = 'Internal'  // Internal VNet mode
+```
+
+**Validation checkpoint:**
+
+```bash
+# Verify APIM deployed and running
+az apim show \
+  --name "apim-citadel-<environment>" \
+  --resource-group "rg-citadel-hub-<environment>" \
+  --query "{name:name, state:provisioningState, sku:sku.name, vnet:virtualNetworkConfiguration}"
+
+# Verify APIM gateway URL
+az apim show \
+  --name "apim-citadel-<environment>" \
+  --resource-group "rg-citadel-hub-<environment>" \
+  --query "gatewayUrl"
+```
+
+**Expected result:** APIM in "Succeeded" state with gateway URL accessible from within the VNet.
+
+---
+
+### Step 3 — Deploy Supporting Services
+
+Deploy monitoring infrastructure (Log Analytics, Application Insights) and Key Vault.
+
+**Time estimate:** 10-15 minutes
+
+```bash
+# Deploy monitoring and key vault
+az deployment sub create \
+  --name "citadel-monitoring-$(date +%Y%m%d)" \
+  --location eastus \
+  --template-file main.bicep \
+  --parameters main.parameters.custom.bicepparam \
+  --parameters deployMonitoring=true deployKeyVault=true
+```
+
+**Validation checkpoint:**
+
+```bash
+# Verify Log Analytics workspace
+az monitor log-analytics workspace show \
+  --workspace-name "law-citadel-<environment>" \
+  --resource-group "rg-citadel-hub-<environment>" \
+  --query "{name:name, sku:sku.name, retentionDays:retentionInDays}"
+
+# Verify Key Vault
+az keyvault show \
+  --name "kv-citadel-<environment>" \
+  --resource-group "rg-citadel-hub-<environment>" \
+  --query "{name:name, vaultUri:properties.vaultUri, networkAcls:properties.networkAcls}"
+```
+
+---
+
+### Step 4 — Configure Private Connectivity
+
+Configure Private DNS zones and Private Endpoints for all AI services.
+
+**Time estimate:** 15-20 minutes
+
+```bash
+# Deploy private DNS zones and endpoints
+az deployment sub create \
+  --name "citadel-privatelink-$(date +%Y%m%d)" \
+  --location eastus \
+  --template-file main.bicep \
+  --parameters main.parameters.custom.bicepparam \
+  --parameters deployPrivateEndpoints=true
+```
+
+Private DNS zones created:
+
+| Service | Private DNS Zone |
+|---------|-----------------|
+| Azure OpenAI | `privatelink.openai.azure.com` |
+| AI Foundry | `privatelink.api.azureml.ms` |
+| Key Vault | `privatelink.vaultcore.azure.net` |
+| APIM Management | `privatelink.management.azure-api.net` |
+| Container Registry | `privatelink.azurecr.io` |
+
+**Validation checkpoint:**
+
+```bash
+# Verify private DNS zone resolution
+# (Run from within the VNet, e.g., a management VM)
+nslookup <openai-resource-name>.openai.azure.com
+# Expected: Returns a private IP (10.x.x.x), not a public IP
+
+# Verify private endpoints
+az network private-endpoint list \
+  --resource-group "rg-citadel-hub-<environment>" \
+  --query "[].{name:name, connection:privateLinkServiceConnections[0].privateLinkServiceConnectionState.status}"
+```
+
+**Expected result:** All private endpoints in "Approved" connection state; DNS resolves to private IPs.
+
+---
+
+## Phase 2: Spoke Infrastructure
+
+### Step 5 — Deploy Spoke VNets
+
+Deploy spoke VNets for AI workload isolation.
+
+**Time estimate:** 5-10 minutes per spoke
+
+```bash
+# Deploy spoke VNet
+az deployment rg create \
+  --name "citadel-spoke1-$(date +%Y%m%d)" \
+  --resource-group "rg-citadel-spoke1-<environment>" \
+  --template-file bicep/infra/modules/networking/vnet.bicep \
+  --parameters \
+    vnetName="vnet-spoke1-<environment>" \
+    addressPrefixes="['10.1.0.0/16']" \
+    subnets="[{name:'snet-workloads', addressPrefix:'10.1.1.0/24'}]"
+```
+
+### Step 6 — Configure VNet Peering
+
+Establish bidirectional VNet peering between hub and each spoke.
+
+**Time estimate:** 5 minutes per spoke
+
+```bash
+# Get hub VNet resource ID
+HUB_VNET_ID=$(az network vnet show \
+  --name "vnet-hub-<environment>" \
+  --resource-group "rg-citadel-hub-<environment>" \
+  --query id -o tsv)
+
+SPOKE_VNET_ID=$(az network vnet show \
+  --name "vnet-spoke1-<environment>" \
+  --resource-group "rg-citadel-spoke1-<environment>" \
+  --query id -o tsv)
+
+# Hub to spoke peering
+az network vnet peering create \
+  --name "peer-hub-to-spoke1" \
+  --resource-group "rg-citadel-hub-<environment>" \
+  --vnet-name "vnet-hub-<environment>" \
+  --remote-vnet $SPOKE_VNET_ID \
+  --allow-vnet-access \
+  --allow-forwarded-traffic
+
+# Spoke to hub peering
+az network vnet peering create \
+  --name "peer-spoke1-to-hub" \
+  --resource-group "rg-citadel-spoke1-<environment>" \
+  --vnet-name "vnet-spoke1-<environment>" \
+  --remote-vnet $HUB_VNET_ID \
+  --allow-vnet-access \
+  --allow-forwarded-traffic
+```
+
+**Validation checkpoint:**
+
+```bash
+# Verify peering state (both should show "Connected")
+az network vnet peering list \
+  --resource-group "rg-citadel-hub-<environment>" \
+  --vnet-name "vnet-hub-<environment>" \
+  --query "[].{name:name, state:peeringState, remoteVNet:remoteVirtualNetwork.id}"
+```
+
+### Step 7 — Deploy AI Workload Resources
+
+Deploy AI services (Azure OpenAI, AI Foundry) into spoke subscriptions.
+
+**Time estimate:** 15-30 minutes
+
+```bash
+# Deploy Azure OpenAI (using the main Bicep with AI resources)
+az deployment sub create \
+  --name "citadel-ai-spoke1-$(date +%Y%m%d)" \
+  --location eastus \
+  --template-file main.bicep \
+  --parameters main.parameters.custom.bicepparam \
+  --parameters \
+    deploySpoke=true \
+    spokeIndex=1 \
+    deployAzureOpenAI=true \
+    deployAIFoundry=false
+```
+
+### Step 8 — Configure Network Security
+
+Apply Network Security Groups to spoke subnets to enforce traffic policies.
+
+```bash
+# Apply NSG to spoke workload subnet
+az network nsg create \
+  --name "nsg-spoke1-workloads" \
+  --resource-group "rg-citadel-spoke1-<environment>"
+
+# Allow inbound from APIM subnet only
+az network nsg rule create \
+  --resource-group "rg-citadel-spoke1-<environment>" \
+  --nsg-name "nsg-spoke1-workloads" \
+  --name "AllowAPIMInbound" \
+  --priority 100 \
+  --source-address-prefixes "10.0.1.0/24" \
+  --destination-address-prefixes "*" \
+  --destination-port-ranges 443 \
+  --access Allow \
+  --protocol Tcp
+
+# Deny all other inbound traffic
+az network nsg rule create \
+  --resource-group "rg-citadel-spoke1-<environment>" \
+  --nsg-name "nsg-spoke1-workloads" \
+  --name "DenyAllInbound" \
+  --priority 4096 \
+  --source-address-prefixes "*" \
+  --destination-address-prefixes "*" \
+  --destination-port-ranges "*" \
+  --access Deny \
+  --protocol "*"
+
+# Associate NSG with subnet
+az network vnet subnet update \
+  --resource-group "rg-citadel-spoke1-<environment>" \
+  --vnet-name "vnet-spoke1-<environment>" \
+  --name "snet-workloads" \
+  --network-security-group "nsg-spoke1-workloads"
+```
+
+---
+
+## Phase 3: Governance and Policies
+
+### Step 9 — Deploy AI Access Contracts
+
+Deploy AI Access Contracts to define governance policies for each AI workload.
+
+**Time estimate:** 10-15 minutes
+
+```bash
+# Deploy access contracts for a use case (e.g., HR Chat Agent)
+cd bicep/infra/citadel-access-contracts
+
+az deployment sub create \
+  --name "citadel-contracts-$(date +%Y%m%d)" \
+  --location eastus \
+  --template-file main.bicep \
+  --parameters main.bicepparam
+
+# Deploy specific contract (e.g., HR agent contract)
+az deployment sub create \
+  --name "citadel-hr-contract-$(date +%Y%m%d)" \
+  --location eastus \
+  --template-file base-access-contract-request/main.bicep \
+  --parameters base-access-contract-request/examples/hr-agent/main.bicepparam
+```
+
+See the [AI Access Contracts documentation](/governance/access-contracts) for detailed contract configuration.
+
+**Validation checkpoint:**
+
+```bash
+# Verify APIM products created for each access contract
+az apim product list \
+  --resource-group "rg-citadel-hub-<environment>" \
+  --service-name "apim-citadel-<environment>" \
+  --query "[].{name:displayName, id:productId, subscriptionRequired:subscriptionRequired}"
+```
+
+### Step 10 — Configure API Management Policies
+
+Apply rate limiting, content safety, and observability policies.
+
+**Time estimate:** 15-20 minutes
+
+```bash
+# Policies are deployed as part of the access contract deployment
+# Verify policies are applied correctly
+
+# Check global APIM policy
+az apim policy show \
+  --resource-group "rg-citadel-hub-<environment>" \
+  --service-name "apim-citadel-<environment>"
+```
+
+Core policies automatically deployed:
+
+- **Rate limiting**: Per-product, per-subscription token throttling
+- **Content Safety**: Azure AI Content Safety integration for all AI calls
+- **PII Detection**: Presidio-based PII anonymization
+- **Usage tracking**: Comprehensive telemetry to Log Analytics
+- **Authentication**: Entra ID token validation
+
+### Step 11 — Set Up Monitoring and Alerts
+
+Configure monitoring dashboards and alert rules.
+
+**Time estimate:** 15-20 minutes
+
+```bash
+# Deploy monitoring dashboards and alerts
+az deployment sub create \
+  --name "citadel-alerts-$(date +%Y%m%d)" \
+  --location eastus \
+  --template-file main.bicep \
+  --parameters main.parameters.custom.bicepparam \
+  --parameters deployAlerts=true
+
+# Verify diagnostic settings on APIM
+az monitor diagnostic-settings list \
+  --resource $(az apim show \
+    --name "apim-citadel-<environment>" \
+    --resource-group "rg-citadel-hub-<environment>" \
+    --query id -o tsv)
+```
+
+Key alert rules configured:
+
+| Alert | Threshold | Severity |
+|-------|-----------|----------|
+| APIM Gateway errors | > 5% error rate | Sev 2 |
+| Throttling events | > 100/min | Sev 3 |
+| Content Safety blocks | > 10/min | Sev 2 |
+| Latency P95 | > 5000ms | Sev 3 |
+| Capacity utilization | > 80% | Sev 2 |
+
+### Step 12 — Configure Backup and DR
+
+Configure backup policies and disaster recovery for the hub infrastructure.
+
+**Time estimate:** 20-30 minutes
+
+For **Production** environments, configure:
+
+- APIM backup to Azure Storage
+- Key Vault soft-delete (enabled by default) and purge protection
+- Log Analytics data export for long-term retention
+
+```bash
+# Enable APIM backup
+az apim backup \
+  --resource-group "rg-citadel-hub-prod" \
+  --name "apim-citadel-prod" \
+  --backup-name "backup-$(date +%Y%m%d)" \
+  --storage-account-name "<storage-account>" \
+  --storage-account-container "apim-backups" \
+  --storage-account-key "<storage-key>"
+
+# For multi-region Premium APIM, configure secondary region
+az apim update \
+  --name "apim-citadel-prod" \
+  --resource-group "rg-citadel-hub-prod" \
+  --additional-locations "[{location:'westus2', sku:{name:'Premium',capacity:1}}]"
+```
+
+---
+
+## Deployment Automation
+
+### CI/CD Pipeline Integration
+
+Integrate Citadel deployment with Azure DevOps or GitHub Actions:
+
+**Azure DevOps Pipeline** (`.azdo/pipelines/azure-dev.yml`):
+
+```yaml
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+  - group: citadel-deploy-secrets
+
+stages:
+  - stage: Deploy_Dev
+    jobs:
+      - job: Deploy
+        steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: 'citadel-service-connection'
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az deployment sub create \
+                  --name "citadel-$(Build.BuildNumber)" \
+                  --location $(AZURE_LOCATION) \
+                  --template-file bicep/infra/main.bicep \
+                  --parameters bicep/infra/main.parameters.dev.bicepparam
+```
+
+### Parameter Management
+
+Manage environment-specific parameters:
+
+```
+bicep/infra/
+├── main.bicep                        # Root deployment template
+├── main.bicepparam                   # Base parameters (all environments)
+├── main.parameters.dev.bicepparam    # Development overrides
+└── main.parameters.prod.bicepparam   # Production overrides
+```
+
+Use Azure Key Vault references for secrets in parameter files:
+
+```bicep
+// Reference a Key Vault secret in parameter files
+param apimPublisherEmail = getSecret(
+  '<subscription-id>',
+  'rg-citadel-keyvault',
+  'kv-citadel-<env>',
+  'apim-publisher-email'
+)
+```
+
+### Secret Management
+
+Never store secrets in parameter files or source control:
+
+1. Store all secrets in Azure Key Vault
+2. Reference Key Vault secrets in Bicep using `getSecret()`
+3. Service principal credentials stored in CI/CD secret variables
+4. Rotate secrets on a scheduled basis using Key Vault policies
+
+### Blue-Green Deployment Pattern
+
+For zero-downtime updates to APIM policies:
+
+```bash
+# 1. Stage new policy in a test product
+az apim product create \
+  --service-name "apim-citadel-prod" \
+  --resource-group "rg-citadel-hub-prod" \
+  --product-id "hr-agent-v2-staging" \
+  --display-name "HR Agent v2 (Staging)"
+
+# 2. Test with canary traffic
+# Route 10% of traffic to new policy via APIM routing
+
+# 3. Promote to production after validation
+az apim product update \
+  --service-name "apim-citadel-prod" \
+  --resource-group "rg-citadel-hub-prod" \
+  --product-id "hr-agent-v2"
+```
+
+---
+
+## Post-Deployment
+
+### Smoke Testing
+
+After deployment, run end-to-end smoke tests:
+
+```bash
+# 1. Get APIM gateway URL
+GATEWAY_URL=$(az apim show \
+  --name "apim-citadel-<environment>" \
+  --resource-group "rg-citadel-hub-<environment>" \
+  --query "gatewayUrl" -o tsv)
+
+# 2. Get a test subscription key
+SUBSCRIPTION_KEY=$(az apim subscription show \
+  --resource-group "rg-citadel-hub-<environment>" \
+  --service-name "apim-citadel-<environment>" \
+  --subscription-id "master" \
+  --query "primaryKey" -o tsv)
+
+# 3. Test Azure OpenAI endpoint through APIM
+curl -s -X POST \
+  "${GATEWAY_URL}/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01" \
+  -H "Content-Type: application/json" \
+  -H "api-key: ${SUBSCRIPTION_KEY}" \
+  -d '{
+    "messages": [{"role": "user", "content": "Hello, this is a smoke test."}],
+    "max_tokens": 50
+  }'
+```
+
+**Expected result:** HTTP 200 with a valid chat completion response.
+
+### Documentation Handoff
+
+After successful deployment, complete the documentation handoff:
+
+1. Update as-built documentation with actual resource names, IPs, and configuration
+2. Create runbooks for common operational tasks (scaling, backup, policy updates)
+3. Document escalation contacts and on-call procedures
+4. Schedule operational readiness review with stakeholders
+
+### Rollback Procedures
+
+If deployment fails, roll back using:
+
+```bash
+# Option 1: Redeploy previous parameter version
+az deployment sub create \
+  --name "citadel-rollback-$(date +%Y%m%d)" \
+  --location eastus \
+  --template-file main.bicep \
+  --parameters main.parameters.previous.bicepparam
+
+# Option 2: Restore APIM from backup
+az apim restore \
+  --resource-group "rg-citadel-hub-prod" \
+  --name "apim-citadel-prod" \
+  --backup-name "backup-<date>" \
+  --storage-account-name "<storage-account>" \
+  --storage-account-container "apim-backups" \
+  --storage-account-key "<storage-key>"
+
+# Option 3: Delete resource group (destructive — dev/test only)
+az group delete --name "rg-citadel-hub-<environment>" --yes
+```
+
+---
+
+## Operational Readiness Checklist
+
+Before handing over to operations, verify:
+
+- [ ] All Phase 1-3 validation checkpoints passed
+- [ ] Smoke tests completed successfully
+- [ ] Monitoring dashboards visible and populated
+- [ ] Alert rules tested and notifications received
+- [ ] Access contracts deployed and validated
+- [ ] Runbooks written and reviewed
+- [ ] Team trained on operational procedures
+- [ ] Change management process established
+- [ ] Backup and DR tested
+- [ ] Security review completed
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Bicep Modules Reference" icon="cube" href="/guides/bicep-modules">
+    Complete parameter reference for all Bicep modules
+  </Card>
+  <Card title="Deployment Checklist" icon="clipboard-check" href="/guides/deployment-checklist">
+    Pre-deployment and deployment checklists
+  </Card>
+  <Card title="Validation Checklist" icon="check-circle" href="/guides/validation-checklist">
+    Post-deployment validation procedures
+  </Card>
+  <Card title="Configuration Guide" icon="gear" href="/guides/configuration-examples">
+    Environment-specific configuration and customization
+  </Card>
+</CardGroup>

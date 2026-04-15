@@ -1,0 +1,184 @@
+---
+title: "Scripts Reference"
+description: "Operational PowerShell and Bash scripts for Event Hub logging and certificate management"
+---
+
+# Scripts Reference
+
+The `scripts/` directory contains operational scripts for managing AI Hub Gateway infrastructure components.
+
+## Available Scripts
+
+| Script | Language | Purpose |
+|--------|----------|---------|
+| `apim-event-hub-logger.ps1` | PowerShell | Configure Event Hub logging for APIM |
+| `azure-key-vault-certificate-import.sh` | Bash | Import certificates to Azure Key Vault |
+
+## APIM Event Hub Logger
+
+Configures API Management to send logs to Event Hub for centralized logging and analytics.
+
+### Prerequisites
+
+- Azure PowerShell module (`Az`)
+- Permissions: Contributor on APIM resource, Send on Event Hub
+
+### Usage
+
+```powershell
+# Connect to Azure
+Connect-AzAccount
+
+# Set variables
+$resourceGroupName = "rg-citadel-prod"
+$apimServiceName = "apim-citadel"
+$eventHubNamespace = "evhns-citadel"
+$eventHubName = "apim-logs"
+
+# Execute script
+.\scripts\apim-event-hub-logger.ps1
+```
+
+### What It Does
+
+1. Creates Event Hub namespace (if not exists)
+2. Creates Event Hub for APIM logs
+3. Configures APIM logger to target Event Hub
+4. Sets up diagnostic settings
+
+### Output
+
+```
+✅ Event Hub namespace created: evhns-citadel
+✅ Event Hub created: apim-logs
+✅ APIM Logger configured: eventhub-logger
+✅ Diagnostic settings enabled
+```
+
+## Key Vault Certificate Import
+
+Imports SSL/TLS certificates into Azure Key Vault for use with API Management custom domains.
+
+### Prerequisites
+
+- Azure CLI
+- Certificate file (PFX or PEM)
+- Key Vault permissions: Certificate Import
+
+### Usage
+
+```bash
+# Set variables
+CERT_PATH="./certificates/wildcard.pfx"
+CERT_PASSWORD="$PFX_PASSWORD"
+KEY_VAULT_NAME="kv-citadel-prod"
+CERT_NAME="wildcard-cert"
+
+# Execute script
+./scripts/azure-key-vault-certificate-import.sh \
+  "$CERT_PATH" \
+  "$CERT_PASSWORD" \
+  "$KEY_VAULT_NAME" \
+  "$CERT_NAME"
+```
+
+### Parameters
+
+| Parameter | Description | Required |
+|-----------|-------------|----------|
+| `cert_path` | Path to certificate file | Yes |
+| `cert_password` | Password for PFX file | Yes (for PFX) |
+| `key_vault_name` | Target Key Vault name | Yes |
+| `cert_name` | Name for certificate in Key Vault | Yes |
+
+### What It Does
+
+1. Validates certificate file exists
+2. Imports certificate to Key Vault
+3. Verifies import success
+4. Outputs certificate thumbprint
+
+### Output
+
+```
+Importing certificate: ./certificates/wildcard.pfx
+Target Key Vault: kv-citadel-prod
+Certificate name: wildcard-cert
+✅ Certificate imported successfully
+Thumbprint: A1B2C3D4E5F6...
+```
+
+## Integration with Deployment
+
+### Event Hub Logger
+
+Reference in Bicep deployment:
+
+```bicep
+param enableEventHubLogging = true
+param eventHubNamespaceName = 'evhns-citadel'
+param eventHubName = 'apim-logs'
+```
+
+### Certificate Management
+
+Use imported certificates for APIM custom domains:
+
+```bicep
+param apimCustomDomains = [
+  {
+    type: 'Proxy'
+    hostName: 'api.company.com'
+    keyVaultId: '/subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.KeyVault/vaults/kv-citadel/certificates/wildcard-cert'
+  }
+]
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Event Hub Logger - Permission Denied">
+**Cause:** Insufficient permissions on Event Hub
+
+**Solution:**
+```powershell
+# Grant APIM identity send permissions
+az role assignment create \
+  --assignee-object-id $apimPrincipalId \
+  --role "Azure Event Hubs Data Sender" \
+  --scope "/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.EventHub/namespaces/$namespace"
+```
+  </Accordion>
+  <Accordion title="Certificate Import - Invalid Password">
+**Cause:** Wrong PFX password
+
+**Solution:**
+- Verify password with: `openssl pkcs12 -in cert.pfx -noout -passin pass:yourpassword`
+- Check for special characters that need escaping
+</Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+1. **Use managed identities** - Avoid storing credentials in scripts
+2. **Version control** - Track script changes in git
+3. **Parameterize** - Use variables for environment-specific values
+4. **Test in dev** - Validate scripts in non-production first
+5. **Document changes** - Update this guide when modifying scripts
+6. **Secure secrets** - Use Key Vault or environment variables
+
+---
+
+## Related Guides
+
+<CardGroup cols={3}>
+  <Card title="Full Deployment" icon="server" href="/guides/deployment/full-deployment">
+    Infrastructure deployment guide
+  </Card>
+  <Card title="Network Architecture" icon="network-wired" href="/guides/architecture/networking">
+    Network configuration
+  </Card>
+  <Card title="Operations Runbooks" icon="book" href="/operations/runbooks">
+    Operational procedures
+  </Card>
+</CardGroup>

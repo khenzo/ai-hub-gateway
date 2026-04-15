@@ -1,0 +1,772 @@
+---
+title: Troubleshooting Guide
+description: Diagnostic procedures, root cause analysis, and resolution steps for common AI Landing Zone deployment and runtime issues across all components
+---
+
+# Troubleshooting Guide
+
+This guide provides structured diagnostic procedures for resolving issues with the AI Landing Zone (Citadel Governance Hub). Follow the diagnostic methodology to identify root cause efficiently, then apply the targeted resolution steps.
+
+<Note>
+For a quick-reference list of the most frequent problems, see [Common Issues and FAQ](/guides/common-issues). This guide provides deeper diagnostic procedures for complex or unclear failures.
+</Note>
+
+---
+
+## Diagnostic Approach
+
+### Troubleshooting Methodology
+
+Follow this structured approach before diving into component-specific diagnostics:
+
+```
+1. IDENTIFY — What exactly is failing?
+   - Error message (exact text, status code)
+   - Component (APIM, networking, AI model, governance)
+   - When it started (after deployment, after change, random)
+   - Impact scope (all requests, specific workload, specific user)
+
+2. ISOLATE — Can you reproduce it?
+   - Reproduce with minimal inputs
+   - Test from different clients/locations
+   - Compare to a working baseline
+
+3. TRACE — Follow the request path
+   APIM Gateway → Backend (OpenAI/Foundry) → Response
+   Identify at which hop the failure occurs
+
+4. CORRELATE — Check logs and metrics
+   - APIM Gateway Logs (Log Analytics)
+   - Resource diagnostic logs
+   - Azure Monitor metrics and alerts
+
+5. RESOLVE — Apply fix, verify, document
+```
+
+### Essential Diagnostic Commands
+
+```bash
+# Check APIM service health
+az apim show \
+  --name <apim-name> \
+  --resource-group <rg-name> \
+  --query "{name:name, state:provisioningState, sku:sku.name, vnetType:virtualNetworkType}" \
+  --output table
+
+# List APIM APIs and their backends
+az apim api list \
+  --service-name <apim-name> \
+  --resource-group <rg-name> \
+  --query "[].{name:name, path:path, serviceUrl:serviceUrl}" \
+  --output table
+
+# Check VNet peering status
+az network vnet peering list \
+  --resource-group <rg-name> \
+  --vnet-name <vnet-name> \
+  --query "[].{name:name, state:peeringState, connected:allowVirtualNetworkAccess}" \
+  --output table
+
+# Check private endpoint connection status
+az network private-endpoint list \
+  --resource-group <rg-name> \
+  --query "[].{name:name, state:provisioningState, connection:privateLinkServiceConnections[0].privateLinkServiceConnectionState.status}" \
+  --output table
+
+# Test DNS resolution from APIM subnet
+az network nic list \
+  --resource-group <rg-name> \
+  --query "[?contains(name,'apim')].{name:name, ip:ipConfigurations[0].privateIPAddress}" \
+  --output table
+
+# Check resource provider registrations
+az provider show --namespace Microsoft.ApiManagement --query "registrationState"
+az provider show --namespace Microsoft.CognitiveServices --query "registrationState"
+az provider show --namespace Microsoft.MachineLearningServices --query "registrationState"
+```
+
+### Log Analysis Techniques
+
+```kql
+// APIM request trace — find a specific failed request
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(1h)
+| where responseCode >= 400
+| project
+    TimeGenerated,
+    requestId,
+    apiId,
+    operationId,
+    responseCode,
+    responseSize,
+    lastError = tostring(lastError_message_s),
+    backendUrl,
+    clientIp = callerIpAddress
+| order by TimeGenerated desc
+| take 50
+
+// Policy execution trace — identify which policy failed
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(1h)
+| where isnotempty(lastError_message_s)
+| extend
+    errorSource = tostring(lastError_source_s),
+    errorReason = tostring(lastError_reason_s),
+    errorMessage = tostring(lastError_message_s)
+| summarize Count = count() by errorSource, errorReason, errorMessage
+| order by Count desc
+
+// Backend connectivity — measure backend response times
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(24h)
+| where isnotempty(backendResponseCode)
+| summarize
+    AvgBackendMs = avg(backendTime),
+    P95BackendMs = percentile(backendTime, 95),
+    ErrorCount = countif(backendResponseCode >= 500)
+  by apiId, bin(TimeGenerated, 1h)
+| order by TimeGenerated desc, AvgBackendMs desc
+```
+
+---
+
+## Deployment Issues
+
+### Bicep Deployment Failures
+
+**Symptom:** `az deployment group create` fails with error message.
+
+**Step 1: Read the full error**
+```bash
+# Get detailed deployment error
+az deployment group show \
+  --resource-group <rg-name> \
+  --name <deployment-name> \
+  --query "properties.error" \
+  --output json
+
+# List all deployment operations and their status
+az deployment operation group list \
+  --resource-group <rg-name> \
+  --name <deployment-name> \
+  --query "[?properties.provisioningState!='Succeeded'].{resource:properties.targetResource.resourceType, status:properties.provisioningState, error:properties.statusMessage.error.message}" \
+  --output table
+```
+
+**Step 2: Common root causes**
+
+| Error Message | Root Cause | Resolution |
+|---------------|------------|-----------|
+| `ResourceNotFound` | Resource provider not registered | Register provider (see below) |
+| `QuotaExceeded` | Subscription quota limit | Request increase or change region |
+| `InvalidParameter` | Wrong parameter value | Check Bicep parameter constraints |
+| `AuthorizationFailed` | Missing RBAC permission | Grant deployer role at correct scope |
+| `ParentResourceNotFound` | Dependency missing | Check `dependsOn` or deploy order |
+| `Conflict` | Resource already exists (different config) | Import or delete existing resource |
+
+**Step 3: Register missing providers**
+```bash
+# Register all required resource providers
+providers=(
+  "Microsoft.ApiManagement"
+  "Microsoft.CognitiveServices"
+  "Microsoft.MachineLearningServices"
+  "Microsoft.KeyVault"
+  "Microsoft.Network"
+  "Microsoft.OperationalInsights"
+  "Microsoft.Insights"
+)
+
+for provider in "${providers[@]}"; do
+  az provider register --namespace "$provider" --wait
+  echo "Registered: $provider"
+done
+```
+
+### APIM Deployment Stuck in "Activating" State
+
+**Symptom:** APIM provisioning state shows `Activating` for more than 60 minutes.
+
+**Diagnosis:**
+```bash
+# Check APIM provisioning state
+az apim show \
+  --name <apim-name> \
+  --resource-group <rg-name> \
+  --query "provisioningState"
+
+# Check Activity Log for errors
+az monitor activity-log list \
+  --resource-group <rg-name> \
+  --resource-type "Microsoft.ApiManagement/service" \
+  --start-time "$(date -u -d '2 hours ago' +%Y-%m-%dT%H:%M:%SZ)" \
+  --query "[?contains(operationName.value,'write')].{time:eventTimestamp, status:status.value, message:properties.statusMessage}" \
+  --output table
+```
+
+**Root causes and resolutions:**
+
+1. **NSG blocking required ports**
+   - APIM management requires inbound port 3443 from `ApiManagement` service tag
+   - APIM requires outbound 443, 5671, 5672 to `*`
+   - Apply NSG rules from [Configuration Examples](/guides/configuration-examples)
+
+2. **Route table sending management traffic to NVA**
+   - APIM management traffic must not be sent to a firewall/NVA
+   - Add route: `0.0.0.0/0 → Internet` or use APIM service tag
+   ```bash
+   # Add bypass route for APIM management
+   az network route-table route create \
+     --resource-group <rg-name> \
+     --route-table-name <rt-name> \
+     --name allow-apim-management \
+     --address-prefix ApiManagement \
+     --next-hop-type Internet
+   ```
+
+3. **Subnet too small**
+   - APIM Premium requires /24 minimum for zone redundancy
+   - Developer/Standard requires /28 minimum
+
+### Permission and Access Issues During Deployment
+
+**Symptom:** `AuthorizationFailed` or `LinkedAuthorizationFailed` errors.
+
+```bash
+# Check what roles deploying identity has at subscription scope
+az role assignment list \
+  --assignee $(az account show --query "user.name" -o tsv) \
+  --scope /subscriptions/$(az account show --query "id" -o tsv) \
+  --query "[].{role:roleDefinitionName, scope:scope}" \
+  --output table
+
+# Required roles for full deployment:
+# - Contributor (resource group) or Owner (if role assignments needed)
+# - Network Contributor (if creating VNets)
+# - Key Vault Administrator (if creating Key Vault with RBAC model)
+# - User Access Administrator (required for RBAC role assignments)
+
+# Grant required permissions
+DEPLOYER_ID=$(az ad signed-in-user show --query "id" -o tsv)
+RG_ID=$(az group show --name <rg-name> --query "id" -o tsv)
+
+az role assignment create \
+  --assignee "$DEPLOYER_ID" \
+  --role "Contributor" \
+  --scope "$RG_ID"
+
+az role assignment create \
+  --assignee "$DEPLOYER_ID" \
+  --role "User Access Administrator" \
+  --scope "$RG_ID"
+```
+
+---
+
+## Network Connectivity Issues
+
+### VNet Peering Problems
+
+**Symptom:** Resources in spoke VNet cannot reach hub resources (APIM, monitoring).
+
+**Diagnosis:**
+```bash
+# Verify both sides of peering are connected
+az network vnet peering list \
+  --resource-group <hub-rg> \
+  --vnet-name <hub-vnet> \
+  --query "[].{name:name, remote:remoteVirtualNetwork.id, state:peeringState}" \
+  --output table
+
+# Expected: peeringState = "Connected" on BOTH sides
+# If one side shows "Initiated" — the other side peering is missing/deleted
+```
+
+**Resolution:**
+```bash
+# Re-create spoke-to-hub peering if missing
+az network vnet peering create \
+  --resource-group <spoke-rg> \
+  --vnet-name <spoke-vnet> \
+  --name peer-to-hub \
+  --remote-vnet <hub-vnet-resource-id> \
+  --allow-vnet-access \
+  --allow-forwarded-traffic \
+  --use-remote-gateways  # Only if hub has VPN/ER gateway
+
+# Verify effective routes on a spoke VM NIC
+az network nic show-effective-route-table \
+  --resource-group <rg> \
+  --name <nic-name> \
+  --output table | grep -E "VirtualNetworkPeering|VirtualNetwork"
+```
+
+### Private Endpoint Resolution Failures
+
+**Symptom:** `nslookup openai-account.openai.azure.com` returns public IP instead of private IP.
+
+**Diagnosis:**
+```bash
+# Test DNS resolution (run from Azure VM in the VNet)
+nslookup <account-name>.openai.azure.com
+# Should return: 10.x.x.x (private IP from private endpoint)
+# If returns: 20.x.x.x (public IP) — DNS zone not linked to VNet
+
+# Check private DNS zone VNet links
+az network private-dns link vnet list \
+  --resource-group <rg> \
+  --zone-name "privatelink.openai.azure.com" \
+  --query "[].{vnet:virtualNetwork.id, status:provisioningState, autoRegistration:registrationEnabled}" \
+  --output table
+
+# Check private endpoint DNS records exist
+az network private-dns record-set list \
+  --resource-group <rg> \
+  --zone-name "privatelink.openai.azure.com" \
+  --output table
+```
+
+**Resolution:**
+```bash
+# Link missing VNet to private DNS zone
+az network private-dns link vnet create \
+  --resource-group <rg> \
+  --zone-name "privatelink.openai.azure.com" \
+  --name link-spoke-vnet \
+  --virtual-network <spoke-vnet-resource-id> \
+  --registration-enabled false
+
+# Force DNS registration refresh
+az network private-endpoint dns-zone-group show \
+  --resource-group <rg> \
+  --endpoint-name <pep-name> \
+  --name dnszonegroup
+```
+
+### NSG Rule Blocking Traffic
+
+**Symptom:** Connections time out or are refused between components.
+
+**Diagnosis:**
+```bash
+# Check effective NSG rules on a specific NIC
+az network nic list-effective-nsg \
+  --resource-group <rg> \
+  --name <nic-name> \
+  --query "effectiveNetworkSecurityGroups[].effectiveSecurityRules[?access=='Deny']" \
+  --output table
+
+# Enable NSG flow logs (requires Network Watcher)
+az network watcher flow-log create \
+  --resource-group <rg> \
+  --nsg <nsg-name> \
+  --storage-account <storage-account-id> \
+  --enabled true \
+  --format JSON \
+  --log-version 2
+
+# Use Network Watcher to test connectivity
+az network watcher test-connectivity \
+  --resource-group <rg> \
+  --source-resource <source-vm-id> \
+  --dest-address <dest-ip-or-hostname> \
+  --dest-port <port>
+```
+
+---
+
+## API Management Issues
+
+### Gateway Connectivity Problems
+
+**Symptom:** APIM returns `503 Service Unavailable` or `Connection refused`.
+
+**Diagnosis:**
+```bash
+# Check APIM gateway status (internal VNet mode)
+az apim show \
+  --name <apim-name> \
+  --resource-group <rg> \
+  --query "{state:provisioningState, vnetType:virtualNetworkType, privateIp:privateIPAddresses}" \
+  --output json
+
+# Test backend reachability from APIM (use APIM test console in Azure portal)
+# Or trace a request:
+curl -v -H "Ocp-Apim-Trace: true" \
+     -H "Ocp-Apim-Subscription-Key: <sub-key>" \
+     https://<apim-gateway-url>/<api-path> 2>&1 | grep -E "(< HTTP|backend)"
+```
+
+**Log Analytics query for backend errors:**
+```kql
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(1h)
+| where responseCode == 503 or isempty(backendResponseCode)
+| project TimeGenerated, requestId, apiId, backendUrl, lastError_message_s
+| order by TimeGenerated desc
+```
+
+### Policy Execution Failures
+
+**Symptom:** APIM returns `500` with policy-related error; requests fail at specific policy steps.
+
+**Diagnosis steps:**
+
+1. **Enable request tracing** (non-production only):
+```bash
+# Get trace subscription key
+az apim show \
+  --name <apim-name> \
+  --resource-group <rg> \
+  --query "subscriptionId"
+
+# Make traced request
+curl -i \
+  -H "Ocp-Apim-Trace: true" \
+  -H "Ocp-Apim-Subscription-Key: <master-sub-key>" \
+  "https://<apim-name>.azure-api.net/<api-path>"
+
+# Get trace from returned Ocp-Apim-Trace-Location header
+```
+
+2. **Check policy syntax** in APIM portal:
+   - Navigate to APIs > [API] > Design > Policy Editor
+   - Use "Calculate effective policy" to see merged policy
+   - Validate XML syntax before saving
+
+3. **Common policy errors:**
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `Expression evaluation failed` | C# expression error in policy | Check expression syntax, test in scratch policy |
+| `Named value not found` | `{{NamedValue}}` reference missing | Verify named value exists in APIM |
+| `Backend service URL is empty` | `serviceUrl` not set on API | Set backend URL or use `set-backend-service` policy |
+| `Policy fragment not found` | Fragment deleted or renamed | Check fragment exists under APIs > Policy fragments |
+| `Certificate validation failed` | Backend cert untrusted | Add backend cert to APIM trusted certificates |
+
+### Authentication/Authorization Errors
+
+**Symptom:** API calls return `401 Unauthorized` or `403 Forbidden`.
+
+**Diagnosis:**
+```bash
+# Decode JWT token to inspect claims (requires jq)
+TOKEN="<bearer-token>"
+echo $TOKEN | cut -d. -f2 | base64 --decode 2>/dev/null | jq '{
+  aud: .aud,
+  iss: .iss,
+  exp: (.exp | todate),
+  scp: .scp,
+  roles: .roles
+}'
+
+# Verify token expiry
+TOKEN_EXP=$(echo $TOKEN | cut -d. -f2 | base64 --decode 2>/dev/null | jq -r '.exp')
+echo "Token expires: $(date -d @$TOKEN_EXP)"
+echo "Current time:  $(date)"
+```
+
+**Check APIM validate-jwt policy configuration:**
+```kql
+// Find 401 errors and their policy source
+ApiManagementGatewayLogs
+| where responseCode == 401
+| extend errorSource = tostring(lastError_source_s)
+| summarize Count = count() by errorSource, lastError_message_s
+| order by Count desc
+```
+
+**Resolution for common auth failures:**
+
+- **Wrong audience (`aud`)**: Update `validate-jwt` policy `required-claims` to match your app registration
+- **Token scope missing**: Configure API permissions in Entra app registration and grant admin consent
+- **Subscription key missing**: Add `api-key` header or query param; check `subscriptionRequired` setting
+- **Managed identity auth failed**: Verify APIM system identity has the correct RBAC role on backend resource
+
+---
+
+## AI Workload Issues
+
+### Model Deployment Failures
+
+**Symptom:** Azure OpenAI or AI Foundry model deployment fails.
+
+```bash
+# Check available model capacity in region
+az cognitiveservices model list \
+  --location eastus \
+  --query "[?kind=='OpenAI'].{model:model.name, version:model.version, format:model.format}" \
+  --output table
+
+# Check existing deployments and their status
+az cognitiveservices account deployment list \
+  --resource-group <rg> \
+  --name <openai-account-name> \
+  --query "[].{name:name, model:properties.model.name, status:properties.provisioningState, capacity:sku.capacity}" \
+  --output table
+
+# Check account quota utilization
+az cognitiveservices account show \
+  --resource-group <rg> \
+  --name <openai-account-name> \
+  --query "properties.quotaUsed"
+```
+
+**Common failures:**
+
+| Error | Cause | Resolution |
+|-------|-------|-----------|
+| `ModelNotAvailable` | Model not available in region | Deploy in a supported region |
+| `InsufficientQuota` | TPM quota exhausted | Request quota increase via Azure portal |
+| `DeploymentConflict` | Deployment name already exists | Delete old deployment first |
+| `SKUNotAvailable` | PTU SKU not available | Check PTU availability by region |
+
+### Foundry Connectivity Issues
+
+**Symptom:** APIM cannot reach Azure AI Foundry endpoints.
+
+```bash
+# Verify Foundry project connection in APIM
+az apim backend list \
+  --resource-group <rg> \
+  --service-name <apim-name> \
+  --query "[?contains(name,'foundry')].{name:name, url:url, state:properties.title}" \
+  --output table
+
+# Test connectivity from APIM to Foundry endpoint
+# Use APIM test echo API to verify outbound connectivity:
+curl -s "https://<apim-name>.azure-api.net/echo/resource?param1=sample" \
+  -H "Ocp-Apim-Subscription-Key: <sub-key>"
+```
+
+**Check Foundry private endpoint:**
+```bash
+# Verify Foundry private endpoint is approved
+az network private-endpoint list \
+  --resource-group <rg> \
+  --query "[?contains(name,'foundry')].{name:name, connection:privateLinkServiceConnections[0].privateLinkServiceConnectionState.status}" \
+  --output table
+# Expected: status = "Approved"
+
+# If "Pending" — approve from Foundry resource side:
+az ml workspace private-endpoint approve \
+  --resource-group <rg> \
+  --workspace-name <foundry-workspace> \
+  --endpoint-name <pep-name>
+```
+
+### Token Quota Exceeded
+
+**Symptom:** Requests return `429 Too Many Requests` with quota error.
+
+```kql
+// Identify which workloads are consuming the most tokens
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(24h)
+| extend tokensConsumed = toint(ResponseHeaders_x_tokens_consumed_s)
+| summarize
+    TotalTokens = sum(tokensConsumed),
+    RequestCount = count()
+  by ProductName, SubscriptionName
+| order by TotalTokens desc
+| take 20
+```
+
+**Resolutions:**
+1. Identify top consumers — throttle or reduce their limits
+2. Request quota increase for the Azure OpenAI account:
+   ```bash
+   # View current quota per model
+   az cognitiveservices account list-usage \
+     --resource-group <rg> \
+     --name <openai-account-name>
+   ```
+3. Distribute load across multiple OpenAI accounts using APIM load balancing
+4. Enable response caching in APIM for repetitive requests
+
+### Content Safety False Positives
+
+**Symptom:** Legitimate requests blocked by Content Safety policy.
+
+```kql
+// Find content safety blocks in APIM logs
+ApiManagementGatewayLogs
+| where responseCode == 400
+| where lastError_source_s contains "content-safety"
+| project
+    TimeGenerated,
+    requestId,
+    ProductName,
+    lastError_message_s,
+    backendResponseCode
+| order by TimeGenerated desc
+```
+
+**Resolution steps:**
+1. Review blocked content to confirm false positive
+2. Adjust threshold levels in contract configuration:
+   ```json
+   "contentSafety": {
+     "enabled": true,
+     "categories": {
+       "hate": "high",      // Raise threshold to reduce false positives
+       "violence": "high"
+     }
+   }
+   ```
+3. Add domain-specific allow-list for technical terms triggering false positives
+4. Contact Microsoft Support for persistent false positive patterns
+
+---
+
+## Governance and Policy Issues
+
+### AI Access Contract Enforcement Failures
+
+**Symptom:** Governance policies not applying; workloads exceed declared limits.
+
+```bash
+# Verify access contract deployment status
+az deployment group show \
+  --resource-group <rg> \
+  --name <contract-deployment-name> \
+  --query "properties.provisioningState"
+
+# Check APIM product subscription is active
+az apim product subscription list \
+  --resource-group <rg> \
+  --service-name <apim-name> \
+  --product-id <product-id> \
+  --query "[].{name:name, state:state, allowTracing:allowTracing}" \
+  --output table
+
+# Verify policy fragments are applied
+az apim policy-fragment list \
+  --resource-group <rg> \
+  --service-name <apim-name> \
+  --query "[].{name:name, state:provisioningState}" \
+  --output table
+```
+
+### Audit Logging Gaps
+
+**Symptom:** Some requests not appearing in Log Analytics.
+
+**Diagnosis:**
+```bash
+# Check diagnostic settings on APIM
+az monitor diagnostic-settings list \
+  --resource $(az apim show --name <apim-name> --resource-group <rg> --query "id" -o tsv) \
+  --query "[].{name:name, workspace:workspaceId, logs:logs[].category}" \
+  --output json
+
+# Verify GatewayLogs category is enabled
+# If missing, create diagnostic settings:
+az monitor diagnostic-settings create \
+  --resource $(az apim show --name <apim-name> --resource-group <rg> --query "id" -o tsv) \
+  --name diag-apim-to-law \
+  --workspace $(az monitor log-analytics workspace show --resource-group <rg> --workspace-name <law-name> --query "id" -o tsv) \
+  --logs '[{"category":"GatewayLogs","enabled":true}]' \
+  --metrics '[{"category":"AllMetrics","enabled":true}]'
+```
+
+---
+
+## Monitoring and Alerting Issues
+
+### Log Collection Failures
+
+**Symptom:** No data appearing in Log Analytics after 30+ minutes.
+
+**Diagnosis checklist:**
+1. Verify diagnostic settings are configured (see above)
+2. Confirm the Log Analytics workspace ID in diagnostic settings matches expected workspace
+3. Check workspace ingestion quota is not exceeded:
+   ```bash
+   az monitor log-analytics workspace show \
+     --resource-group <rg> \
+     --workspace-name <law-name> \
+     --query "{sku:sku.name, retentionDays:retentionInDays, capping:workspaceCapping.dailyQuotaGb}"
+   ```
+4. Test log ingestion with a custom log entry:
+   ```bash
+   # Send test event (if using Data Collection Rules)
+   az monitor data-collection rule list \
+     --resource-group <rg> \
+     --query "[].{name:name, state:provisioningState}" \
+     --output table
+   ```
+
+### Alert Rule Not Firing
+
+**Symptom:** Alert condition is met but no notification received.
+
+```bash
+# Check alert rule state and last evaluation
+az monitor scheduled-query list \
+  --resource-group <rg> \
+  --query "[].{name:name, enabled:properties.enabled, severity:properties.severity, state:properties.alertRuleState}" \
+  --output table
+
+# Check action group is functional
+az monitor action-group list \
+  --resource-group <rg> \
+  --query "[].{name:name, shortName:groupShortName, enabled:enabled, receivers:length(emailReceivers)}" \
+  --output table
+
+# Check alert history
+az monitor activity-log alert list \
+  --resource-group <rg>
+```
+
+**Common alert failures:**
+
+| Symptom | Root Cause | Fix |
+|---------|------------|-----|
+| Rule exists but never fires | Condition threshold too high | Lower threshold; test with known-bad query |
+| Alerts fire but no email | Action group email unverified | Verify email in action group; check spam folder |
+| Alert stops firing after 1st | Auto-resolve enabled | Check `autoMitigate` setting on alert |
+| Log query returns 0 results | Wrong time range in query | Remove time filter from query (use evaluation window) |
+
+---
+
+## Quick Diagnostic Checklist
+
+For any AI Landing Zone issue, run through this checklist:
+
+```bash
+#!/bin/bash
+# ai-landing-zone-health-check.sh
+RG="<resource-group>"
+APIM="<apim-name>"
+LAW="<log-analytics-workspace>"
+
+echo "=== APIM Health ==="
+az apim show --name $APIM --resource-group $RG \
+  --query "{state:provisioningState, sku:sku.name}" -o json
+
+echo "=== VNet Peering ==="
+az network vnet peering list --resource-group $RG --vnet-name <hub-vnet> \
+  --query "[].{peer:name, state:peeringState}" -o table
+
+echo "=== Private Endpoints ==="
+az network private-endpoint list --resource-group $RG \
+  --query "[].{name:name, state:provisioningState}" -o table
+
+echo "=== Recent APIM Errors ==="
+az monitor log-analytics query \
+  --workspace $(az monitor log-analytics workspace show --resource-group $RG \
+    --workspace-name $LAW --query "id" -o tsv) \
+  --analytics-query "ApiManagementGatewayLogs | where TimeGenerated > ago(1h) | where responseCode >= 400 | summarize count() by responseCode" \
+  --output table
+```
+
+---
+
+## Related Resources
+
+- **[Common Issues and FAQ](/guides/common-issues)** — Quick-scan reference for frequent problems
+- **[Configuration Examples](/guides/configuration-examples)** — Correct configuration templates
+- **[Best Practices](/guides/best-practices)** — Avoid problems with proven patterns
+- **[Deployment Guide](/guides/deployment-guide)** — Step-by-step deployment with validation steps
+- **[Microsoft Support](https://portal.azure.com/#blade/Microsoft_Azure_Support/HelpAndSupportBlade)** — For Azure service issues requiring Microsoft engagement

@@ -1,0 +1,239 @@
+---
+title: "Usage Analytics"
+description: "Power BI reports, cost estimation, and usage data schema for AI Hub Gateway"
+---
+
+# Usage Analytics
+
+The `src/usage-reports/` directory contains Power BI reports and configuration files for usage analytics and cost estimation.
+
+## Files Overview
+
+| File | Purpose | Format |
+|------|---------|--------|
+| `AI-Hub-Gateway-Usage-Report-v1-5-Incremetal.pbix` | Power BI dashboard template | Power BI |
+| `model-pricing.json` | Model pricing configuration | JSON |
+| `AI-Search-Cost-Estimation-Logic.md` | AI Search cost estimation guide | Markdown |
+| `usage-record.json` | Sample usage record schema | JSON |
+
+## Power BI Dashboard
+
+The Power BI report provides comprehensive usage analytics for AI Hub Gateway deployments.
+
+### Setup
+
+1. Open `AI-Hub-Gateway-Usage-Report-v1-5-Incremetal.pbix` in Power BI Desktop
+2. Update data source connections to your Cosmos DB
+3. Configure refresh schedule
+
+### Dashboard Pages
+
+| Page | Visualizations | Purpose |
+|------|---------------|---------|
+| **Overview** | KPIs, trends, summary metrics | High-level consumption view |
+| **By Model** | Bar charts, pie charts | Model usage distribution |
+| **By Application** | Tables, filters | Application-level breakdown |
+| **Costs** | Line charts, forecasts | Cost analysis and projections |
+| **Throttling** | Event timeline, alerts | Throttling event tracking |
+
+### Key Metrics
+
+- **Total Tokens**: Input + output tokens consumed
+- **Request Count**: Number of API calls
+- **Estimated Cost**: Based on model pricing
+- **Throttling Events**: 429 errors encountered
+- **Latency**: Average response time
+
+## Model Pricing Configuration
+
+The `model-pricing.json` file defines pricing for cost calculations:
+
+```json
+[
+    {
+        "id": "4",
+        "model": "gpt-4o",
+        "deploymentName": "gpt-4o",
+        "isActive": true,
+        "CostPerInputUnit": 0.005,
+        "CostPerOutputUnit": 0.015,
+        "CostUnit": 1000,
+        "Currency": "USD",
+        "CalculationMethod": "tokens",
+        "region": "ALL"
+    }
+]
+```
+
+### Pricing Schema
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `model` | string | Model identifier |
+| `CostPerInputUnit` | float | Cost per input unit |
+| `CostPerOutputUnit` | float | Cost per output unit |
+| `CostUnit` | int | Unit size (e.g., 1000 tokens) |
+| `CalculationMethod` | string | `tokens` or `percentage` |
+| `region` | string | Region filter (`ALL` for global) |
+
+### Adding Custom Models
+
+1. Add entry to `model-pricing.json`:
+
+```json
+{
+    "id": "8",
+    "model": "custom-model",
+    "deploymentName": "custom-deployment",
+    "isActive": true,
+    "CostPerInputUnit": 0.01,
+    "CostPerOutputUnit": 0.03,
+    "CostUnit": 1000,
+    "Currency": "USD",
+    "CalculationMethod": "tokens",
+    "region": "ALL"
+}
+```
+
+2. Refresh Power BI data model
+3. Update dashboard filters
+
+## Usage Record Schema
+
+Usage records are stored in Cosmos DB with the following structure:
+
+```json
+{
+    "id": "chatcmpl-...",
+    "timestamp": "5/24/2024 2:45:56 PM",
+    "appId": "11115293-...",
+    "subscriptionId": "master",
+    "productName": "AI-Retail",
+    "targetService": "chat.completion",
+    "model": "gpt-35-turbo",
+    "gatewayName": "APIM-HOST.azure-api.net",
+    "gatewayRegion": "East US",
+    "backendId": "openai-backend-2",
+    "deploymentName": "chat",
+    "promptTokens": "15000",
+    "responseTokens": "5000",
+    "totalTokens": "20000"
+}
+```
+
+### Core Fields
+
+| Field | Description | Used For |
+|-------|-------------|----------|
+| `timestamp` | Request timestamp | Time-series analysis |
+| `appId` | Application identifier | Application tracking |
+| `productName` | APIM product name | Product-level grouping |
+| `model` | Model used | Model usage analysis |
+| `promptTokens` | Input tokens | Cost calculation |
+| `responseTokens` | Output tokens | Cost calculation |
+| `totalTokens` | Combined tokens | Quota tracking |
+| `backendId` | Backend identifier | Backend performance |
+
+### Optional Metadata Fields
+
+| Field | Description |
+|-------|-------------|
+| `sessionId` | User session identifier |
+| `endUserId` | End user identifier |
+| `routeLocation` | Geographic routing location |
+| `RequestIp` | Client IP address |
+
+## AI Search Cost Estimation
+
+Azure AI Search has multi-dimensional pricing. See `AI-Search-Cost-Estimation-Logic.md` for detailed guidance.
+
+### Quick Estimation
+
+For Standard S1 with 2 units:
+- **Base Cost**: ~$590/month
+- **Per-Application**: Multiply by usage percentage
+
+Example:
+```
+Search-Retail: 60% × $590 = $354
+Search-HR: 40% × $590 = $236
+```
+
+### Cost Factors
+
+| Factor | Impact |
+|--------|--------|
+| Service Tier | S1, S2, S3 pricing tiers |
+| Number of Units | Replicas × Partitions |
+| Storage | Indexed document size |
+| Semantic Ranker | Per-query cost |
+| Data Transfer | Egress charges |
+
+## Cost Calculation Formula
+
+### Token-Based Models
+
+```
+Cost = (InputTokens / CostUnit × CostPerInputUnit) + 
+       (OutputTokens / CostUnit × CostPerOutputUnit)
+```
+
+Example for GPT-4o:
+```
+Input: 15000 tokens
+Output: 5000 tokens
+CostUnit: 1000
+
+Cost = (15000/1000 × $0.005) + (5000/1000 × $0.015)
+     = $0.075 + $0.075
+     = $0.15
+```
+
+### Percentage-Based (AI Search)
+
+```
+Cost = BaseCost × UsagePercentage
+```
+
+## Integration
+
+### Usage Ingestion
+
+The Logic App workflow in `src/usage-ingestion-logicapp/` processes usage data:
+
+1. Receives events from Event Hub
+2. Transforms to usage record format
+3. Stores in Cosmos DB
+4. Triggers Power BI refresh (optional)
+
+### Custom Reporting
+
+Export data for external analysis:
+
+```python
+# Query Cosmos DB
+query = """
+SELECT c.model, 
+       SUM(c.totalTokens) as tokens,
+       COUNT(1) as requests
+FROM c 
+WHERE c.timestamp > '2024-01-01'
+GROUP BY c.model
+"""
+```
+
+---
+
+## Related Guides
+
+<CardGroup cols={3}>
+  <Card title="Power BI Dashboard" icon="chart-line" href="/guides/operations/power-bi-dashboard">
+    Dashboard setup and configuration
+  </Card>
+  <Card title="Cost Estimation" icon="calculator" href="/guides/operations/estimation-guide">
+    PTU vs PAYG sizing guide
+  </Card>
+  <Card title="Operations Runbooks" icon="book" href="/operations/runbooks">
+    Operational procedures
+  </Card>
+</CardGroup>
