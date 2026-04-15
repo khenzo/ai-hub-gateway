@@ -7,7 +7,7 @@ description: "Comprehensive deployment guide for development, staging, and produ
 
 This comprehensive guide covers deploying AI Citadel Governance Hub across **development, staging, and production** environments with enterprise-grade configuration, networking, and governance.
 
-For quick non-production deployments, see the [Quick Start](/guides/deployment/quick-start) guide.
+For quick non-production deployments, see the [Quick Start](/guides/citadel-hub/deployment/quick-start) guide.
 
 ---
 
@@ -368,7 +368,7 @@ param dnsSubscriptionId = '<hub-subscription-id>'
 </Accordion>
 </AccordionGroup>
 
-Detailed networking guide: [Network Architecture](/guides/architecture/networking)
+Detailed networking guide: [Network Architecture](/guides/ai-landing-zone/networking)
 
 ---
 
@@ -554,7 +554,7 @@ param entraClientId = '11111111-2222-3333-4444-555555555555'
 param entraAudience = 'api://citadel-gateway'
 ```
 
-Guide: [Entra ID Authentication](/guides/reference/entraid-auth)
+Guide: [Entra ID Authentication](/guides/citadel-hub/reference/entraid-auth)
 
 #### Network Security
 
@@ -640,7 +640,7 @@ az resource list \
 
 This repo includes set of validation NoteBooks under `/validation` folder.
 
-See [Testing Tools](/guides/development/testing-tools) for details on running validation notebooks.
+See [Testing Tools](/guides/citadel-hub/development/testing-tools) for details on running validation notebooks.
 
 ---
 
@@ -666,22 +666,22 @@ Visit the [Troubleshooting](/operations/troubleshooting) guide for common issues
 
 <CardGroup cols={2}>
   <Card title="Enable Security" icon="shield-halved">
-    - [Entra ID Authentication](/guides/reference/entraid-auth)
-    - [PII Detection](/guides/features/pii-masking)
+    - [Entra ID Authentication](/guides/citadel-hub/reference/entraid-auth)
+    - [PII Detection](/guides/citadel-hub/features/pii-masking)
   </Card>
   <Card title="Set Up Monitoring" icon="chart-line">
-    - [Power BI Dashboard](/guides/operations/power-bi-dashboard)
-    - [Usage Analytics](/guides/operations/usage-analytics)
-    - [Alert Configuration](/guides/features/throttling-handling)
+    - [Power BI Dashboard](/guides/citadel-hub/operations/power-bi-dashboard)
+    - [Usage Analytics](/guides/citadel-hub/operations/usage-analytics)
+    - [Alert Configuration](/guides/citadel-hub/features/throttling-handling)
   </Card>
-  <Card title="Validate & Test" icon="vial" href="/guides/development/testing-tools">
+  <Card title="Validate & Test" icon="vial" href="/guides/citadel-hub/development/testing-tools">
     - 🧪 Run validation notebooks
     - ✅ Test backend connectivity
     - 📊 Verify usage logging
   </Card>
   <Card title="Deploy LLM Backends" icon="plug">
-    - [Onboard Existing LLMs](/guides/features/llm-backend-onboarding)
-    - [LLM Routing Architecture](/guides/architecture/llm-routing)
+    - [Onboard Existing LLMs](/guides/citadel-hub/features/llm-backend-onboarding)
+    - [LLM Routing Architecture](/guides/ai-landing-zone/llm-routing)
   </Card>
 </CardGroup>
 
@@ -694,13 +694,13 @@ Visit the [Troubleshooting](/operations/troubleshooting) guide for common issues
 ## Related Guides
 
 <CardGroup cols={3}>
-  <Card title="Quick Start" icon="bolt" href="/guides/deployment/quick-start">
+  <Card title="Quick Start" icon="bolt" href="/guides/citadel-hub/deployment/quick-start">
     Fastest path to deployment
   </Card>
-  <Card title="Parameters" icon="sliders" href="/guides/deployment/parameters">
+  <Card title="Parameters" icon="sliders" href="/guides/citadel-hub/deployment/parameters">
     Configuration and customization
   </Card>
-  <Card title="Network Architecture" icon="network-wired" href="/guides/architecture/networking">
+  <Card title="Network Architecture" icon="network-wired" href="/guides/ai-landing-zone/networking">
     Hub-spoke topology patterns
   </Card>
 </CardGroup>
