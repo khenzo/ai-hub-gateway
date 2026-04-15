@@ -1,12 +1,12 @@
 ---
 title: "Core Concepts"
-description: "Key terminology and concepts for AI Landing Zone"
+description: "Key terminology and concepts for the SOF1A 2.0 AI Governance Platform"
 icon: book-open
 ---
 
 # Core Concepts
 
-Understanding these key concepts will help you navigate the AI Landing Zone documentation and implementation.
+Understanding these key concepts will help you navigate the SOF1A 2.0 AI Governance Platform documentation and implementation.
 
 ## Architecture Concepts
 
@@ -18,6 +18,8 @@ The **Citadel Governance Hub** is the central control plane for managing AI infr
 - Unified monitoring and observability
 - Cross-landing zone governance
 - AI service orchestration
+
+It serves as the **governance component** of the SOF1A 2.0 AI Governance Platform, enforcing policies and managing access for all AI workloads.
 
 <Note>
   Think of Citadel as your AI infrastructure's mission control — providing visibility and control across all deployed resources.
@@ -32,11 +34,13 @@ A **Landing Zone** is a pre-configured, secure environment for deploying AI work
 - Monitoring and logging infrastructure
 - AI service integration points
 
+Landing zones are the **workload environment component** of the SOF1A 2.0 AI Governance Platform, providing the secure runtime spaces where AI applications and agents operate.
+
 Each landing zone follows the principle of "secure by default" with enterprise-grade security controls.
 
-### The 4-Layer Model
+### The 4-Layer Model of the SOF1A 2.0 Platform
 
-The AI Landing Zone architecture is organized into four distinct layers:
+The SOF1A 2.0 AI Governance Platform architecture is organized into four distinct layers:
 
 <Steps>
   <Step title="Layer 1: Foundation">
@@ -52,6 +56,26 @@ The AI Landing Zone architecture is organized into four distinct layers:
     Custom AI applications and integrations built on top of the governed AI services.
   </Step>
 </Steps>
+
+### Platform Components
+
+The SOF1A 2.0 AI Governance Platform brings together two primary components that work in concert:
+
+| Component | Role | What It Provides |
+|-----------|------|------------------|
+| **AI Landing Zone** | Workload environments | Secure networking, AI service spokes, and scalable runtime for AI applications and agents |
+| **Citadel Governance Hub** | Governance control plane | APIM gateway, policy enforcement, observability, and access contracts |
+
+#### How They Interact
+
+All AI traffic from landing zones flows through the Citadel Governance Hub. This means:
+
+- **Every request** from an AI application in a landing zone passes through the APIM gateway for authentication, rate limiting, and policy checks
+- **Observability** from both components feeds into a unified monitoring and compliance view
+- **Policies** defined in the Citadel hub are enforced at the edge of each landing zone's AI service consumption
+- **Scaling** happens independently: add more landing zones for new workloads without changing governance rules
+
+This separation lets teams deploy AI workloads rapidly in landing zones while central IT maintains consistent governance through the Citadel hub.
 
 ## AI Service Concepts
 
