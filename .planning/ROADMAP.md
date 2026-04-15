@@ -5,7 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1-6 (shipped 2026-04-13)
 - ✅ **v1.1 AI Agent Factory Integration** — Phases 7-12 (shipped 2026-04-13)
 - ✅ **v1.2 Open Platform Agent Factory** — Phases 13-15 (shipped 2026-04-13)
-- 🔄 **v1.3 EY Framework Alignment** — Phases 16-20 (in progress)
+- ✅ **v1.3 EY Framework Alignment** — Phases 16-20 (shipped 2026-04-15)
 
 ## Phases
 
@@ -51,7 +51,7 @@ _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
 - [x] **Phase 17: Kubernetes & DevOps Patterns** - AKS deployment, GitHub scaffolding, and CI/CD pipeline guidance (completed 2026-04-14)
 - [x] **Phase 18: Security & Governance at Scale** - EY two-tiered governance mapped to Citadel 4-layer architecture (completed 2026-04-14)
 - [x] **Phase 19: MCP, A2A & Agent Discovery** - Protocol alignment and APIM as agent registry (completed 2026-04-15)
-- [ ] **Phase 20: Attention Points & Recommendations** - Gap analysis and actionable add-on recommendations
+- [x] **Phase 20: Attention Points & Recommendations** - Gap analysis and actionable add-on recommendations (completed 2026-04-15)
 
 ## Phase Details
 
@@ -141,4 +141,4 @@ Plans:
 | 17. Kubernetes & DevOps Patterns | 2/2 | Complete    | 2026-04-14 | - |
 | 18. Security & Governance at Scale | 3/3 | Complete    | 2026-04-14 | - |
 | 19. MCP, A2A & Agent Discovery | 3/3 | Complete    | 2026-04-15 | - |
-| 20. Attention Points & Recommendations | v1.3 | 0/TBD | Not started | - |
+| 20. Attention Points & Recommendations | v1.3 | 1/1 | Complete | 2026-04-15 |
