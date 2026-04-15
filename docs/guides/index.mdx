@@ -1,104 +1,38 @@
 ---
 title: "Guides"
-description: "Comprehensive guides for deploying, configuring, and operating AI Landing Zones with Citadel Governance Hub"
+description: "Deployment and implementation guides for AI Landing Zone and Citadel Hub"
+icon: "book"
 ---
 
 # Guides
 
-Welcome to the AI Landing Zone guides. These comprehensive guides provide step-by-step instructions for deploying, configuring, and operating your AI infrastructure with Citadel Governance Hub.
+This section provides deployment and implementation guidance for two complementary Azure solutions that work together to deliver enterprise-grade AI infrastructure.
 
 ## Getting Started
 
+The documentation covers two solutions that are designed to be deployed sequentially:
+
+1. **AI Landing Zone** — Foundational Azure infrastructure for AI workloads, including hub-spoke networking, governance policies, and landing zone architecture.
+2. **Citadel Hub** — An Azure API Management-based AI gateway that adds LLM routing, PII masking, throttling, and usage analytics on top of the landing zone.
+
+<Tip>
+  **Recommended path:** Start with AI Landing Zone to establish the core Azure infrastructure, then add Citadel Hub for AI gateway capabilities.
+</Tip>
+
+## Choose Your Path
+
 <CardGroup cols={2}>
-  <Card title="Quick Start" icon="rocket" href="/guides/deployment/quick-start">
-    Deploy in 30 minutes with minimal configuration for development and testing environments.
+  <Card title="AI Landing Zone" icon="azure" href="/guides/ai-landing-zone">
+    Deploy the foundational Azure infrastructure for AI workloads with hub-spoke networking and governance.
   </Card>
-  <Card title="Full Deployment" icon="server" href="/guides/deployment/full-deployment">
-    Production-ready deployment with comprehensive configuration options.
-  </Card>
-</CardGroup>
-
-## Guide Categories
-
-### Deployment
-<CardGroup cols={3}>
-  <Card title="Quick Start" icon="bolt" href="/guides/deployment/quick-start">
-    Fastest path to deployment
-  </Card>
-  <Card title="Full Deployment" icon="server" href="/guides/deployment/full-deployment">
-    Production deployment guide
-  </Card>
-  <Card title="Parameters Guide" icon="sliders" href="/guides/deployment/parameters">
-    Configuration and customization
+  <Card title="Citadel Hub" icon="shield" href="/guides/citadel-hub">
+    Add the APIM-based AI gateway with LLM routing, PII masking, throttling, and usage analytics.
   </Card>
 </CardGroup>
 
-### Architecture
-<CardGroup cols={2}>
-  <Card title="Networking" icon="network-wired" href="/guides/architecture/networking">
-    Hub-spoke topology and network configuration patterns
-  </Card>
-  <Card title="LLM Routing" icon="route" href="/guides/architecture/llm-routing">
-    Intelligent request routing and load balancing
-  </Card>
-</CardGroup>
+## Official Repositories
 
-### Features
-<CardGroup cols={3}>
-  <Card title="PII Masking" icon="shield-halved" href="/guides/features/pii-masking">
-    Protect sensitive data in AI requests
-  </Card>
-  <Card title="Throttling Handling" icon="gauge-high" href="/guides/features/throttling-handling">
-    Manage rate limits and quota exceeded scenarios
-  </Card>
-  <Card title="LLM Backend Onboarding" icon="plug" href="/guides/features/llm-backend-onboarding">
-    Add new AI models and endpoints
-  </Card>
-</CardGroup>
+Find the source code, Bicep modules, and deployment templates in the official GitHub repositories:
 
-### Operations
-<CardGroup cols={3}>
-  <Card title="Citadel Sizing" icon="ruler-combined" href="/guides/operations/citadel-sizing">
-    Capacity planning and sizing guidance
-  </Card>
-  <Card title="Cost Estimation" icon="calculator" href="/guides/operations/estimation-guide">
-    Model pricing and cost forecasting
-  </Card>
-  <Card title="Power BI Dashboard" icon="chart-line" href="/guides/operations/power-bi-dashboard">
-    Usage analytics and monitoring
-  </Card>
-</CardGroup>
-
-### Reference
-<CardGroup cols={2}>
-  <Card title="Entra ID Auth" icon="key" href="/guides/reference/entraid-auth">
-    Authentication and authorization validation
-  </Card>
-  <Card title="Governance Benefits" icon="scale-balanced" href="/guides/reference/governance-benefits">
-    Business value and ROI analysis
-  </Card>
-</CardGroup>
-
-### Development
-<CardGroup cols={2}>
-  <Card title="Shared Resources" icon="share-nodes" href="/guides/development/shared-resources">
-    Python utilities and testing tools
-  </Card>
-  <Card title="Testing Tools" icon="vial" href="/guides/development/testing-tools">
-    Validation notebooks and testing utilities
-  </Card>
-</CardGroup>
-
-## Quick Links
-
-<CardGroup cols={3}>
-  <Card title="Getting Started" icon="play" href="/getting-started/prerequisites">
-    New to AI Landing Zones? Start here
-  </Card>
-  <Card title="Architecture" icon="sitemap" href="/architecture/overview">
-    Understand the core architecture
-  </Card>
-  <Card title="Troubleshooting" icon="wrench" href="/operations/troubleshooting">
-    Common issues and solutions
-  </Card>
-</CardGroup>
+- [Azure/AI-Landing-Zones](https://github.com/Azure/AI-Landing-Zones) — AI Landing Zone foundational infrastructure
+- [Azure-Samples/ai-hub-gateway-solution-accelerator](https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/tree/citadel-v1) — Citadel Hub AI Gateway accelerator
