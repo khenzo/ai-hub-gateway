@@ -1,12 +1,12 @@
 ---
-title: Quick-Start Guide
-description: Deploy a working AI Landing Zone evaluation environment in 2-4 hours
+title: "SOF1A 2.0 Quick-Start Guide"
+description: Deploy a working SOF1A 2.0 AI Governance Platform evaluation environment in 2-4 hours
 icon: rocket
 ---
 
 # Quick-Start Guide
 
-This guide walks you through deploying a minimal AI Landing Zone environment for evaluation and proof-of-concept purposes. You'll have a working system with centralized AI governance, observability, and policy enforcement within 2-4 hours.
+This guide walks you through deploying a minimal SOF1A 2.0 AI Governance Platform evaluation environment for evaluation and proof-of-concept purposes. You'll have a working system with centralized AI governance, observability, and policy enforcement within 2-4 hours.
 
 <Note>
 This quick-start deploys a **non-production evaluation environment** using reduced redundancy and Developer-tier services to minimize cost. See the [Deployment Guide](/guides/citadel-hub/deployment-guide) for production-ready configuration.
@@ -14,16 +14,18 @@ This quick-start deploys a **non-production evaluation environment** using reduc
 
 ## What You'll Build
 
-By completing this guide you will have:
+By completing this guide you will have deployed the core components of the SOF1A 2.0 AI Governance Platform:
 
-- Azure API Management (Developer tier) acting as the AI gateway
-- Azure OpenAI connected through private networking
+- **Citadel Governance Hub** — Azure API Management (Developer tier) acting as the centralized AI gateway
+- **AI Landing Zone spoke** — Azure OpenAI connected through private networking
 - AI Access Contract enforcing token quotas and usage tracking
 - Log Analytics workspace capturing all AI usage telemetry
-- End-to-end request flow from client through APIM to Azure OpenAI
+- End-to-end request flow from client through the governance hub to Azure OpenAI
 
 **Estimated time:** 2-4 hours  
 **Estimated cost:** $5-15 USD for a 24-hour evaluation (tear down after evaluation)
+
+The deployment creates a Citadel Governance Hub (APIM gateway) that will govern AI requests from your AI Landing Zone spoke.
 
 ## What You'll Validate
 
