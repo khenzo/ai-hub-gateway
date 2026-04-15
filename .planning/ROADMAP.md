@@ -116,7 +116,10 @@ Plans:
   1. Reader can view a consolidated list of EY framework requirements that Citadel does not fully address, with a plain-language explanation of each gap
   2. Reader can see specific recommended supplemental tools for each gap (e.g., AIRA/AI QRM tooling for governance process, LangSmith for LLM observability, EY-approved guardrail vendors) with enough context to evaluate them
   3. Reader can distinguish between gaps that require adding a tool vs. gaps that require a process change — so they can prioritize their roadmap
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [x] 20-01-PLAN.md — Create gaps-and-recommendations content page with gap analysis and supplemental tools
+- [x] 20-02-PLAN.md — Wire gaps-and-recommendations page into EY Alignment navigation in docs.json
 
 ## Progress
 
@@ -141,4 +144,4 @@ Plans:
 | 17. Kubernetes & DevOps Patterns | 2/2 | Complete    | 2026-04-14 | - |
 | 18. Security & Governance at Scale | 3/3 | Complete    | 2026-04-14 | - |
 | 19. MCP, A2A & Agent Discovery | 3/3 | Complete    | 2026-04-15 | - |
-| 20. Attention Points & Recommendations | v1.3 | 1/1 | Complete | 2026-04-15 |
+| 20. Attention Points & Recommendations | v1.3 | 2/2 | Complete | 2026-04-15 |
