@@ -1,0 +1,121 @@
+---
+title: "Attention Points & Recommendations"
+description: "A consolidated gap analysis of the EY AI Agent Development Framework against Citadel, with categorized recommendations and next steps"
+icon: alert-triangle
+---
+
+# Attention Points & Recommendations
+
+Now that you have seen how Citadel maps to the EY framework across governance, protocols, Kubernetes patterns, and security controls, this page summarizes what remains outside the platform and how to address it. Every enterprise deployment will encounter gaps that are either process-related, tool-related, or intentionally out of scope. Use this page to turn those gaps into an actionable roadmap.
+
+## How to Use This Page
+
+Each gap is categorized into one of three buckets:
+
+- **Process Change Required** — needs an organizational workflow, policy update, or manual review gate. No additional Azure tooling is required.
+- **Supplemental Tool Recommended** — evaluate and potentially integrate a specific third-party or Azure-adjacent tool to close the gap.
+- **Out of Scope** — intentionally not covered by Citadel because it is EY-proprietary, vendor-specific, or outside the Microsoft Azure stack.
+
+### Gap Mindset
+
+Gaps are not failures. A well-architected platform makes deliberate scope choices so that it can excel at what it is designed for — in Citadel's case, Microsoft Azure-based AI governance and deployment. When you encounter an attention point, the right question is not "Why doesn't Citadel do this?" but "What is the smallest, safest way to close this gap for my organization?" This page answers that question for every known gap.
+
+## Gap Analysis
+
+| Gap | Why Citadel Doesn't Cover It | Category | Recommended Action |
+|---|---|---|---|
+| EY-internal governance tooling (AIRA, AI QRM forms) | These are EY-proprietary process controls with no public API or Azure equivalent | Process Change Required | Work with your EY engagement team to complete AIRA registration and AI QRM review outside Citadel |
+| EY Fabric-specific delivery stacks (EYQ, EYX, NVIDIA Agent Builder) | EYQ and NVIDIA stacks are vendor-specific platforms outside the Microsoft Azure ecosystem | Out of Scope | Use Citadel for Azure-hosted agents; route EYQ and NVIDIA workloads through their respective onboarding processes |
+| Development spectrum mapping (no-code / low-code / pro-code) | Detailed spectrum guidance is platform-specific and deferred from v1.3 | Out of Scope | Refer to EY's framework document for no-code/low-code stack selection; use Citadel for pro-code and hybrid scenarios |
+| Advanced LLM observability beyond Azure-native monitoring | Azure Monitor and Application Insights provide infrastructure telemetry, but not prompt-level tracing or LLM-specific evaluation | Supplemental Tool Recommended | Evaluate LangSmith, Azure PromptFlow, or OpenTelemetry-based LLM observability platforms |
+| EY-specific guardrail extensions | Azure Content Safety covers baseline content filtering; organization-specific semantic guardrails may need custom policies | Supplemental Tool Recommended | Extend APIM policies with custom semantic rules or integrate a third-party LLM firewall for specialized domains |
+
+### Reading the Gap Table
+
+The table above maps the five known gaps that every Citadel deployment should consider when aligning to the EY framework. Two gaps are **process changes** (AIRA and AI QRM), two are **supplemental tools** (observability and guardrails), and two are **out of scope** (EY Fabric stacks and development spectrum mapping). Notice that the total exceeds five because some rows bundle related concerns — for example, EY Fabric stacks covers both EYQ/EYX and NVIDIA Agent Builder.
+
+## Supplemental Tools Deep-Dive
+
+### Governance Process: AIRA & AI QRM
+
+AIRA (AI Risk Assessment) and AI QRM (AI Quality Risk Management) are EY-internal process controls. Citadel provides the technical foundation that supports these assessments — audit logging via APIM, content safety enforcement, and PII blocking — but the forms themselves, review workflows, and sign-off gates exist inside EY's governance process.
+
+<Info>
+  Treat AIRA and AI QRM as **process gates**, not platform configurations. Your Citadel deployment will generate the telemetry and guardrails that make these reviews easier, but the approvals themselves happen outside the platform.
+</Info>
+
+### Observability: LangSmith, PromptFlow, and Application Insights
+
+Azure Monitor and Application Insights cover infrastructure-level observability: latency, error rates, token consumption, and cost. For **prompt-level tracing**, **evaluation pipelines**, and **LLM-specific metrics** (hallucination detection, prompt versioning, A/B testing), consider one of the following:
+
+| Tool | Best For | Integration Pattern |
+|---|---|---|
+| **LangSmith** | Prompt tracing, evaluation datasets, agent workflow debugging | Send traces from your LangGraph or LangChain agents to LangSmith; keep infrastructure metrics in Azure Monitor |
+| **Azure PromptFlow** | End-to-end prompt engineering, evaluation, and deployment flows within Azure | Deploy as part of your Azure AI Foundry project; route through Citadel APIM for governance |
+| **Application Insights + Log Analytics** | Unified infrastructure and custom event logging | Emit structured logs from agents to Application Insights; build custom KQL dashboards for LLM-specific KPIs |
+
+<Warning>
+  If you add a supplemental observability tool, ensure it also routes through Citadel's [Governance Hub](/architecture/layer-1-governance-hub) so that model access, rate limits, and audit logging remain centralized.
+</Warning>
+
+### Guardrails: Beyond Azure Content Safety
+
+Azure AI Content Safety provides baseline filtering for harmful content (violence, self-harm, sexual content, hate speech). However, some organizations need **domain-specific semantic guardrails** — for example, financial advice disclaimers, healthcare compliance language, or client-confidentiality checks that go beyond generic content categories.
+
+<Steps>
+  <Step title="Start with Azure Content Safety">
+    Deploy Content Safety as your baseline guardrail at Layer 4. This satisfies the majority of EY's AI security requirements with no additional vendors.
+  </Step>
+  <Step title="Identify domain-specific gaps">
+    Work with your legal and compliance teams to define organization-specific rules that Content Safety does not cover (e.g., mandatory disclaimers, prohibited terminology).
+  </Step>
+  <Step title="Extend via APIM policies or third-party firewalls">
+    Implement custom APIM inbound policies for lightweight semantic checks, or evaluate an LLM firewall (e.g., Lakera, Prompt Security) for advanced real-time guardrails.
+  </Step>
+</Steps>
+
+### Decision Framework: Process Change vs Supplemental Tool
+
+When you encounter a gap, use this simple decision tree to decide how to close it:
+
+1. **Does the gap involve an EY-internal form, workflow, or approval gate?** → Process Change Required. No tool purchase needed.
+2. **Does the gap involve a capability that Azure does not natively provide?** → Supplemental Tool Recommended. Evaluate cost, integration effort, and governance routing before buying.
+3. **Does the gap involve a non-Microsoft stack or EY-proprietary platform?** → Out of Scope. Route through that platform's onboarding process rather than forcing it into Citadel.
+
+<Tip>
+  Always prioritize process changes over tool purchases. A $0 process fix that unblocks production is worth more than an expensive observability platform that sits behind an incomplete AI QRM review.
+</Tip>
+
+## Actionable Next Steps
+
+<Steps>
+  <Step title="Review the alignment map against your engagement scope">
+    Start with the [EY Framework Alignment Map](/ey-framework-alignment/alignment-map) to identify which criteria are enforced, partial, or attention points for your specific deployment.
+  </Step>
+  <Step title="Identify which gaps apply to your deployment">
+    Not every gap applies to every team. A purely pro-code Azure deployment may only need advanced observability; a multi-platform deployment may need to address EYQ and NVIDIA stacks as well.
+  </Step>
+  <Step title="Prioritize process changes before tool purchases">
+    Process gaps (AIRA, AI QRM, governance approvals) are typically blockers to production. Close these before investing in supplemental observability or guardrail tools.
+  </Step>
+  <Step title="Engage EY teams for AIRA and AI QRM alignment">
+    Reach out to your EY engagement contact to initiate AIRA registration and AI QRM review. Use Citadel's audit logs and policy enforcement as evidence of technical controls during the review.
+  </Step>
+</Steps>
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="View Full Alignment Map" icon="table" href="/ey-framework-alignment/alignment-map">
+    See every EY criterion mapped to Citadel with enforcement status.
+  </Card>
+  <Card title="EY Framework Overview" icon="building" href="/ey-framework-alignment">
+    Return to the framework overview and enforcement status key.
+  </Card>
+  <Card title="Governance Overview" icon="book" href="/governance/governance-overview">
+    Explore Citadel's policy-as-code governance approach and automated enforcement.
+  </Card>
+  <Card title="Start Citadel Deployment" icon="rocket" href="/getting-started/introduction">
+    Begin deploying Citadel with prerequisites, quick-start, and role guidance.
+  </Card>
+</CardGroup>
