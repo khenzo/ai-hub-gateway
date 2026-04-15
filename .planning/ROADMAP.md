@@ -144,4 +144,4 @@ Plans:
 | 17. Kubernetes & DevOps Patterns | 2/2 | Complete    | 2026-04-14 | - |
 | 18. Security & Governance at Scale | 3/3 | Complete    | 2026-04-14 | - |
 | 19. MCP, A2A & Agent Discovery | 3/3 | Complete    | 2026-04-15 | - |
-| 20. Attention Points & Recommendations | v1.3 | 2/2 | Complete | 2026-04-15 |
+| 20. Attention Points & Recommendations | v1.3 | Complete    | 2026-04-15 | 2026-04-15 |
