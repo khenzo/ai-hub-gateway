@@ -253,6 +253,15 @@
               "ey-framework-alignment/guardrails-config",
               "ey-framework-alignment/compliance-tooling"
             ]
+          },
+          {
+            "group": "Protocols & Discovery",
+            "icon": "network",
+            "pages": [
+              "ey-framework-alignment/mcp-governance",
+              "ey-framework-alignment/a2a-trust-broker",
+              "ey-framework-alignment/agent-discovery"
+            ]
           }
         ]
       }
