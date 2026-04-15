@@ -45,7 +45,7 @@ _For full details, see `.planning/milestones/v1.1-ROADMAP.md`_
 _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
 </details>
 
-### v1.3 EY Framework Alignment (Phases 16-21)
+### v1.3 EY Framework Alignment (Phases 16-22)
 
 - [x] **Phase 16: EY Framework Alignment Overview** - Alignment map and dedicated EY section in site navigation (completed 2026-04-14)
 - [x] **Phase 17: Kubernetes & DevOps Patterns** - AKS deployment, GitHub scaffolding, and CI/CD pipeline guidance (completed 2026-04-14)
@@ -53,6 +53,7 @@ _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
 - [x] **Phase 19: MCP, A2A & Agent Discovery** - Protocol alignment and APIM as agent registry (completed 2026-04-15)
 - [x] **Phase 20: Attention Points & Recommendations** - Gap analysis and actionable add-on recommendations (completed 2026-04-15)
 - [x] **Phase 21: Refactor Mintlify doc tabs for Guides and Operations** - Consolidate how-to pages into a single Operations section with links to official GitHub repos (completed 2026-04-15)
+- [ ] **Phase 22: Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform** - Rebrand and restructure architecture and getting-started docs to reflect the SOF1A 2.0 AI Governance Platform vision (not started)
 
 ## Phase Details
 
@@ -137,6 +138,22 @@ Plans:
 - [x] 21-01-PLAN.md — Restructure Guides into AI Landing Zone and Citadel Hub sections with repo links
 - [x] 21-02-PLAN.md — Update docs.json navigation and fix cross-references
 
+### Phase 22: Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform
+**Goal**: Rebrand and restructure the architecture and getting-started documentation to reflect the SOF1A 2.0 AI Governance Platform vision, clearly positioning the AI Landing Zone and Citadel Governance Hub as a unified enterprise platform for AI services and use-case governance
+**Depends on**: Phase 21
+**Requirements**: REBRAND-01, REBRAND-02, REBRAND-03, REBRAND-04, REBRAND-05
+**Success Criteria** (what must be TRUE):
+  1. Architecture docs clearly communicate the two main components under the SOF1A 2.0 AI Governance Platform brand
+  2. Getting-started docs reflect the new platform narrative and visual identity
+  3. Separation of concepts between AI Landing Zone and APIM Gateway is maintained while showing how they interact
+  4. Existing architecture diagrams are preserved and updated where needed
+**Plans**: 4 plans
+Plans:
+- [ ] 22-01-PLAN.md — Rebrand and restructure architecture documentation for SOF1A 2.0
+- [ ] 22-02-PLAN.md — Rebrand getting-started introduction and concepts for SOF1A 2.0
+- [ ] 22-03-PLAN.md — Rebrand getting-started quick-start, prerequisites, and roles for SOF1A 2.0
+- [ ] 22-04-PLAN.md — Update docs.json navigation and verify cross-references
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -162,3 +179,4 @@ Plans:
 | 19. MCP, A2A & Agent Discovery | 3/3 | Complete    | 2026-04-15 | - |
 | 20. Attention Points & Recommendations | v1.3 | Complete    | 2026-04-15 | 2026-04-15 |
 | 21. Refactor Mintlify doc tabs for Guides and Operations | 2/2 | Complete    | 2026-04-15 | - |
+| 22. Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform | 1/4 | In Progress|  | - |
