@@ -1,0 +1,676 @@
+---
+title: Network Approach Guide
+description: 'Practical step-by-step guide for implementing Citadel Governance Hub networking with deployment checklists and troubleshooting'
+---
+
+# Network Approach Guide
+
+This guide provides practical, step-by-step instructions for implementing Citadel Governance Hub networking, from planning through validation.
+
+## Network Planning Checklist
+
+Before deploying Citadel Governance Hub, complete this planning checklist:
+
+### 1. Requirements Gathering
+
+| Item | Status | Notes |
+|------|--------|-------|
+| **Identify use cases** | ☐ | Document AI workloads and traffic patterns |
+| **Determine security requirements** | ☐ | Compliance standards (SOC 2, HIPAA, etc.) |
+| **Assess existing network** | ☐ | Current Azure Landing Zone topology |
+| **Define scale requirements** | ☐ | Number of spokes, expected throughput |
+| **Latency requirements** | ☐ | Acceptable latency for AI workloads |
+| **On-premises connectivity** | ☐ | VPN, ExpressRoute, or none |
+
+### 2. Network Design Decisions
+
+| Decision | Options | Selected |
+|----------|---------|----------|
+| **Deployment Pattern** | Hub Network / Spoke Network | |
+| **CGH Address Space** | /22 (1,024 IPs) | 10.170.0.0/22 |
+| **Spoke Address Space** | /22 per spoke | 10.171.0.0/22 |
+| **APIM SKU** | StandardV2 / PremiumV2 / Premium | |
+| **Firewall** | Azure Firewall Standard / Premium | |
+| **DNS Strategy** | Existing zones / New zones / Hybrid | |
+
+### 3. Prerequisites Validation
+
+- [ ] Azure subscription with Owner or Contributor + User Access Administrator
+- [ ] Resource providers registered (`Microsoft.Network`, `Microsoft.ApiManagement`)
+- [ ] Sufficient subscription quota for VNets, public IPs, and APIM
+- [ ] Hub VNet available (for hub network pattern) or address space available
+- [ ] Private DNS zones accessible or creation permissions
+
+## Step-by-Step Deployment
+
+### Phase 1: Hub VNet Preparation
+
+#### Step 1.1: Create Hub VNet (Spoke Network Pattern)
+
+```bash
+# Create resource group
+az group create \
+  --name rg-citadel-hub-network \
+  --location eastus \
+  --tags environment=production purpose="Citadel Hub Network"
+
+# Create VNet with subnets
+az network vnet create \
+  --name vnet-citadel-hub-eastus \
+  --resource-group rg-citadel-hub-network \
+  --address-prefix 10.170.0.0/22 \
+  --subnet-name GatewaySubnet \
+  --subnet-prefix 10.170.0.0/26
+
+# Add additional subnets
+az network vnet subnet create \
+  --name AzureFirewallSubnet \
+  --vnet-name vnet-citadel-hub-eastus \
+  --resource-group rg-citadel-hub-network \
+  --address-prefix 10.170.0.64/26
+
+az network vnet subnet create \
+  --name snet-citadel-services \
+  --vnet-name vnet-citadel-hub-eastus \
+  --resource-group rg-citadel-hub-network \
+  --address-prefix 10.170.1.0/25
+
+az network vnet subnet create \
+  --name snet-citadel-private-endpoints \
+  --vnet-name vnet-citadel-hub-eastus \
+  --resource-group rg-citadel-hub-network \
+  --address-prefix 10.170.2.0/25 \
+  --disable-private-endpoint-network-policies true
+
+az network vnet subnet create \
+  --name snet-citadel-management \
+  --vnet-name vnet-citadel-hub-eastus \
+  --resource-group rg-citadel-hub-network \
+  --address-prefix 10.170.3.0/26
+```
+
+#### Step 1.2: Configure NSGs
+
+```bash
+# Create NSG for CGH services subnet
+az network nsg create \
+  --name nsg-citadel-hub-services \
+  --resource-group rg-citadel-hub-network \
+  --location eastus
+
+# Add inbound rule for HTTPS from spoke networks
+az network nsg rule create \
+  --name AllowSpokeHTTPS \
+  --nsg-name nsg-citadel-hub-services \
+  --resource-group rg-citadel-hub-network \
+  --priority 100 \
+  --source-address-prefixes 10.171.0.0/22 10.172.0.0/22 \
+  --destination-port-ranges 443 \
+  --access Allow \
+  --protocol Tcp \
+  --direction Inbound
+
+# Associate NSG with subnet
+az network vnet subnet update \
+  --name snet-citadel-services \
+  --vnet-name vnet-citadel-hub-eastus \
+  --resource-group rg-citadel-hub-network \
+  --network-security-group nsg-citadel-hub-services
+```
+
+#### Step 1.3: Deploy Azure Firewall (Spoke Network Pattern)
+
+```bash
+# Create public IP for firewall
+az network public-ip create \
+  --name pip-afw-citadel-hub \
+  --resource-group rg-citadel-hub-network \
+  --allocation-method Static \
+  --sku Standard
+
+# Create Azure Firewall
+az network firewall create \
+  --name afw-citadel-hub \
+  --resource-group rg-citadel-hub-network \
+  --location eastus \
+  --vnet-name vnet-citadel-hub-eastus \
+  --public-ip-configs name=ipconfig1,public-ip-address=pip-afw-citadel-hub
+
+# Get firewall private IP
+az network firewall show \
+  --name afw-citadel-hub \
+  --resource-group rg-citadel-hub-network \
+  --query "ipConfigurations[0].privateIpAddress" \
+  --output tsv
+```
+
+### Phase 2: Private DNS Configuration
+
+#### Step 2.1: Create or Link Private DNS Zones
+
+```bash
+# Option A: Create new zones
+DNS_ZONES=(
+  "privatelink.cognitiveservices.azure.com"
+  "privatelink.vaultcore.azure.net"
+  "privatelink.documents.azure.com"
+  "privatelink.blob.core.windows.net"
+  "privatelink.servicebus.windows.net"
+  "privatelink.monitor.azure.com"
+  "privatelink.azure-api.net"
+)
+
+for zone in "${DNS_ZONES[@]}"; do
+  az network private-dns zone create \
+    --name "$zone" \
+    --resource-group rg-citadel-hub-network
+done
+
+# Link zones to VNet
+for zone in "${DNS_ZONES[@]}"; do
+  az network private-dns link vnet create \
+    --name "link-${zone%%.*}" \
+    --resource-group rg-citadel-hub-network \
+    --zone-name "$zone" \
+    --virtual-network vnet-citadel-hub-eastus \
+    --registration-enabled falsedone
+```
+
+#### Step 2.2: Configure DNS Forwarding (Hybrid Scenarios)
+
+```bash
+# If using on-premises DNS, configure conditional forwarders
+# This typically requires PowerShell or Azure Portal configuration
+
+# Example: Configure Azure DNS Private Resolver
+az dns-resolver create \
+  --name dr-citadel-hub \
+  --resource-group rg-citadel-hub-network \
+  --location eastus \
+  --virtual-network "{\"id\":\"/subscriptions/{sub}/resourceGroups/rg-citadel-hub-network/providers/Microsoft.Network/virtualNetworks/vnet-citadel-hub-eastus\"}"
+```
+
+### Phase 3: Route Table Configuration
+
+#### Step 3.1: Create Route Tables
+
+```bash
+# Create route table for CGH services
+az network route-table create \
+  --name rt-citadel-hub-services \
+  --resource-group rg-citadel-hub-network \
+  --location eastus \
+  --disable-bgp-route-propagation true
+
+# Add routes
+# Route to firewall for Internet
+az network route-table route create \
+  --name default-to-firewall \
+  --route-table-name rt-citadel-hub-services \
+  --resource-group rg-citadel-hub-network \
+  --address-prefix 0.0.0.0/0 \
+  --next-hop-type VirtualAppliance \
+  --next-hop-ip-address 10.170.0.4  # Replace with actual firewall IP
+
+# Local routes (VNet local)
+az network route-table route create \
+  --name local-vnet \
+  --route-table-name rt-citadel-hub-services \
+  --resource-group rg-citadel-hub-network \
+  --address-prefix 10.170.0.0/22 \
+  --next-hop-type VnetLocal
+
+# Associate with subnet
+az network vnet subnet update \
+  --name snet-citadel-services \
+  --vnet-name vnet-citadel-hub-eastus \
+  --resource-group rg-citadel-hub-network \
+  --route-table rt-citadel-hub-services
+```
+
+### Phase 4: Spoke VNet Deployment
+
+#### Step 4.1: Create Spoke VNet
+
+```bash
+# Create spoke resource group
+az group create \
+  --name rg-citadel-spoke-finance \
+  --location eastus
+
+# Create spoke VNet
+az network vnet create \
+  --name vnet-citadel-spoke-finance \
+  --resource-group rg-citadel-spoke-finance \
+  --address-prefix 10.171.0.0/22 \
+  --subnet-name snet-agent-workloads \
+  --subnet-prefix 10.171.0.0/24
+
+# Add additional subnets
+az network vnet subnet create \
+  --name snet-data-services \
+  --vnet-name vnet-citadel-spoke-finance \
+  --resource-group rg-citadel-spoke-finance \
+  --address-prefix 10.171.1.0/24
+
+az network vnet subnet create \
+  --name snet-private-endpoints \
+  --vnet-name vnet-citadel-spoke-finance \
+  --resource-group rg-citadel-spoke-finance \
+  --address-prefix 10.171.2.0/25 \
+  --disable-private-endpoint-network-policies true
+
+az network vnet subnet create \
+  --name snet-management \
+  --vnet-name vnet-citadel-spoke-finance \
+  --resource-group rg-citadel-spoke-finance \
+  --address-prefix 10.171.3.0/26
+```
+
+#### Step 4.2: Configure Spoke Route Table
+
+```bash
+# Create route table that forces traffic through hub firewall
+az network route-table create \
+  --name rt-spoke-to-firewall \
+  --resource-group rg-citadel-spoke-finance \
+  --location eastus \
+  --disable-bgp-route-propagation true
+
+# Default route to firewall
+az network route-table route create \
+  --name default-route \
+  --route-table-name rt-spoke-to-firewall \
+  --resource-group rg-citadel-spoke-finance \
+  --address-prefix 0.0.0.0/0 \
+  --next-hop-type VirtualAppliance \
+  --next-hop-ip-address 10.170.0.4  # Hub firewall IP
+
+# Route to CGH services
+az network route-table route create \
+  --name to-cgh-services \
+  --route-table-name rt-spoke-to-firewall \
+  --resource-group rg-citadel-spoke-finance \
+  --address-prefix 10.170.1.0/25 \
+  --next-hop-type VirtualAppliance \
+  --next-hop-ip-address 10.170.0.4
+
+# Associate with agent workloads subnet
+az network vnet subnet update \
+  --name snet-agent-workloads \
+  --vnet-name vnet-citadel-spoke-finance \
+  --resource-group rg-citadel-spoke-finance \
+  --route-table rt-spoke-to-firewall
+```
+
+### Phase 5: VNet Peering
+
+#### Step 5.1: Configure Hub-to-Spoke Peering
+
+```bash
+# Hub to spoke peering
+az network vnet peering create \
+  --name hub-to-spoke-finance \
+  --resource-group rg-citadel-hub-network \
+  --vnet-name vnet-citadel-hub-eastus \
+  --remote-vnet vnet-citadel-spoke-finance \
+  --remote-vnet-resource-group rg-citadel-spoke-finance \
+  --allow-forwarded-traffic \
+  --allow-gateway-transit
+
+# Spoke to hub peering
+az network vnet peering create \
+  --name spoke-finance-to-hub \
+  --resource-group rg-citadel-spoke-finance \
+  --vnet-name vnet-citadel-spoke-finance \
+  --remote-vnet vnet-citadel-hub-eastus \
+  --remote-vnet-resource-group rg-citadel-hub-network \
+  --allow-forwarded-traffic \
+  --use-remote-gateways
+```
+
+#### Step 5.2: Link Private DNS Zones to Spoke
+
+```bash
+# Link all DNS zones to spoke VNet
+for zone in "${DNS_ZONES[@]}"; do
+  az network private-dns link vnet create \
+    --name "link-spoke-${zone%%.*}" \
+    --resource-group rg-citadel-hub-network \
+    --zone-name "$zone" \
+    --virtual-network vnet-citadel-spoke-finance \
+    --registration-enabled false \
+    --resource-group-rg-citadel-spoke-finance
+done
+```
+
+### Phase 6: Citadel Governance Hub Deployment
+
+#### Step 6.1: Prepare Parameters
+
+Create parameter file for Bicep deployment:
+
+```json
+{
+  "useExistingVnet": false,
+  "vnetName": "vnet-citadel-hub-eastus",
+  "vnetAddressPrefix": "10.170.0.0/22",
+  "apimSubnetPrefix": "10.170.1.0/25",
+  "privateEndpointSubnetPrefix": "10.170.2.0/25",
+  "functionAppSubnetPrefix": "10.170.3.0/26",
+  "dnsZoneRG": "rg-citadel-hub-network",
+  "apimNetworkType": "Internal",
+  "apimV2UsePrivateEndpoint": true,
+  "apimV2PublicNetworkAccess": false
+}
+```
+
+#### Step 6.2: Deploy CGH
+
+```bash
+# Initialize and deploy
+azd init --template Azure-Samples/ai-hub-gateway-solution-accelerator -e citadel-hub-prod --branch citadel-v1
+
+# Update parameters
+cat > .azure/citadel-hub-prod/config.json << EOF
+{
+  "infra": {
+    "parameters": {
+      "useExistingVnet": false,
+      "vnetName": "vnet-citadel-hub-eastus",
+      "vnetAddressPrefix": "10.170.0.0/22"
+    }
+  }
+}
+EOF
+
+# Deploy
+azd up
+```
+
+## Testing Connectivity
+
+### Test 1: Verify VNet Peering
+
+```bash
+# Check peering status
+az network vnet peering list \
+  --resource-group rg-citadel-hub-network \
+  --vnet-name vnet-citadel-hub-eastus \
+  --output table
+
+# Expected output: peeringState = "Connected"
+```
+
+### Test 2: Test Spoke-to-Hub Connectivity
+
+```bash
+# Create test VMs (if not already present)
+# From spoke VM, test connectivity to CGH services
+
+# Test HTTPS to APIM
+curl -v https://<apim-gateway-ip>/health 2>&1 | grep -E "(Connected|HTTP)"
+
+# Test DNS resolution
+nslookup <apim-name>.azure-api.net
+
+# Test private endpoint connectivity
+curl -v https://<cosmosdb-account>.documents.azure.com:443/
+```
+
+### Test 3: Verify Routing
+
+```bash
+# Check effective routes on spoke VM NIC
+az network nic show-effective-route-table \
+  --resource-group rg-citadel-spoke-finance \
+  --name <nic-name> \
+  --output table
+
+# Verify default route points to firewall
+# Should see: 0.0.0.0/0 -> VirtualAppliance -> 10.170.0.4
+```
+
+### Test 4: Firewall Flow Verification
+
+```bash
+# Check Azure Firewall logs (via Log Analytics)
+az monitor log-analytics query \
+  --workspace <workspace-id> \
+  --analytics-query "
+    AzureDiagnostics
+    | where Category == 'AzureFirewallApplicationRule'
+    | where msg_s contains 'Allow'
+    | summarize count() by FQDN = fqdn_s, Action = action_s
+    | order by count_ desc
+  "
+```
+
+## Validation Procedures
+
+### Network Validation Checklist
+
+| Test | Command/Method | Expected Result |
+|------|----------------|-----------------|
+| **VNet Peering** | `az network vnet peering list` | Status: Connected |
+| **DNS Resolution** | `nslookup` from spoke | Resolves private IPs |
+| **HTTPS to CGH** | `curl -I https://<apim>` | HTTP 200/401/403 |
+| **Firewall Routing** | `az network nic show-effective-route-table` | Default -> Firewall |
+| **NSG Rules** | `az network nsg show` | Rules applied correctly |
+| **Private Endpoints** | `az network private-endpoint show` | Connection status: Approved |
+
+### Performance Validation
+
+```bash
+# Test latency from spoke to hub
+ping -c 10 <hub-vm-ip>
+
+# Test bandwidth (if iperf available)
+iperf3 -c <hub-vm-ip> -t 30
+
+# Check DNS resolution time
+dig +stats <private-endpoint-fqdn>
+```
+
+## Network Monitoring Setup
+
+### Enable NSG Flow Logs
+
+```bash
+# Create storage account for flow logs
+az storage account create \
+  --name stcitadelnsgflowlogs \
+  --resource-group rg-citadel-hub-network \
+  --sku Standard_LRS
+
+# Enable NSG flow logs
+az network watcher flow-log create \
+  --name nsg-flowlog-citadel-hub \
+  --resource-group NetworkWatcherRG \
+  --nsg nsg-citadel-hub-services \
+  --storage-account stcitadelnsgflowlogs \
+  --workspace <log-analytics-workspace-id> \
+  --enabled true \
+  --retention 30
+```
+
+### Configure Traffic Analytics
+
+```bash
+az network watcher flow-log create \
+  --name traffic-analytics-citadel \
+  --resource-group NetworkWatcherRG \
+  --nsg nsg-citadel-hub-services \
+  --storage-account stcitadelnsgflowlogs \
+  --workspace <log-analytics-workspace-id> \
+  --enabled true \
+  --retention 10 \
+  --traffic-analytics true \
+  --interval 60
+```
+
+### Create Alerts
+
+```bash
+# Alert on firewall block
+az monitor metrics alert create \
+  --name "alert-firewall-blocks" \
+  --resource-group rg-citadel-hub-network \
+  --scopes $(az network firewall show --name afw-citadel-hub --resource-group rg-citadel-hub-network --query id -o tsv) \
+  --condition "avg ApplicationRuleHit > 10" \
+  --window-size 5m \
+  --evaluation-frequency 1m \
+  --action <action-group-id>
+```
+
+## Performance Optimization
+
+### Optimize Latency
+
+| Optimization | Implementation | Impact |
+|--------------|----------------|--------|
+| **Same Region** | Deploy CGH and spokes in same region | -10-50ms |
+| **Proximity Placement** | Use proximity placement groups | -1-5ms |
+| **Accelerated Networking** | Enable on all VMs | -10-20% |
+| **ExpressRoute FastPath** | Bypass gateway for on-prem | -5-10ms |
+
+### Optimize Bandwidth
+
+| Optimization | Implementation | Impact |
+|--------------|----------------|--------|
+| **Direct Peering** | Spoke-to-spoke for high-volume | +2-10 Gbps |
+| **Premium SKU** | APIM Premium for >2,500 RPS | Scales to 100K+ RPS |
+| **Firewall Premium** | TLS inspection offload | +30% throughput |
+
+### Cost Optimization
+
+| Strategy | Implementation | Savings |
+|----------|----------------|---------|
+| **Reserved Instances** | 1-year or 3-year commit | 30-60% |
+| **Zone Redundancy** | Single zone if HA not needed | 50% |
+| **Data Transfer** | Keep traffic within region | Avoids egress |
+
+## Troubleshooting Common Issues
+
+### Issue: Spoke cannot reach CGH
+
+**Symptoms:**
+- Connection timeouts from spoke agents
+- DNS resolves but connection fails
+
+**Diagnosis:**
+```bash
+# Check peering status
+az network vnet peering show \
+  --name hub-to-spoke-finance \
+  --resource-group rg-citadel-hub-network \
+  --vnet-name vnet-citadel-hub-eastus \
+  --query peeringState
+
+# Check NSG rules
+az network nsg rule list \
+  --nsg-name nsg-citadel-hub-services \
+  --resource-group rg-citadel-hub-network \
+  --output table
+
+# Verify routing
+az network nic show-effective-route-table \
+  --resource-group rg-citadel-spoke-finance \
+  --name <nic-name>
+```
+
+**Resolution:**
+1. Ensure bidirectional peering is established
+2. Check NSG allows 443 from spoke CIDR
+3. Verify route table points to correct firewall IP
+
+### Issue: DNS resolution fails
+
+**Symptoms:**
+- `nslookup` returns public IPs instead of private
+- Services unreachable by FQDN but reachable by IP
+
+**Diagnosis:**
+```bash
+# Check DNS zone links
+az network private-dns link vnet list \
+  --resource-group rg-citadel-hub-network \
+  --zone-name privatelink.cognitiveservices.azure.com
+
+# Verify DNS records
+az network private-dns record-set list \
+  --resource-group rg-citadel-hub-network \
+  --zone-name privatelink.cognitiveservices.azure.com
+```
+
+**Resolution:**
+1. Link private DNS zones to spoke VNet
+2. Verify private endpoints have DNS zone groups configured
+3. Check on-premises DNS forwarders (hybrid scenarios)
+
+### Issue: Asymmetric routing
+
+**Symptoms:**
+- Intermittent connection failures
+- TCP connections hang
+
+**Diagnosis:**
+```bash
+# Trace route from both directions
+traceroute <destination-ip>
+
+# Check effective routes on both sides
+az network nic show-effective-route-table \
+  --resource-group <rg> \
+  --name <nic-name>
+```
+
+**Resolution:**
+1. Use UDRs to force symmetric paths
+2. Disable BGP route propagation if conflicting
+3. Ensure both directions traverse same firewall/NVA
+
+### Issue: Firewall blocking legitimate traffic
+
+**Symptoms:**
+- Services work without firewall, fail with firewall
+- Azure Firewall logs show denies
+
+**Diagnosis:**
+```bash
+# Check firewall logs
+az monitor log-analytics query \
+  --workspace <workspace-id> \
+  --analytics-query "
+    AzureDiagnostics
+    | where Category == 'AzureFirewallApplicationRule'
+    | where action_s == 'Deny'
+    | order by TimeGenerated desc
+    | take 10
+  "
+```
+
+**Resolution:**
+1. Add application rules for required FQDNs
+2. Add network rules for required IP ranges
+3. Check threat intelligence allow lists
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Hub-Spoke Overview" href="/architecture/hub-spoke-overview" icon="building">
+    Understand the hub-spoke architecture concepts
+  </Card>
+  <Card title="Network Topology" href="/architecture/network-topology" icon="network-wired">
+    Review detailed VNet and subnet design
+  </Card>
+  <Card title="Deployment Patterns" href="/architecture/deployment-patterns" icon="server">
+    Choose between hub and spoke network patterns
+  </Card>
+  <Card title="Network Security" href="/architecture/network-security" icon="shield">
+    Implement security controls and monitoring
+  </Card>
+  <Card title="VNet Peering" href="/architecture/vnet-peering" icon="link">
+    Configure connectivity and routing
+  </Card>
+</CardGroup>
