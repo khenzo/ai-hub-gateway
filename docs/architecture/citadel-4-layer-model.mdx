@@ -1,6 +1,6 @@
 ---
-title: "Citadel 4-Layer Architecture Model"
-description: "Comprehensive overview of the Foundry Citadel Platform's layered security architecture for enterprise AI governance"
+title: "SOF1A 2.0 4-Layer Architecture Model"
+description: "Comprehensive overview of the SOF1A 2.0 AI Governance Platform's layered security architecture for enterprise AI governance"
 icon: sitemap
 ---
 
@@ -8,7 +8,11 @@ icon: sitemap
 
 ## Overview
 
-The **Foundry Citadel Platform** implements a unified, layered approach to AI security and governance. This architecture enables enterprises to scale AI innovation while maintaining trust, security, and regulatory compliance through **separation of concerns with unified oversight**.
+The **SOF1A 2.0 AI Governance Platform** implements a unified, layered approach to AI security and governance. This architecture enables enterprises to scale AI innovation while maintaining trust, security, and regulatory compliance through **separation of concerns with unified oversight**.
+
+## Platform Vision
+
+The 4-layer model is the architectural blueprint of the SOF1A 2.0 AI Governance Platform. It unifies AI Landing Zone workloads and Citadel governance into a single, coherent enterprise platform. Each layer owns a distinct governance responsibility, yet all layers interlock to deliver end-to-end trust across both secure workload environments and centralized governance controls.
 
 ## Architectural Philosophy
 
@@ -36,10 +40,10 @@ The four layers are not isolated silos—they form an integrated architecture wh
 
 ```mermaid
 graph TB
-    L4["🛡️ Layer 4: Security Fabric<br/>Defender · Purview · Entra — Unified Protection"]
-    L3["🟢 Layer 3: Agent Identity<br/>Entra ID — Identity &amp; Lifecycle"]
-    L2["🔶 Layer 2: AI Control Plane<br/>Foundry Control Plane — Observability &amp; Compliance"]
-    L1["🔷 Layer 1: Governance Hub<br/>API Management — Runtime Enforcement &amp; Gateway"]
+    L4["🛡️ Layer 4: Security Fabric\nDefender · Purview · Entra — Unified Protection"]
+    L3["🟢 Layer 3: Agent Identity\nEntra ID — Identity &amp; Lifecycle"]
+    L2["🔶 Layer 2: AI Control Plane\nFoundry Control Plane — Observability &amp; Compliance"]
+    L1["🔷 Layer 1: Governance Hub\nAPI Management — Runtime Enforcement &amp; Gateway"]
     AG["AI Agents &amp; Applications"]
 
     L4 --> L3
