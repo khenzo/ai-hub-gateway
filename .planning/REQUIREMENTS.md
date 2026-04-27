@@ -26,10 +26,10 @@
 
 ### Semantic Layer (SEML)
 
-- [ ] **SEML-01**: User can understand why platform-native semantics (MetricFlow + Unity Catalog Business Semantics as complementary layers) are required vs tool-embedded semantics — flagship ADR of the milestone
-- [ ] **SEML-02**: User can understand how AI agents query the semantic layer instead of raw tables — grounding vs text-to-SQL distinction; semantic layer is required, not optional, for production AI agents
-- [ ] **SEML-03**: User can understand the author-once-reuse-everywhere principle — a single metric definition serving dashboards, notebooks, and AI agents from a governed source
-- [ ] **SEML-04**: User can understand Core vs Edge semantic model — enterprise-wide certified metrics (core) vs team-specific enrichment (edge) with a promotion path back to core
+- [x] **SEML-01**: User can understand why platform-native semantics (MetricFlow + Unity Catalog Business Semantics as complementary layers) are required vs tool-embedded semantics — flagship ADR of the milestone
+- [x] **SEML-02**: User can understand how AI agents query the semantic layer instead of raw tables — grounding vs text-to-SQL distinction; semantic layer is required, not optional, for production AI agents
+- [x] **SEML-03**: User can understand the author-once-reuse-everywhere principle — a single metric definition serving dashboards, notebooks, and AI agents from a governed source
+- [x] **SEML-04**: User can understand Core vs Edge semantic model — enterprise-wide certified metrics (core) vs team-specific enrichment (edge) with a promotion path back to core
 
 ### APIM Integration & Security (DSEC)
 
@@ -78,10 +78,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MEDA-01 | Phase 25 | Pending |
 | MEDA-02 | Phase 25 | Pending |
 | MEDA-03 | Phase 25 | Pending |
-| SEML-01 | Phase 25 | Pending |
-| SEML-02 | Phase 25 | Pending |
-| SEML-03 | Phase 25 | Pending |
-| SEML-04 | Phase 25 | Pending |
+| SEML-01 | Phase 25 | Complete |
+| SEML-02 | Phase 25 | Complete |
+| SEML-03 | Phase 25 | Complete |
+| SEML-04 | Phase 25 | Complete |
 | DSEC-01 | Phase 27 | Pending |
 | DSEC-02 | Phase 27 | Pending |
 | DSEC-03 | Phase 28 | Pending |

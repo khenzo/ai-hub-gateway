@@ -62,7 +62,7 @@ _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
 
 - [ ] **Phase 23: OneLake Architecture** - Universal storage patterns, shortcut vs mirror ADR, uniform security model across compute engines
 - [x] **Phase 24: Unity Catalog Governance** - Compute/governance separation, ABAC design, three-level namespace contract, Open API + Iceberg REST integration (completed 2026-04-27)
-- [ ] **Phase 25: Semantic Layer** - Platform-native semantics ADR, AI agent query patterns, author-once principle, Core vs Edge model
+- [x] **Phase 25: Semantic Layer** - Platform-native semantics ADR, AI agent query patterns, author-once principle, Core vs Edge model (completed 2026-04-27)
 - [ ] **Phase 26: APIM Governed Data Access** - Citadel APIM fronting Databricks SQL REST API, dedicated data access policy fragment design
 - [ ] **Phase 27: Security & Identity Patterns** - Entra MI chain for zero-secrets data path, Unity Catalog column mask propagation through APIM
 - [ ] **Phase 28: Navigation & Integration** - Data Foundation docs.json tab, all pages wired, Citadel cross-links established
@@ -264,7 +264,7 @@ Plans:
 | 22. Refactor architecture and getting-started for SOF1A 2.0 | v1.3 | 4/4 | Complete | 2026-04-15 |
 | 23. OneLake Architecture | v2.0 | 0/1 | Not started | - |
 | 24. Unity Catalog Governance | v2.0 | 1/1 | Complete | 2026-04-27 |
-| 25. Semantic Layer | v2.0 | 0/1 | Not started | - |
+| 25. Semantic Layer | 1/1 | Complete   | 2026-04-27 | - |
 | 26. APIM Governed Data Access | v2.0 | 0/TBD | Not started | - |
 | 27. Security & Identity Patterns | v2.0 | 0/TBD | Not started | - |
 | 28. Navigation & Integration | v2.0 | 0/TBD | Not started | - |

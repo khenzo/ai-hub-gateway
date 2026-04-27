@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Enterprise Data Foundation
-status: in_progress
-stopped_at: Completed 24-01 plan (Unity Catalog Governance)
-last_updated: "2026-04-27T16:42:24Z"
-last_activity: "2026-04-27 — Completed 24-01 plan (Unity Catalog Governance page, 285 lines)"
+status: completed
+stopped_at: Completed 25-01 plan (Semantic Layer)
+last_updated: "2026-04-27T21:51:21.949Z"
+last_activity: 2026-04-27 — Completed 24-01 plan (Unity Catalog Governance)
 progress:
-  total_phases: 6
-  completed_phases: 0
-  total_plans: 2
-  completed_plans: 2
+  total_phases: 13
+  completed_phases: 10
+  total_plans: 22
+  completed_plans: 21
   percent: 33
 ---
 
@@ -128,6 +128,8 @@ Recent decisions affecting current work:
 - [Phase 22-refactor-architecture-getting-started-for-sof1a-20]: Fixed pre-existing broken nav link: llm-routing-architecture renamed to llm-routing to match actual file
 - [Phase 24-unity-catalog-governance]: Confirmed Phase 23 file exists — used standard MDX cross-link to onelake-architecture instead of Note substitution
 - [Phase 24-unity-catalog-governance]: Separated GA direct table-level row filters from ABAC-managed Public Preview to prevent reader confusion
+- [Phase 25-semantic-layer]: ADR-DF-03 is opinionated: platform-native semantics via MetricFlow + UC Business Semantics required for enterprise AI; text-to-SQL rejected as production substitute
+- [Phase 25-semantic-layer]: MetricFlow and UC Business Semantics are complementary layers (transformation time vs consumption time) — not competing alternatives
 
 ### v2.0 Architectural Context (Critical for Phases 23-28)
 
@@ -162,9 +164,9 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-27T16:42:24Z
-Stopped at: Completed 24-01 plan (Unity Catalog Governance)
-Resume file: .planning/phases/24-unity-catalog-governance/24-01-SUMMARY.md
+Last session: 2026-04-27T21:51:21.946Z
+Stopped at: Completed 25-01 plan (Semantic Layer)
+Resume file: None
 
 ## Milestone Status
 
