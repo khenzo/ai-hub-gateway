@@ -78,10 +78,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MEDA-01 | Phase 25 | Pending |
 | MEDA-02 | Phase 25 | Pending |
 | MEDA-03 | Phase 25 | Pending |
-| SEML-01 | Phase 26 | Pending |
-| SEML-02 | Phase 26 | Pending |
-| SEML-03 | Phase 26 | Pending |
-| SEML-04 | Phase 26 | Pending |
+| SEML-01 | Phase 25 | Pending |
+| SEML-02 | Phase 25 | Pending |
+| SEML-03 | Phase 25 | Pending |
+| SEML-04 | Phase 25 | Pending |
 | DSEC-01 | Phase 27 | Pending |
 | DSEC-02 | Phase 27 | Pending |
 | DSEC-03 | Phase 28 | Pending |
