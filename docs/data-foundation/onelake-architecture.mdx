@@ -1,0 +1,174 @@
+---
+title: "OneLake Architecture"
+description: "Universal storage substrate patterns — shortcuts vs mirroring, universal namespace, and uniform security enforcement across compute engines"
+---
+
+# OneLake Architecture
+
+OneLake is the universal storage substrate of the Enterprise Data Foundation. Rather than introducing a fifth Citadel layer, it operates as a shared data plane that attaches to existing governance structures at three points: Layer 1 (APIM governs semantic endpoint access), Layer 2 (observability tracks data query patterns), and Layer 4 (Security Fabric enforces identity and column mask propagation). This page addresses three architect-facing questions: when to use shortcuts versus mirroring, how the universal namespace eliminates data movement, and how security is enforced uniformly across compute engines.
+
+## The Universal Namespace (LAKE-02)
+
+OneLake provides a single namespace — one ADLS DFS-compatible endpoint — for all Fabric compute engines and external tools. Any application that already reads ADLS Gen2 can read OneLake data at this path without source-specific connectors or ETL pipelines.
+
+The endpoint follows this pattern:
+
+```
+abfss://{workspace_id}@onelake.dfs.fabric.microsoft.com/{item_id}.lakehouse/Tables/{table_name}
+```
+
+Because the API surface is identical to ADLS Gen2, ADLS Gen2, Dataverse, and SharePoint sources are accessible through this same namespace via shortcuts. No data moves. No pipeline is required. No ETL runs for open-format sources.
+
+<Note>
+SharePoint and OneDrive shortcuts are currently in **Public Preview**. Evaluate production readiness before relying on them for regulated workloads.
+</Note>
+
+### Namespace Architecture
+
+```
+Agents / Fabric Compute Engines
+  Spark  |  SQL Analytics  |  KQL  |  Analysis Services
+         |                 |       |
+         +─────────────────+───────+
+                           |
+                    OneLake Namespace
+            onelake.dfs.fabric.microsoft.com
+                           |
+          +────────────────+────────────────+
+          |                |                |
+    Shortcuts          Metadata         Database
+    (pointers,         Mirroring        Mirroring
+     no copy)        (catalog sync,     (CDC copy,
+          |           no data copy)     Delta in OL)
+    ┌─────┴─────┐
+    │  ADLS Gen2│
+    │  Dataverse│  ← source security applies (passthrough)
+    │  S3 / GCS │  ← delegated credential applies
+    │  SharePoint│  ← Public Preview
+    └───────────┘
+```
+
+### Implication for AI Agents
+
+AI agents querying across ADLS, Dataverse, and SharePoint sources see a single namespace. They do not need source-specific connectors, custom authentication flows per source, or awareness of where data physically resides. The agent issues queries against the OneLake endpoint and receives unified results regardless of whether the underlying data is native, shortcutted, or mirrored.
+
+## Shortcut vs Mirroring: The Decision Framework (LAKE-01)
+
+The choice between shortcuts and mirroring determines the security enforcement surface and data movement model — not merely ingestion convenience. Architects must select the pattern that aligns with source format, governance requirements, and compute engine constraints.
+
+### Pattern A — Shortcuts (Metadata Pointer, GA)
+
+A shortcut is a symbolic link object in OneLake. Data stays in its source location and appears as a native folder or table within a Fabric lakehouse. No data moves.
+
+**When to use:**
+- Source is open-format (Delta, Parquet, Iceberg, CSV)
+- Zero data movement is a firm requirement
+- Source system security must remain authoritative
+- ADLS Gen2 is the canonical GA use case; Dataverse and cross-cloud sources are also supported
+
+**Security surface — internal OneLake-to-OneLake shortcuts:**
+Passthrough mode — the calling user's identity is forwarded to the target. Source system security controls what the user sees. OneLake security roles on the shortcut path further filter access. Internal shortcuts cannot override source security.
+
+**Security surface — external shortcuts (ADLS from another tenant, S3, GCS, Dataverse):**
+Delegated mode — an intermediate cloud connection credential accesses the external system. OneLake security roles defined on the delegated shortcut control what end users see.
+
+<Note>
+**DirectLake exception:** When Power BI semantic models use DirectLake over SQL, or T-SQL engines operate in Delegated identity mode, the item owner's identity is used to access the shortcut target — **not** the calling user's identity. OneLake security roles still filter results. Source-system policies see the item owner, not the end user. Architects must account for this in governed scenarios.
+</Note>
+
+### Pattern B — Metadata Mirroring: Catalog Sync, No Data Copy (GA)
+
+Metadata mirroring synchronizes Unity Catalog structure (catalog names, schemas, tables) from Azure Databricks into Fabric. No data moves. OneLake auto-creates shortcuts for the underlying Delta or Iceberg data in ADLS.
+
+**When to use:**
+- Source is Azure Databricks with Unity Catalog
+- Need to expose Databricks-managed Delta tables to Fabric workloads
+- ADLS-backed Delta files are already in place
+
+**Security surface:**
+This is a **split surface**. When Databricks engines read the data, Unity Catalog security (GRANT/REVOKE, row filters, column masks) applies. When Fabric engines (Spark, T-SQL, Power BI) read via the auto-created shortcuts, Fabric workspace security plus OneLake security roles apply — Unity Catalog policies do **not** propagate. Architects integrating Databricks and Fabric must design around this governance boundary explicitly.
+
+### Pattern C — Database Mirroring: CDC Replication for Closed-Format Sources (GA for Most)
+
+Database mirroring performs CDC replication for sources using closed or proprietary storage formats. Data is replicated into OneLake in open Delta Parquet format.
+
+**When to use:**
+- Source is an operational database
+- Source uses closed storage format
+- Near real-time analytics without touching the source
+
+**Security surface:**
+The replicated Delta copy is governed entirely by Fabric workspace roles plus OneLake security roles. Source system security does **not** propagate to the copy.
+
+**GA status by source:**
+- **GA:** Azure SQL DB, Azure SQL MI, Azure Cosmos DB, Azure Database for PostgreSQL, Snowflake, Oracle, SQL Server
+- **Public Preview:** Azure Database for MySQL, Google BigQuery
+
+### Decision Matrix
+
+| SOURCE TYPE | RECOMMENDED PATTERN | SECURITY SURFACE |
+|---|---|---|
+| ADLS Gen2 / Azure Blob | Shortcut external, GA | Fabric workspace + OneLake roles (delegated) |
+| OneLake / another Fabric item | Shortcut internal, GA | Source system (passthrough) |
+| Dataverse | Shortcut external, GA | Fabric workspace + OneLake roles (delegated) |
+| SharePoint / OneDrive | Shortcut external, Preview | Fabric workspace + OneLake roles (delegated) |
+| Azure Databricks / Unity Catalog | Metadata mirroring, GA | Split surface — see Pattern B |
+| Azure SQL DB / Cosmos DB | Database mirroring, GA | Fabric only (replica) |
+| Snowflake / Oracle | Database mirroring, GA | Fabric only (replica) |
+| Azure DB for MySQL | Database mirroring, Preview | Fabric only (replica) |
+
+<Note>
+Metadata mirroring is zero-copy. Database mirroring is not — it performs CDC replication into OneLake storage. Treating both as zero-copy leads to incorrect security model assumptions.
+</Note>
+
+## Security Enforcement Architecture (LAKE-03)
+
+<Warning>
+OneLake security — the feature providing table-, row-, and column-level security roles enforced across all Fabric compute engines — is in **Public Preview** as of April 2026. Assess production readiness before relying on this feature for enforcement in regulated workloads.
+</Warning>
+
+OneLake security implements a define-once, enforce-everywhere model. Security roles are defined at the lakehouse level and enforced consistently regardless of which compute engine issues the query.
+
+### Granularity Levels
+
+- **Table-level security:** Controls which tables a principal can see within a lakehouse
+- **Row-level security:** Filters rows based on principal attributes, enforced at read time
+- **Column-level security:** Masks or restricts columns based on principal attributes
+
+### Engine Coverage
+
+The same role definition applies across Spark, SQL Analytics endpoint, KQL, and Analysis Services. Enforcement is consistent — a principal sees the same filtered result set regardless of engine.
+
+### AI Agent Path Distinction
+
+For AI agents querying via the Databricks SQL REST API (covered in Phase 27, APIM integration), the security enforcement point is Unity Catalog — not OneLake security roles. OneLake security roles apply to Fabric-native compute engines and authorized third-party engines only. Architects must track which enforcement surface governs each agent query path.
+
+Cross-reference: for the Entra managed identity chain (agent to APIM to Databricks SQL to OneLake), see the Security and Identity Patterns section.
+
+## GA vs Preview Summary
+
+| CAPABILITY | STATUS |
+|---|---|
+| OneLake shortcuts | GA |
+| Metadata mirroring — Databricks | GA |
+| Database mirroring — Azure SQL / Cosmos DB / Snowflake / Oracle | GA |
+| Database mirroring — MySQL / BigQuery | Public Preview |
+| OneLake security roles — table / row / column | Public Preview |
+| SharePoint / OneDrive shortcuts | Public Preview |
+
+## Connection to Citadel Architecture
+
+Data Foundation is **not** a fifth Citadel layer. OneLake attaches to the existing four-layer model at three points:
+
+- **Layer 1 — Governance Hub:** APIM governs semantic endpoint access to OneLake data, enforcing rate limiting, authentication, and audit logging at the gateway boundary
+- **Layer 2 — Observability:** Query patterns, latency metrics, and data access telemetry flow through the observability layer already defined for Citadel workloads
+- **Layer 4 — Security Fabric:** Identity enforcement, Entra managed identity chains, and column mask propagation are governed by the Security Fabric; OneLake security roles are an enforcement mechanism, not a separate governance layer
+
+<CardGroup cols={2}>
+  <Card title="Layer 4 Security Fabric" icon="shield" href="/architecture/layer-4-security-fabric">
+    Identity enforcement, column mask propagation, and Entra managed identity chains that govern OneLake security role evaluation.
+  </Card>
+  <Card title="Layer 1 Governance Hub" icon="building-columns" href="/architecture/layer-1-governance-hub">
+    APIM gateway patterns for semantic endpoint access, rate limiting, and audit logging for AI agent queries against OneLake data.
+  </Card>
+</CardGroup>
