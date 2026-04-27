@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Enterprise Data Foundation
 status: in_progress
-stopped_at: Defining requirements
-last_updated: "2026-04-27T00:00:00.000Z"
-last_activity: "2026-04-27 — Milestone v2.0 Enterprise Data Foundation started"
+stopped_at: Completed 23-01 plan (OneLake architecture documentation)
+last_updated: "2026-04-27T16:30:23Z"
+last_activity: "2026-04-27 — Completed 23-01 plan (OneLake architecture page, 174 lines, human-verified)"
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 1
+  completed_plans: 1
+  percent: 14
 ---
 
 # Project State
@@ -25,31 +25,31 @@ See: .planning/PROJECT.md (updated 2026-04-27)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-04-27 — Milestone v2.0 started
+Phase: Phase 23 — OneLake Architecture
+Plan: 23-01
+Status: Complete — OneLake architecture page created and human-verified
+Last activity: 2026-04-27 — Completed 23-01 plan (OneLake architecture documentation)
 
-Progress: [░░░░░░░░░░░░] 0% (0/7 phases complete)
+Progress: [█░░░░░░░░░░░] 14% (1/7 plans complete)
 
 ## v2.0 Phase Summary
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
-| 23. OneLake as Universal Storage | TBD | TBD | Pending |
-| 24. Databricks + Unity Catalog | TBD | TBD | Pending |
-| 25. dbt Medallion Architecture | TBD | TBD | Pending |
-| 26. Semantic Layer | TBD | TBD | Pending |
-| 27. APIM Data Governance | TBD | TBD | Pending |
-| 28. Security & Identity Patterns | TBD | TBD | Pending |
-| 29. Data Foundation Documentation | TBD | TBD | Pending |
+| 23. OneLake Architecture | Architects can reason about OneLake as universal storage substrate | LAKE-01, LAKE-02, LAKE-03 | Complete (23-01) |
+| 24. Unity Catalog Governance | Design governance model separating compute from data ownership | UCAT-01, UCAT-02, UCAT-03, UCAT-04 | Not started |
+| 25. dbt Medallion Architecture | Design dbt-driven medallion with unambiguous tier boundaries | MEDA-01, MEDA-02, MEDA-03 | Not started |
+| 26. Semantic Layer | Commit to platform-native semantics; design Core vs Edge model | SEML-01, SEML-02, SEML-03, SEML-04 | Not started |
+| 27. APIM Governed Data Access | Design Citadel APIM integration for governed semantic endpoint access | DSEC-01, DSEC-02 | Not started |
+| 28. Security & Identity Patterns | Zero-secrets data path via Entra MI chain; column mask propagation | DSEC-03, DSEC-04 | Not started |
+| 29. Navigation & Integration | Data Foundation tab in Mintlify; all pages wired into docs.json | DNAV-01 | Not started |
 
 ## Performance Metrics
 
 **Velocity (v2.0):**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: —
+- Total plans completed: 1
+- Average duration: 30 min
+- Total execution time: 30 min
 
 *Updated after each plan completion*
 
@@ -128,21 +128,32 @@ Recent decisions affecting current work:
 - [Phase 22-refactor-architecture-getting-started-for-sof1a-20]: Added Platform Vision section to 4-layer model to explicitly unify ALZ workloads and Citadel governance
 - [Phase 22-refactor-architecture-getting-started-for-sof1a-20]: Fixed pre-existing broken nav link: llm-routing-architecture renamed to llm-routing to match actual file
 
+### v2.0 Architectural Context (Critical for Phases 23-29)
+
+- **Data Foundation is NOT a fifth Citadel layer** — it attaches at 3 existing attachment points: Layer 1 (APIM), Layer 2 (observability), Layer 4 (Security Fabric)
+- **Strict dependency chain**: Phase 23 (OneLake) → Phase 24 (Unity Catalog) → Phase 25 (Medallion/dbt) → Phase 26 (Semantic Layer) → Phase 27 (APIM Integration) → Phase 28 (Security/Identity) → Phase 29 (Navigation)
+- **Phases 27 and 28 must execute in strict sequence** — Purview label propagation (Phase 28) requires APIM integration (Phase 27) established first
+- **Phase 27 is highest synthesis risk** — must cross-reference existing Citadel docs to avoid contradicting Layer 1/APIM architecture already documented
+- **Phase 29 is a clean closure phase** — docs.json wiring only, no new content pages
+- **8 Pre-GA capabilities across the stack require Warning callouts**: identify and flag in each phase where applicable
+- **Scope: documentation only** — no Bicep, no dbt YAML, no GitHub Actions, no code artifacts of any kind
+
 ### Roadmap Evolution
 
 - Phase 21 added: Refactor Mintlify doc tabs for Guides and Operations
 - Phase 22 added: Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform
+- Phases 23-29 added: v2.0 Enterprise Data Foundation (2026-04-27)
 
 ### Pending Todos
 
-**v1.3 Phases:**
-- Phase 16: EY Framework Alignment Overview (complete)
-- Phase 17: Kubernetes & DevOps Patterns (complete)
-- Phase 18: Security & Governance at Scale (complete — 3/3 plans complete)
-- Phase 19: MCP, A2A & Agent Discovery (complete — 3/3 plans complete)
-- Phase 20: Attention Points & Recommendations (complete — 2/2 plans complete)
-- Phase 21: Refactor Mintlify doc tabs for Guides and Operations (complete — 2/2 plans complete)
-- Phase 22: Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform (complete — 4/4 plans complete)
+**v2.0 Phases:**
+- ✅ Phase 23: OneLake Architecture — Complete (23-01)
+- Phase 24: Unity Catalog Governance — Ready to start
+- Phase 25: dbt Medallion Architecture
+- Phase 26: Semantic Layer
+- Phase 27: APIM Governed Data Access
+- Phase 28: Security & Identity Patterns
+- Phase 29: Navigation & Integration
 
 ### Blockers/Concerns
 
@@ -150,18 +161,19 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-27T00:00:00.000Z
-Stopped at: Milestone v2.0 started — requirements to be defined
-Resume file: None
+Last session: 2026-04-27T16:30:23Z
+Stopped at: Completed 23-01 plan (OneLake architecture documentation)
+Resume file: .planning/phases/23-onelake-architecture/23-01-SUMMARY.md
 
 ## Milestone Status
 
 **Milestone v1.0: ARCHIVED** — Git tag: `v1.0`
 **Milestone v1.1: AI Agent Factory Integration — ARCHIVED** — Git tag: `v1.1`
 **Milestone v1.2: Open Platform Agent Factory — ARCHIVED**
-**Milestone v1.3: EY Framework Alignment — ARCHIVED** — 7 phases, 14/14 requirements complete
+**Milestone v1.3: EY Framework Alignment — ARCHIVED** — 7 phases, complete
 
 **Milestone v2.0: Enterprise Data Foundation — IN PROGRESS**
-- 7 phases defined (Phases 23-29)
-- Requirements: being defined
-- Phase 23-29: Pending
+- 7 phases (Phases 23-29)
+- Requirements: 19 defined, 19 mapped, 3 complete (LAKE-01, LAKE-02, LAKE-03)
+- Phase 23: Complete (1/1 plan done)
+- Phases 24-29: Pending
