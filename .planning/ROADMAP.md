@@ -5,7 +5,8 @@
 - ✅ **v1.0 MVP** — Phases 1-6 (shipped 2026-04-13)
 - ✅ **v1.1 AI Agent Factory Integration** — Phases 7-12 (shipped 2026-04-13)
 - ✅ **v1.2 Open Platform Agent Factory** — Phases 13-15 (shipped 2026-04-13)
-- ✅ **v1.3 EY Framework Alignment** — Phases 16-20 (shipped 2026-04-15)
+- ✅ **v1.3 EY Framework Alignment** — Phases 16-22 (shipped 2026-04-15)
+- 🔄 **v2.0 Enterprise Data Foundation** — Phases 23-29 (in progress)
 
 ## Phases
 
@@ -45,7 +46,8 @@ _For full details, see `.planning/milestones/v1.1-ROADMAP.md`_
 _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
 </details>
 
-### v1.3 EY Framework Alignment (Phases 16-22)
+<details>
+<summary>✅ v1.3 EY Framework Alignment (Phases 16-22) — SHIPPED 2026-04-15</summary>
 
 - [x] **Phase 16: EY Framework Alignment Overview** - Alignment map and dedicated EY section in site navigation (completed 2026-04-14)
 - [x] **Phase 17: Kubernetes & DevOps Patterns** - AKS deployment, GitHub scaffolding, and CI/CD pipeline guidance (completed 2026-04-14)
@@ -53,7 +55,18 @@ _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
 - [x] **Phase 19: MCP, A2A & Agent Discovery** - Protocol alignment and APIM as agent registry (completed 2026-04-15)
 - [x] **Phase 20: Attention Points & Recommendations** - Gap analysis and actionable add-on recommendations (completed 2026-04-15)
 - [x] **Phase 21: Refactor Mintlify doc tabs for Guides and Operations** - Consolidate how-to pages into a single Operations section with links to official GitHub repos (completed 2026-04-15)
-- [x] **Phase 22: Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform** - Rebrand and restructure architecture and getting-started docs to reflect the SOF1A 2.0 AI Governance Platform vision (in progress — 2/4 plans complete) (completed 2026-04-15)
+- [x] **Phase 22: Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform** - Rebrand and restructure architecture and getting-started docs to reflect the SOF1A 2.0 AI Governance Platform vision (completed 2026-04-15)
+</details>
+
+### v2.0 Enterprise Data Foundation (Phases 23-29)
+
+- [ ] **Phase 23: OneLake Architecture** - Universal storage patterns, shortcut vs mirror ADR, uniform security model across compute engines
+- [ ] **Phase 24: Unity Catalog Governance** - Compute/governance separation, ABAC design, three-level namespace contract, Open API + Iceberg REST integration
+- [ ] **Phase 25: dbt Medallion Architecture** - Bronze/Silver/Gold tier patterns, Lakeflow orchestration, metadata-driven lineage via persist_docs
+- [ ] **Phase 26: Semantic Layer** - Platform-native semantics ADR, AI agent query patterns, author-once principle, Core vs Edge model
+- [ ] **Phase 27: APIM Governed Data Access** - Citadel APIM fronting Databricks SQL REST API, dedicated data access policy fragment design
+- [ ] **Phase 28: Security & Identity Patterns** - Entra MI chain for zero-secrets data path, Unity Catalog column mask propagation through APIM
+- [ ] **Phase 29: Navigation & Integration** - Data Foundation docs.json tab, all pages wired, Citadel cross-links established
 
 ## Phase Details
 
@@ -152,7 +165,83 @@ Plans:
 - [x] 22-01-PLAN.md — Rebrand and restructure architecture documentation for SOF1A 2.0
 - [x] 22-02-PLAN.md — Rebrand getting-started introduction and concepts for SOF1A 2.0
 - [x] 22-03-PLAN.md — Rebrand getting-started quick-start, prerequisites, and roles for SOF1A 2.0
-- [ ] 22-04-PLAN.md — Update docs.json navigation and verify cross-references
+- [x] 22-04-PLAN.md — Update docs.json navigation and verify cross-references
+
+### Phase 23: OneLake Architecture
+**Goal**: Architects can reason about OneLake as the universal storage substrate — knowing when to use shortcuts vs mirroring, how the universal namespace eliminates data movement, and how uniform security enforcement works across every compute engine
+**Depends on**: Phase 22 (existing Citadel foundation)
+**Requirements**: LAKE-01, LAKE-02, LAKE-03
+**Success Criteria** (what must be TRUE):
+  1. Reader can apply the shortcut vs mirror decision criteria to a real scenario — understanding the security enforcement surface differences and when each pattern is appropriate (LAKE-01)
+  2. Reader can explain how OneLake's universal namespace connects ADLS, Dataverse, and SharePoint sources without copying data — and what this means for agents querying across those sources (LAKE-02)
+  3. Reader can describe how table-, row-, and column-level security is enforced consistently regardless of whether data is read via Spark, SQL Analytics, or a downstream AI agent (LAKE-03)
+  4. Reader can identify which OneLake capabilities are GA vs Public Preview and understands the risk implications for production deployments (Pre-GA warning callout present)
+**Plans**: 1 plan
+Plans:
+- [ ] 23-01-PLAN.md — Create OneLake architecture page (LAKE-01, LAKE-02, LAKE-03)
+
+### Phase 24: Unity Catalog Governance
+**Goal**: Architects can design a Unity Catalog governance model that separates compute from data ownership — with ABAC scaling across teams, a durable three-level namespace as the governance contract, and a clear understanding of the Open API + Iceberg REST integration path and its current GA status
+**Depends on**: Phase 23
+**Requirements**: UCAT-01, UCAT-02, UCAT-03, UCAT-04
+**Success Criteria** (what must be TRUE):
+  1. Reader can articulate why Unity Catalog lineage, column masks, and row filters persist independently of cluster lifecycle — and what architectural guarantee this provides to downstream consumers (UCAT-01)
+  2. Reader can design a Unity Catalog ABAC scheme using tags and conditions that scales to new teams and schemas without requiring per-table ACL updates (UCAT-02)
+  3. Reader can explain the catalog.schema.table namespace as the governance contract layer — and how it insulates downstream consumers from raw storage reorganizations (UCAT-03)
+  4. Reader understands the Unity Catalog Open API + Iceberg REST Catalog integration with OneLake, knows its Public Preview status, and can identify the currently-GA baseline path to use in production today (UCAT-04)
+**Plans**: TBD
+
+### Phase 25: dbt Medallion Architecture
+**Goal**: Architects can design a dbt-driven medallion architecture where Bronze/Silver/Gold tier boundaries are unambiguous, Lakeflow Jobs orchestrates dbt as a first-class task type, and persist_docs makes dbt YAML the single source of documentation truth across transformation and governance layers
+**Depends on**: Phase 24
+**Requirements**: MEDA-01, MEDA-02, MEDA-03
+**Success Criteria** (what must be TRUE):
+  1. Reader can classify any dataset into the correct medallion tier (Bronze/Silver/Gold) using the naming conventions and data promotion criteria documented — and can explain what does NOT belong in each layer (MEDA-01)
+  2. Reader can explain why Lakeflow Jobs with dbt as a native task type replaces an external orchestrator in this architecture — including the Beta callout so they can assess production readiness (MEDA-02)
+  3. Reader can trace how a description written in dbt YAML becomes visible in Unity Catalog Business Glossary — and why this makes dbt the documentation source of truth for both transformation and governance audiences (MEDA-03)
+**Plans**: TBD
+
+### Phase 26: Semantic Layer
+**Goal**: Architects can commit to platform-native semantics (MetricFlow + Unity Catalog Business Semantics as complementary layers) over tool-embedded semantics, understand why this is non-negotiable for production AI agents, and design a Core vs Edge semantic model with a governed promotion path
+**Depends on**: Phase 25
+**Requirements**: SEML-01, SEML-02, SEML-03, SEML-04
+**Success Criteria** (what must be TRUE):
+  1. Reader can articulate the ADR decision — why platform-native semantics are required vs tool-embedded semantics — including the specific risks tool-embedded semantics introduce for AI agent grounding (SEML-01)
+  2. Reader can explain how AI agents query the semantic layer rather than raw tables — and why the semantic layer is a required production component, not an optional optimization (grounding vs text-to-SQL distinction clear) (SEML-02)
+  3. Reader can trace a single metric definition from authorship through to its consumption by dashboards, notebooks, and AI agents — demonstrating the author-once-reuse-everywhere principle in practice (SEML-03)
+  4. Reader can design a Core vs Edge semantic model — knowing which metrics belong in enterprise-certified Core, which belong in team-specific Edge, and how Edge metrics are promoted to Core (SEML-04)
+**Plans**: TBD
+
+### Phase 27: APIM Governed Data Access
+**Goal**: Architects can design a Citadel APIM integration that governs semantic endpoint access with Entra token validation, usage tracking, and rate limiting — and can justify a dedicated data access policy fragment separate from LLM policy fragments based on the distinct risk surface and throttling model
+**Depends on**: Phase 26
+**Requirements**: DSEC-01, DSEC-02
+**Success Criteria** (what must be TRUE):
+  1. Reader can describe the governed semantic endpoint pattern — how Citadel APIM fronts the Databricks SQL REST API semantic endpoint, what Entra token validation enforces, and how usage tracking and rate limiting apply (DSEC-01)
+  2. Reader can justify why a dedicated data access policy fragment is architecturally distinct from reusing LLM policy fragments — citing the different risk surface, throttling model, and failure modes (DSEC-02)
+  3. Reader can identify where this integration attaches to the existing Citadel 4-layer model — specifically at Layer 1 (Governance Hub / APIM) — without treating it as a fifth layer
+**Plans**: TBD
+
+### Phase 28: Security & Identity Patterns
+**Goal**: Architects can implement a zero-secrets data path using the Entra MI chain from agent through APIM to Databricks SQL to OneLake, and can explain how Unity Catalog column masks propagate through the APIM PII policy to AI agent responses as governance by construction
+**Depends on**: Phase 27
+**Requirements**: DSEC-03, DSEC-04
+**Success Criteria** (what must be TRUE):
+  1. Reader can trace the complete Entra Managed Identity chain — agent identity → APIM token validation → Databricks SQL credential → OneLake access — and confirm that no secrets exist in Key Vault for the data path (DSEC-03)
+  2. Reader can explain how a Unity Catalog column mask defined at the governance layer propagates through APIM PII policy into AI agent responses — and why this is governance by construction rather than procedural enforcement (DSEC-04)
+  3. Reader can map both patterns to their attachment points in the existing Citadel 4-layer model (Layer 4 Security Fabric for identity; Layer 1 APIM for PII propagation)
+**Plans**: TBD
+
+### Phase 29: Navigation & Integration
+**Goal**: A Data Foundation documentation section exists in the Mintlify site as a navigable tab — all content pages wired into docs.json and existing Citadel architecture pages cross-linked into the new section
+**Depends on**: Phase 28
+**Requirements**: DNAV-01
+**Success Criteria** (what must be TRUE):
+  1. A Data Foundation tab appears in the Mintlify top-level navigation and is accessible without search (DNAV-01)
+  2. Every page produced in Phases 23-28 is reachable from the Data Foundation tab without dead links
+  3. Existing Citadel architecture pages (Layer 1/APIM, Layer 2/observability, Layer 4/Security Fabric) include cross-links into the relevant Data Foundation pages
+  4. No previously working internal links are broken by the docs.json changes
+**Plans**: TBD
 
 ## Progress
 
@@ -173,10 +262,17 @@ Plans:
 | 13. Open Platform Transformation | v1.2 | 1/1 | Complete | 2026-04-13 |
 | 14. Deep Agents Architecture | v1.2 | 1/1 | Complete | 2026-04-13 |
 | 15. Navigation & Integration | v1.2 | 1/1 | Complete | 2026-04-13 |
-| 16. EY Framework Alignment Overview | 2/2 | Complete    | 2026-04-14 | - |
-| 17. Kubernetes & DevOps Patterns | 2/2 | Complete    | 2026-04-14 | - |
-| 18. Security & Governance at Scale | 3/3 | Complete    | 2026-04-14 | - |
-| 19. MCP, A2A & Agent Discovery | 3/3 | Complete    | 2026-04-15 | - |
-| 20. Attention Points & Recommendations | v1.3 | Complete    | 2026-04-15 | 2026-04-15 |
-| 21. Refactor Mintlify doc tabs for Guides and Operations | 2/2 | Complete    | 2026-04-15 | - |
-| 22. Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform | 4/4 | Complete    | 2026-04-15 | - |
+| 16. EY Framework Alignment Overview | v1.3 | 2/2 | Complete | 2026-04-14 |
+| 17. Kubernetes & DevOps Patterns | v1.3 | 2/2 | Complete | 2026-04-14 |
+| 18. Security & Governance at Scale | v1.3 | 3/3 | Complete | 2026-04-14 |
+| 19. MCP, A2A & Agent Discovery | v1.3 | 3/3 | Complete | 2026-04-15 |
+| 20. Attention Points & Recommendations | v1.3 | 2/2 | Complete | 2026-04-15 |
+| 21. Refactor Mintlify doc tabs for Guides and Operations | v1.3 | 2/2 | Complete | 2026-04-15 |
+| 22. Refactor architecture and getting-started for SOF1A 2.0 | v1.3 | 4/4 | Complete | 2026-04-15 |
+| 23. OneLake Architecture | v2.0 | 0/1 | Not started | - |
+| 24. Unity Catalog Governance | v2.0 | 0/TBD | Not started | - |
+| 25. dbt Medallion Architecture | v2.0 | 0/TBD | Not started | - |
+| 26. Semantic Layer | v2.0 | 0/TBD | Not started | - |
+| 27. APIM Governed Data Access | v2.0 | 0/TBD | Not started | - |
+| 28. Security & Identity Patterns | v2.0 | 0/TBD | Not started | - |
+| 29. Navigation & Integration | v2.0 | 0/TBD | Not started | - |
