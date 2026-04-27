@@ -201,7 +201,9 @@ Plans:
   2. Reader can explain how AI agents query the semantic layer rather than raw tables — and why the semantic layer is a required production component, not an optional optimization (grounding vs text-to-SQL distinction clear) (SEML-02)
   3. Reader can trace a single metric definition from authorship through to its consumption by dashboards, notebooks, and AI agents — demonstrating the author-once-reuse-everywhere principle in practice (SEML-03)
   4. Reader can design a Core vs Edge semantic model — knowing which metrics belong in enterprise-certified Core, which belong in team-specific Edge, and how Edge metrics are promoted to Core (SEML-04)
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 25-01-PLAN.md — Create Semantic Layer page (SEML-01, SEML-02, SEML-03, SEML-04)
 
 ### Phase 26: APIM Governed Data Access
 **Goal**: Architects can design a Citadel APIM integration that governs semantic endpoint access with Entra token validation, usage tracking, and rate limiting — and can justify a dedicated data access policy fragment separate from LLM policy fragments based on the distinct risk surface and throttling model
@@ -262,7 +264,7 @@ Plans:
 | 22. Refactor architecture and getting-started for SOF1A 2.0 | v1.3 | 4/4 | Complete | 2026-04-15 |
 | 23. OneLake Architecture | v2.0 | 0/1 | Not started | - |
 | 24. Unity Catalog Governance | v2.0 | 1/1 | Complete | 2026-04-27 |
-| 25. Semantic Layer | v2.0 | 0/TBD | Not started | - |
+| 25. Semantic Layer | v2.0 | 0/1 | Not started | - |
 | 26. APIM Governed Data Access | v2.0 | 0/TBD | Not started | - |
 | 27. Security & Identity Patterns | v2.0 | 0/TBD | Not started | - |
 | 28. Navigation & Integration | v2.0 | 0/TBD | Not started | - |
