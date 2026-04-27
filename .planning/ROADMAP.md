@@ -189,7 +189,9 @@ Plans:
   2. Reader can design a Unity Catalog ABAC scheme using tags and conditions that scales to new teams and schemas without requiring per-table ACL updates (UCAT-02)
   3. Reader can explain the catalog.schema.table namespace as the governance contract layer — and how it insulates downstream consumers from raw storage reorganizations (UCAT-03)
   4. Reader understands the Unity Catalog Open API + Iceberg REST Catalog integration with OneLake, knows its Public Preview status, and can identify the currently-GA baseline path to use in production today (UCAT-04)
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 24-01-PLAN.md — Create Unity Catalog governance page (UCAT-01, UCAT-02, UCAT-03, UCAT-04)
 
 ### Phase 25: dbt Medallion Architecture
 **Goal**: Architects can design a dbt-driven medallion architecture where Bronze/Silver/Gold tier boundaries are unambiguous, Lakeflow Jobs orchestrates dbt as a first-class task type, and persist_docs makes dbt YAML the single source of documentation truth across transformation and governance layers
