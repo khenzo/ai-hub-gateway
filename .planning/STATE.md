@@ -1,114 +1,57 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3
-milestone_name: EY Framework Alignment
+milestone: v2.0
+milestone_name: Enterprise Data Foundation
 status: in_progress
-stopped_at: Completed 22-04-PLAN.md
-last_updated: "2026-04-15T13:46:21.000Z"
-last_activity: "2026-04-15 — Completed Plan 04 of Phase 22 (Updated docs.json with SOF1A 2.0 branding and verified link integrity)"
+stopped_at: Defining requirements
+last_updated: "2026-04-27T00:00:00.000Z"
+last_activity: "2026-04-27 — Milestone v2.0 Enterprise Data Foundation started"
 progress:
   total_phases: 7
-  completed_phases: 7
-  total_plans: 14
-  completed_plans: 14
-  percent: 100
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-14)
+See: .planning/PROJECT.md (updated 2026-04-27)
 
 **Core value:** Enable organizations to deploy enterprise-grade AI infrastructure with confidence
-**Current focus:** Milestone v1.3 — EY Framework Alignment
+**Current focus:** Milestone v2.0 — Enterprise Data Foundation
 
 ## Current Position
 
-Phase: Phase 22 — Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform (complete)
-Plan: 04 (complete)
-Status: Plan 04 complete — updated docs.json with SOF1A 2.0 AI Governance Platform branding and verified link integrity across modified pages
-Last activity: 2026-04-15 — Completed Plan 04 of Phase 22 (Updated docs.json with SOF1A 2.0 branding and verified link integrity)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-27 — Milestone v2.0 started
 
-Next Phase: Milestone v1.3 complete — all 7 phases and 14 plans finished
+Progress: [░░░░░░░░░░░░] 0% (0/7 phases complete)
 
-Progress: [████████████] 100% (7/7 phases complete, 14/14 plans overall in v1.3)
-
-## v1.3 Phase Summary
+## v2.0 Phase Summary
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
-| 16. EY Framework Alignment Overview | Readers can navigate a dedicated EY section and view the full alignment map | ALIGN-01, ALIGN-02 | Complete |
-| 17. Kubernetes & DevOps Patterns | Pro-code engineers can deploy agents to AKS and wire CI/CD with Citadel | KUBE-01, KUBE-02, KUBE-03 | Complete (2/2 plans) |
-| 18. Security & Governance at Scale | Architects can map EY two-tiered governance to Citadel 4-layer architecture | GOVN-01, GOVN-02, GOVN-03 | Complete (3/3 plans) |
-| 19. MCP, A2A & Agent Discovery | Architects can understand Citadel's role in MCP, A2A trust, and agent discovery | PROTO-01, PROTO-02, PROTO-03 | Complete (3/3 plans) |
-| 20. Attention Points & Recommendations | Readers receive actionable gap analysis and supplemental tool recommendations | GAPS-01 | Complete |
-| 21. Refactor Mintlify doc tabs for Guides and Operations | Simplify docs navigation by consolidating Guides/Operations into a single section linking to official GitHub repos | REFACTOR-01, REFACTOR-02 | Complete (2/2 plans) |
-| 22. Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform | Rebrand architecture and getting-started docs to reflect the SOF1A 2.0 AI Governance Platform narrative | REBRAND-02, REBRAND-03 | Complete (4/4 plans) |
+| 23. OneLake as Universal Storage | TBD | TBD | Pending |
+| 24. Databricks + Unity Catalog | TBD | TBD | Pending |
+| 25. dbt Medallion Architecture | TBD | TBD | Pending |
+| 26. Semantic Layer | TBD | TBD | Pending |
+| 27. APIM Data Governance | TBD | TBD | Pending |
+| 28. Security & Identity Patterns | TBD | TBD | Pending |
+| 29. Data Foundation Documentation | TBD | TBD | Pending |
 
 ## Performance Metrics
 
-**Velocity:**
-- Total plans completed: 9
-- Average duration: 12.6 min
-- Total execution time: 1.9 hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-foundation | 3 | 34 min | 11.3 min |
-| 02-core-architecture | 3 | 50 min | 16.7 min |
-| 03-ai-patterns | 3 | 57 min | 19.0 min |
-
-**Recent Trend:**
-- Last 5 plans: [02-01: 11min, 02-02: 27min, 02-03: 12min, 03-01: 12min, 03-02: 17min, 03-03: 28min]
-- Trend: Increasing (security docs are comprehensive)
+**Velocity (v2.0):**
+- Total plans completed: 0
+- Average duration: —
+- Total execution time: —
 
 *Updated after each plan completion*
-| Phase 02-core-architecture P01 | 11min | 6 tasks | 6 files |
-| Phase 02-core-architecture P02 | 27min | 6 tasks | 6 files |
-| Phase 02-core-architecture P03 | 12min | 6 tasks | 6 files |
-| Phase 03-ai-patterns P01 | 12 min | 4 tasks | 4 files |
-| Phase 03-ai-patterns P02 | 17min | 4 tasks | 4 files |
-| Phase 03-ai-patterns P03 | 28min | 5 tasks | 5 files |
-| Phase 04-implementation-guides P01 | 5min | 3 tasks | 3 files |
-| Phase 04-implementation-guides P02 | 6min | 3 tasks | 4 files |
-| Phase 04-implementation-guides P03 | 8min | 4 tasks | 4 files |
-| Phase 05-integration-validation P01 | 14min | 3 tasks | 5 files |
-| Phase 05-integration-validation P02 | 18min | 5 tasks | 5 files |
-| Phase 05-integration-validation P03 | 36min | 6 tasks | 9 files |
-| Phase 06-guides-section P01 | 133min | 9 tasks | 21 files |
-| Phase 07-agent-factory-foundation P07 | 6min | 8 tasks | 9 files |
-| Phase 08-agentic-web-stack P01 | 1min | 3 tasks | 3 files |
-| Phase 08-agentic-web-stack P02 | 2 min | 3 tasks | 4 files |
-| Phase 09-agentic-design-patterns P01 | 2min | 3 tasks | 3 files |
-| Phase 09-agentic-design-patterns P02 | 1min | 3 tasks | 2 files |
-| Phase 10-enterprise-use-cases P01 | 2 min | 3 tasks | 3 files |
-| Phase 10-enterprise-use-cases P02 | 2 min | 3 tasks | 3 files |
-| Phase 11-open-standards P01 | 1min | 2 tasks | 2 files |
-| Phase 11-open-standards P02 | 1min | 2 tasks | 2 files |
-| Phase 12-agent-security-observability P01 | 2min | 2 tasks | 2 files |
-| Phase 12-agent-security-observability P02 | 2min | 2 tasks | 3 files |
-| Phase 15-navigation-integration P01 | 1min | 4 tasks | 0 files |
-| Phase 16-ey-framework-alignment-overview P01 | 1min | 2 tasks | 2 files |
-| Phase 16-ey-framework-alignment-overview P02 | 2 min | 1 tasks | 1 files |
-| Phase 17-kubernetes-devops-patterns P01 | 2 min | 2 tasks | 2 files |
-| Phase 17-kubernetes-devops-patterns P02 | 2min | 2 tasks | 2 files |
-| Phase 18-security-governance-at-scale P01 | 3min | 2 tasks | 2 files |
-| Phase 18-security-governance-at-scale P02 | 1min | 1 tasks | 1 files |
-| Phase 18-security-governance-at-scale P03 | 1min | 1 tasks | 1 files |
-| Phase 19-mcp-a2a-agent-discovery P01 | 2min | 2 tasks | 2 files |
-| Phase 19-mcp-a2a-agent-discovery P02 | 1 min | 1 tasks | 1 files |
-| Phase 19-mcp-a2a-agent-discovery P03 | 1min | 1 tasks | 1 files |
-| Phase 20-attention-points-recommendations P01 | 6min | 2 tasks | 3 files |
-| Phase 20-attention-points-recommendations P02 | 3min | 2 tasks | 1 files |
-| Phase 21-refactor-operations-docs P01 | 4min | 4 tasks | 45 files |
-| Phase 21-refactor-operations-docs P02 | 8min | 5 tasks | 54 files |
-| Phase 22-refactor-architecture-getting-started-for-sof1a-20 P02 | 2 min | 3 tasks | 2 files |
-| Phase 22-refactor-architecture-getting-started-for-sof1a-20 P03 | 3 min | 3 tasks | 3 files |
-| Phase 22-refactor-architecture-getting-started-for-sof1a-20 P01 | 6 min | 4 tasks | 7 files |
-| Phase 22-refactor-architecture-getting-started-for-sof1a-20 P04 | 2 min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -207,41 +150,18 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-15T13:46:21.000Z
-Stopped at: Completed 22-04-PLAN.md
+Last session: 2026-04-27T00:00:00.000Z
+Stopped at: Milestone v2.0 started — requirements to be defined
 Resume file: None
 
 ## Milestone Status
 
-**Milestone v1.0: ARCHIVED**
-- All 6 phases completed
-- 17 total plans executed
-- 156 documentation files shipped
-- Archived to `.planning/milestones/v1.0-ROADMAP.md`
-- Git tag: `v1.0`
-
-**Milestone v1.1: AI Agent Factory Integration — ARCHIVED**
-- All 6 phases completed (Phases 7-12)
-- 12 total plans executed
-- 31 documentation files shipped
-- Archived to `.planning/milestones/v1.1-ROADMAP.md`
-- Git tag: `v1.1`
-
+**Milestone v1.0: ARCHIVED** — Git tag: `v1.0`
+**Milestone v1.1: AI Agent Factory Integration — ARCHIVED** — Git tag: `v1.1`
 **Milestone v1.2: Open Platform Agent Factory — ARCHIVED**
-- 3 phases defined (Phases 13-15)
-- 3 total plans executed
-- Focus: Transform Agent Factory to open-platform narrative with deep agent architecture
-- Phase 13: Complete
-- Phase 14: Complete
-- Phase 15: Complete
+**Milestone v1.3: EY Framework Alignment — ARCHIVED** — 7 phases, 14/14 requirements complete
 
-**Milestone v1.3: EY Framework Alignment — COMPLETE**
-- 7 phases defined (Phases 16-22)
-- 14 requirements mapped, 14/14 complete
-- Phase 16: Complete (2/2 plans complete)
-- Phase 17: Complete (2/2 plans complete)
-- Phase 18: Complete (3/3 plans complete)
-- Phase 19: Complete (3/3 plans complete)
-- Phase 20: Complete (2/2 plans complete)
-- Phase 21: Complete (2/2 plans complete)
-- Phase 22: Complete (4/4 plans complete)
+**Milestone v2.0: Enterprise Data Foundation — IN PROGRESS**
+- 7 phases defined (Phases 23-29)
+- Requirements: being defined
+- Phase 23-29: Pending

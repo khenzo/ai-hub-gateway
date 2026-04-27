@@ -41,8 +41,13 @@ A comprehensive documentation hub for implementing AI Landing Zones with Citadel
 
 ### Active
 
-- [ ] Development spectrum coverage on Citadel (no-code, low-code, pro-code paths)
-- [ ] Attention points and gaps documentation
+- [ ] OneLake integration patterns and shortcut vs mirror ADR
+- [ ] Databricks + Unity Catalog compute/governance separation patterns and ABAC design
+- [ ] dbt Medallion Architecture patterns, Lakeflow orchestration, metadata-driven lineage
+- [ ] Semantic Layer patterns and ADRs (MetricFlow, AI agent integration)
+- [ ] APIM governed data access patterns and policy fragment ADRs
+- [ ] Security & Identity patterns (Entra MI, PII propagation through APIM)
+- [ ] `docs/data-foundation/` Mintlify documentation section with docs.json navigation
 
 ### Out of Scope
 
@@ -120,17 +125,18 @@ This documentation synthesizes content from three primary sources:
    - Defender for AI threat protection
    - Purview for data governance and PII protection
 
-## Current Milestone: v1.3 EY Framework Alignment
+## Current Milestone: v2.0 Enterprise Data Foundation
 
-**Goal:** Document how the Citadel AI Landing Zone addresses the EY AI Agent Development Framework — where it enforces the patterns, how, and where attention is needed.
+**Goal:** Document the Enterprise Data Foundation layer for SOF1A 2.0 — integration patterns, design principles, and ADR motivations for OneLake, Databricks + Unity Catalog, dbt medallion architecture, and semantic layer as the grounded intelligence substrate for AI agents via Citadel APIM.
 
 **Target features:**
-- EY Framework overview and Citadel alignment map (gap analysis table)
-- Development spectrum coverage: no-code → low-code → pro-code on Azure/Microsoft stack
-- Kubernetes (AKS) deployment patterns and GitHub scaffolding / DevOps patterns
-- Security and governance at scale — Citadel 4-layer vs EY two-tiered governance model
-- MCP, A2A, and agent discovery protocol alignment
-- Attention points and gaps page
+- OneLake integration patterns: shortcut vs mirror decision, security model ADRs
+- Databricks + Unity Catalog: compute/governance separation patterns, ABAC design, Unity Catalog Open API integration
+- dbt Medallion Architecture: bronze/silver/gold best practices, Lakeflow orchestration patterns, metadata-driven lineage
+- Semantic Layer: patterns and ADRs grounded in `docs/data-foundation/semantic-layer-architecture.md`, MetricFlow design, AI agent integration
+- APIM Data Governance: governed data access patterns via Citadel gateway, policy fragment design ADRs
+- Security & Identity Patterns: Entra MI patterns, PII propagation from Unity Catalog through APIM
+- Data Foundation Documentation: `docs/data-foundation/` Mintlify pages, docs.json navigation
 
 ## Constraints
 
@@ -204,4 +210,4 @@ All outcomes were marked "— Pending" before v1.0 shipment.
 </details>
 
 ---
-*Last updated: 2026-04-15 after Phase 19 completion*
+*Last updated: 2026-04-27 after Milestone v2.0 Enterprise Data Foundation started*
