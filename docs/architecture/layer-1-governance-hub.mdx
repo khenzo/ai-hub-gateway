@@ -170,6 +170,12 @@ Layer 1 directly implements the **Governance & Security Pillar** of the Foundry 
 | **Developer Experience** | Self-service onboarding through access contracts |
 | **Audit Readiness** | Complete audit trails for compliance |
 
+## Data Access: Semantic Endpoint Registration
+
+<Note>
+The Databricks SQL REST API semantic endpoint registers as an APIM backend, inheriting all Layer 1 governance capabilities — Entra token validation, rate limiting, and usage tracking. The data access policy fragment design differs from LLM policy fragments to account for the distinct risk surface and throttling model. See [APIM Governed Data Access](../data-foundation/apim-semantic-endpoint) for the full integration pattern, including ADR-DF-04 and the policy fragment comparison.
+</Note>
+
 ## Implementation Reference
 
 For detailed deployment guidance, see:
