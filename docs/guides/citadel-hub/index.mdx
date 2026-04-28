@@ -1,0 +1,52 @@
+---
+title: "Citadel Hub"
+description: "Quickstart and guidance for deploying the Citadel AI Gateway"
+icon: "shield"
+---
+
+# Citadel Hub
+
+Citadel Hub is an Azure API Management-based AI gateway that adds enterprise capabilities to your AI Landing Zone, including LLM routing, PII masking, throttling, usage analytics, and Entra ID authentication.
+
+## What It Provides
+
+- **LLM Routing** — Intelligent request routing and load balancing across multiple AI backends
+- **PII Masking** — Protect sensitive data in AI requests before it reaches external models
+- **Throttling & Rate Limiting** — Manage quotas and prevent overload with policy-based controls
+- **Usage Analytics** — Monitor consumption, costs, and performance with built-in dashboards
+- **Entra ID Integration** — Secure access with Azure Active Directory authentication
+
+## Official Repository
+
+<Card title="Azure-Samples/ai-hub-gateway-solution-accelerator" icon="github" href="https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/tree/citadel-v1">
+  View the Bicep modules, deployment templates, and implementation guides for Citadel Hub.
+</Card>
+
+## Deployment Order
+
+<Warning>
+  Deploy the [AI Landing Zone](/guides/ai-landing-zone) first. Citadel Hub extends the infrastructure established by the landing zone and is not intended to be deployed standalone.
+</Warning>
+
+## Guides in This Section
+
+<CardGroup cols={2}>
+  <Card title="Deployment" icon="rocket" href="/guides/citadel-hub/deployment/quick-start">
+    Quick-start, full deployment, parameters, Bicep modules, and checklists.
+  </Card>
+  <Card title="Features" icon="sparkles" href="/guides/citadel-hub/features/pii-masking">
+    PII masking, throttling, and LLM backend onboarding guides.
+  </Card>
+  <Card title="Operations" icon="gears" href="/guides/citadel-hub/operations/citadel-sizing">
+    Sizing, cost estimation, Power BI dashboards, and usage analytics.
+  </Card>
+  <Card title="Reference" icon="book" href="/guides/citadel-hub/reference/entraid-auth">
+    Authentication validation, governance benefits, and best practices.
+  </Card>
+  <Card title="Development" icon="code" href="/guides/citadel-hub/development/shared-resources">
+    Shared resources, testing tools, and development utilities.
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/guides/citadel-hub/troubleshooting">
+    Common issues, troubleshooting steps, and validation checklists.
+  </Card>
+</CardGroup>

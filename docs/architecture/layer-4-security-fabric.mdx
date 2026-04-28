@@ -8,7 +8,7 @@ icon: shield
 
 ## Overview
 
-**Layer 4 — Security Fabric** provides **real-time defense against AI-specific threats** and integrates across all governance layers. By weaving together **Microsoft Defender**, **Microsoft Purview**, and **Microsoft Entra**, this layer delivers unified protection that closes the loop from policy definition to runtime defense.
+**Layer 4 — Security Fabric** is the **unified protection layer** of the AI+ Governance Platform. It provides **real-time defense against AI-specific threats** and integrates across all governance layers. By weaving together **Microsoft Defender**, **Microsoft Purview**, and **Microsoft Entra**, this layer delivers unified protection that closes the loop from policy definition to runtime defense.
 
 ## Strategic Purpose
 
@@ -146,10 +146,10 @@ The Security Fabric enables coordinated response across components:
 
 ```mermaid
 graph TB
-    DEF["🛡️ Defender<br/>Threats &amp; Posture"]
-    PUR["📚 Purview<br/>Data Governance"]
-    ENT["🔐 Entra<br/>Identity"]
-    USO["Unified Security Operations<br/>Cross-signal correlation · Coordinated response<br/>Single pane of glass · Automated remediation"]
+    DEF["🛡️ Defender\nThreats &amp; Posture"]
+    PUR["📚 Purview\nData Governance"]
+    ENT["🔐 Entra\nIdentity"]
+    USO["Unified Security Operations\nCross-signal correlation · Coordinated response\nSingle pane of glass · Automated remediation"]
     L1["→ Layer 1: Gateway protection"]
     L2["→ Layer 2: Compliance signals"]
     L3["→ Layer 3: Identity governance"]
@@ -193,6 +193,16 @@ Security is built into every layer:
 | **Purview Policies** | Data governance enforced on traffic |
 | **Entra Authentication** | Identity validation at entry point |
 
+<Note>
+**Data Foundation: Governance by Construction via Purview Column Masks**
+
+Purview sensitivity labels assigned to Unity Catalog columns propagate through the APIM data
+access policy to AI agent responses — column masks are enforced at the API boundary, not just
+at the warehouse. This means AI agents receive pre-filtered data without requiring application-
+level redaction logic. See [Security & Identity Patterns](../data-foundation/security-identity-patterns)
+for the Entra Managed Identity chain and column mask propagation design.
+</Note>
+
 ### Layer 2: AI Control Plane
 
 | Integration | Function |
@@ -213,10 +223,10 @@ Security is built into every layer:
 
 ```mermaid
 graph LR
-    L1["Layer 1<br/>Gateway"] --> SF["Security Fabric<br/>Defender · Purview · Entra"]
-    L2["Layer 2<br/>Control Plane"] --> SF
-    L3["Layer 3<br/>Identity"] --> SF
-    L4["Layer 4<br/>Security"] --> SF
+    L1["Layer 1\nGateway"] --> SF["Security Fabric\nDefender · Purview · Entra"]
+    L2["Layer 2\nControl Plane"] --> SF
+    L3["Layer 3\nIdentity"] --> SF
+    L4["Layer 4\nSecurity"] --> SF
     SF --> UR["Unified Response"]
     UR --> BT["Block Threat"]
     UR --> AP["Apply Policy"]
@@ -245,5 +255,5 @@ graph LR
 ## Next Steps
 
 - Review [Layer Integration](./layer-integration) for cross-layer dependencies
-- Learn about [security monitoring](/operations/monitoring)
-- Explore [compliance automation](/operations/runbooks/index)
+- Learn about [security monitoring](/guides/citadel-hub/operations/usage-analytics)
+- Explore [compliance automation](/guides/citadel-hub/common-issues)

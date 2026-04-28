@@ -1,0 +1,39 @@
+---
+phase: 13
+slug: open-platform-transformation
+checkpoint_id: phase-13-closed
+status: completed
+date: 2026-04-13
+---
+
+# Phase 13 Checkpoint — Closed
+
+## Completion Summary
+
+Phase 13 (Open Platform Transformation) has been successfully executed and validated.
+
+## Changes Made
+
+1. **overview.mdx**: Three Pillars table updated with OpenAI Agents SDK and Microsoft Agent Framework
+2. **citadel-mapping.mdx**: 
+   - (Foundry) → (Observ.) ASCII label replacement
+   - Framework-Based Agents heading expanded
+   - ASCII diagram builder toolchains strip updated
+
+## Validation Results
+
+- ✅ FR-01: All Microsoft product names removed (zero grep results)
+- ✅ FR-02: OpenAI Agents SDK present in both files
+- ✅ FR-02: Microsoft Agent Framework present in both files
+- ✅ ASCII diagram alignment preserved
+- ✅ Nyquist compliance: verified
+
+## Artifacts
+
+- `13-01-SUMMARY.md` — Complete execution summary
+- `13-VALIDATION.md` — Updated with completed status
+- `phase-13-closed.checkpoint` — This checkpoint file
+
+## Next Steps
+
+Phase 13 is complete and closed. Proceed to Phase 14 as scheduled.

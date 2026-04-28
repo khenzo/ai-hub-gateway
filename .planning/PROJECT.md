@@ -33,16 +33,21 @@ A comprehensive documentation hub for implementing AI Landing Zones with Citadel
 - ✓ Add deep agent architecture content (Agent Harness & Tools, Context Engineering) — v1.2
 - ✓ Maintain Citadel + AI Landing Zone integration across all Agent Factory pages — v1.2
 - ✓ Navigation consistency for 14-page Agent Factory group in docs.json — v1.2
+- ✓ EY Framework overview and Citadel alignment map (gap analysis) — Phase 16
+- ✓ Kubernetes/AKS deployment patterns and GitHub scaffolding for agent delivery — Phase 17
+- ✓ DevOps pattern reproduction (CI/CD pipelines for agents on Azure) — Phase 17
+- ✓ Security and governance at scale — Citadel vs EY two-tiered governance model — Phase 18
+- ✓ MCP, A2A, and agent discovery protocol alignment — Phase 19
 
 ### Active
 
-- [ ] EY Framework overview and Citadel alignment map (gap analysis)
-- [ ] Development spectrum coverage on Citadel (no-code, low-code, pro-code paths)
-- [ ] Kubernetes/AKS deployment patterns and GitHub scaffolding for agent delivery
-- [ ] DevOps pattern reproduction (CI/CD pipelines for agents on Azure)
-- [ ] Security and governance at scale — Citadel vs EY two-tiered governance model
-- [ ] MCP, A2A, and agent discovery protocol alignment
-- [ ] Attention points and gaps documentation
+- [ ] OneLake integration patterns and shortcut vs mirror ADR
+- [ ] Databricks + Unity Catalog compute/governance separation patterns and ABAC design
+- [ ] dbt Medallion Architecture patterns, Lakeflow orchestration, metadata-driven lineage
+- [ ] Semantic Layer patterns and ADRs (MetricFlow, AI agent integration)
+- [ ] APIM governed data access patterns and policy fragment ADRs
+- [ ] Security & Identity patterns (Entra MI, PII propagation through APIM)
+- [ ] `docs/data-foundation/` Mintlify documentation section with docs.json navigation
 
 ### Out of Scope
 
@@ -120,17 +125,18 @@ This documentation synthesizes content from three primary sources:
    - Defender for AI threat protection
    - Purview for data governance and PII protection
 
-## Current Milestone: v1.3 EY Framework Alignment
+## Current Milestone: v2.0 Enterprise Data Foundation
 
-**Goal:** Document how the Citadel AI Landing Zone addresses the EY AI Agent Development Framework — where it enforces the patterns, how, and where attention is needed.
+**Goal:** Document the Enterprise Data Foundation layer for SOF1A 2.0 — integration patterns, design principles, and ADR motivations for OneLake, Databricks + Unity Catalog, dbt medallion architecture, and semantic layer as the grounded intelligence substrate for AI agents via Citadel APIM.
 
 **Target features:**
-- EY Framework overview and Citadel alignment map (gap analysis table)
-- Development spectrum coverage: no-code → low-code → pro-code on Azure/Microsoft stack
-- Kubernetes (AKS) deployment patterns and GitHub scaffolding / DevOps patterns
-- Security and governance at scale — Citadel 4-layer vs EY two-tiered governance model
-- MCP, A2A, and agent discovery protocol alignment
-- Attention points and gaps page
+- OneLake integration patterns: shortcut vs mirror decision, security model ADRs
+- Databricks + Unity Catalog: compute/governance separation patterns, ABAC design, Unity Catalog Open API integration
+- dbt Medallion Architecture: bronze/silver/gold best practices, Lakeflow orchestration patterns, metadata-driven lineage
+- Semantic Layer: patterns and ADRs grounded in `docs/data-foundation/semantic-layer-architecture.md`, MetricFlow design, AI agent integration
+- APIM Data Governance: governed data access patterns via Citadel gateway, policy fragment design ADRs
+- Security & Identity Patterns: Entra MI patterns, PII propagation from Unity Catalog through APIM
+- Data Foundation Documentation: `docs/data-foundation/` Mintlify pages, docs.json navigation
 
 ## Constraints
 
@@ -160,6 +166,7 @@ This documentation synthesizes content from three primary sources:
 | Deep architecture pages | Harness engineering and context engineering are advanced topics that differentiate this documentation from basic tutorials | ✓ Good — both pages exceed length minimums and include formal Citadel integration sections |
 | Tool-gated execution principle | "Model never executes anything directly" is the core safety pattern for agentic systems | ✓ Good — clearly articulated with middleware chain and sandbox provider comparisons |
 | Cross-link over duplicate | Citadel integration references use cross-links rather than repeating architecture content | ✓ Good — keeps Agent Factory pages focused while preserving 4-layer alignment |
+| EY protocol alignment structure | MCP, A2A, and agent discovery pages follow a consistent EY-requirement-to-Citadel-capability mapping with ASCII diagrams and CardGroup next-steps | ✓ Good — architects can clearly see how Citadel satisfies EY protocol requirements without technical duplication |
 
 ---
 
@@ -203,4 +210,4 @@ All outcomes were marked "— Pending" before v1.0 shipment.
 </details>
 
 ---
-*Last updated: 2026-04-14 after v1.3 milestone start*
+*Last updated: 2026-04-27 after Milestone v2.0 Enterprise Data Foundation started*

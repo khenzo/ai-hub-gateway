@@ -1,0 +1,170 @@
+---
+title: "APIM Governed Data Access"
+description: "How Citadel APIM governs semantic endpoint access — the governed semantic endpoint pattern and why data access policy fragments are architecturally distinct from LLM policy fragments."
+icon: link
+---
+
+<Note>
+This integration attaches at **Layer 1: Governance Hub**. It is not a fifth Citadel layer. Registering the Databricks SQL warehouse as an APIM backend extends the existing Layer 1 runtime enforcement plane to cover semantic queries. See [Layer 1: Governance Hub](../architecture/layer-1-governance-hub) for the full APIM capabilities this page builds on.
+</Note>
+
+The Enterprise Data Foundation stack — OneLake as unified storage, Unity Catalog as governance, MetricFlow and UC Business Semantics as the semantic interface — requires governed endpoint access to close the gap between the [semantic layer](../data-foundation/semantic-layer) and the Citadel enforcement plane. This page documents how AI agents access that semantic layer in production: through Citadel APIM, never directly.
+
+This page covers:
+
+- **AI agents route through APIM, not directly to Databricks SQL** — an opinionated requirement, not a design option
+- **The Governed Semantic Endpoint Pattern**: Entra token validation, QPM rate limiting, and query-count usage tracking
+- **Data Access Policy Fragment Design**: Why a dedicated fragment is architecturally required, not just preferred
+- **Layer 1 Attachment**: Explicit framing of where this integration sits in the Citadel 4-layer model
+
+## AI Agents Route Through APIM, Not Directly to Databricks SQL
+
+### Decision Question
+
+Should AI agents call the Databricks SQL REST API semantic endpoint directly, or through Citadel APIM?
+
+### Why Direct Calls Create a Governance Gap
+
+Direct agent access to the Databricks SQL warehouse bypasses three enforcement capabilities that are non-negotiable in a production enterprise deployment:
+
+**(a) No Entra token validation at the data layer.** The Databricks SQL REST API can be configured with network access controls, but without APIM fronting it, there is no Entra token validation in the request path. Any agent with network access to the warehouse endpoint — including misconfigured or compromised agents — can issue SQL queries. The identity of the caller is not verified at the enforcement plane. Access control devolves to network perimeter, which is insufficient for data workloads where row-level access is governed per identity.
+
+**(b) No usage tracking — data access is invisible.** Without APIM in the path, there is no policy-layer event emitted for each semantic query. Data access becomes invisible to cost attribution and the audit log. Compliance teams cannot answer "which AI agent queried the revenue metrics on March 3rd at 14:32?" and the platform has no mechanism to charge data access back to the team or project that incurred it. Usage tracking in the Citadel platform operates at the APIM policy layer; agents that bypass APIM do not appear in the usage record.
+
+**(c) No rate limiting — runaway agents exhaust shared compute.** The Databricks SQL warehouse is a shared compute resource. A runaway agent — one caught in an inference loop, incorrectly prompted, or responding to an adversarial input — can issue hundreds of SQL queries per minute. Without a rate limiting policy applied at APIM, that single agent can exhaust the warehouse's compute allocation, causing all other consumers (dashboards, notebooks, other AI agents) to queue or fail. The SQL warehouse has no native per-caller rate limiting equivalent to APIM's `rate-limit-by-key` policy.
+
+### Recommended Answer
+
+**All semantic queries from AI agents route through Citadel APIM. The Databricks SQL REST API warehouse endpoint is registered as an APIM backend. Direct agent access to the SQL warehouse is not permitted in production deployments.**
+
+This is the required pattern for the AI+ platform. It is not a recommendation for teams to evaluate alongside alternatives. Organizations that need governed, auditable, cost-attributed semantic access for AI agents must route through APIM. The governed endpoint pattern described in this page is how that requirement is satisfied.
+
+## The Governed Semantic Endpoint Pattern
+
+### Architecture: Agent to Governed Semantic Response
+
+```
+AI Agent (spoke VNet)
+  │
+  ▼  HTTPS + Entra Bearer Token
+APIM Gateway (hub VNet, private endpoint)
+  ├─ [inbound] frag-semantic-entra-auth   → validate Entra token, check audience
+  ├─ [inbound] rate-limit-by-key          → queries-per-minute per subscription key
+  ├─ [inbound] frag-semantic-usage (emit) → query event → Event Hub → Log Analytics
+  │
+  ▼  HTTPS (private endpoint)
+Databricks SQL Warehouse
+  ├─ MetricFlow / UC Business Semantics query engine
+  ├─ Unity Catalog: row filters + column masks evaluated
+  └─ Delta tables in OneLake / Databricks-managed storage
+  │
+  ▼  Response
+APIM Gateway
+  ├─ [outbound] frag-pii-anonymization    → if Purview label = sensitive, mask columns
+  └─ [outbound] response logging          → Application Insights
+  │
+  ▼
+AI Agent: governed semantic query result
+```
+
+The Databricks SQL REST API warehouse endpoint is registered as an APIM backend service — the same backend registration model used for Azure OpenAI endpoints and other AI services. From APIM's perspective, the SQL warehouse is a backend like any other. The policy fragment layer is what makes it data-access-specific.
+
+### Entra Token Validation
+
+The `frag-semantic-entra-auth` fragment applies Entra ID token validation to every inbound semantic query request. It enforces:
+
+- **Audience claim** — the token must be issued for the configured APIM resource; tokens issued for other resources are rejected
+- **Managed identity validation** — agents are expected to authenticate with their Entra Managed Identity; API-key-based access is not permitted on the semantic endpoint in production
+- **Subscription key check** — the agent's APIM product subscription key is verified alongside the bearer token; subscription check determines which rate limit policy bucket the request falls into
+
+This validation follows the same structural pattern as `frag-entra-auth.xml` applied to LLM endpoints. The difference is the audience and scope: the semantic endpoint fragment validates tokens issued for the data platform resource, not the AI service resource.
+
+### Usage Tracking: Query Count, Not Token Count
+
+The `frag-semantic-usage` fragment emits a usage event for every semantic query processed by APIM. It writes to the same Event Hub namespace used for LLM usage tracking, but with a data-access-specific schema:
+
+| Field | LLM Usage Record | Semantic Query Usage Record |
+|-------|------------------|-----------------------------|
+| Traffic unit | `token_count` (prompt + completion) | `query_count` (SQL REST calls) |
+| Resource identifier | `model_id` | `warehouse_id` |
+| Caller identity | `subscription_key`, `agent_id` | `subscription_key`, `agent_id` |
+| Timestamp | ISO-8601 | ISO-8601 |
+
+The Event Hub ingestion path, Log Analytics workspace, and cost attribution pipeline are identical to the LLM usage flow. Only the schema fields differ. This means the existing usage reporting infrastructure reads semantic query volume without modification — the data-access-specific fields are additive.
+
+There are no tokens in a SQL REST response. A semantic query returns a result set (rows, columns). Applying a token-count metric to this traffic produces a usage record with zero in the token field. `frag-semantic-usage` is purpose-built to record the correct traffic unit for data access.
+
+### Rate Limiting: Queries Per Minute, Not Tokens Per Minute
+
+Rate limiting on the semantic endpoint uses APIM's native `rate-limit-by-key` policy applied per subscription key at the product level. The quota model is:
+
+- **Unit**: queries per minute (QPM) per subscription key
+- **Scope**: product-level quota — different APIM products (e.g., "analytics-standard", "analytics-premium") have different QPM allowances
+- **Key**: subscription key tied to the calling agent's APIM product subscription
+
+This is the same product-level subscription model used for LLM endpoint rate limiting, but the throttle metric is queries rather than tokens. A rate limit of 60 QPM means the agent subscription can issue 60 SQL REST calls per minute before APIM returns a 429 response.
+
+QPM rate limiting prevents the runaway agent scenario: even if an agent enters an inference loop that generates continuous SQL queries, APIM will throttle excess requests at the gateway before they reach the SQL warehouse.
+
+## Data Access Policy Fragment: Why It Cannot Reuse LLM Fragments
+
+Fragment reuse is not just suboptimal — it is architecturally incorrect. Applying `frag-llm-usage.xml` to SQL REST traffic produces usage records with zero in the token field, making cost attribution and quota enforcement meaningless. The fragments are structurally incompatible because the traffic types are structurally incompatible.
+
+### Structural Comparison
+
+| Dimension | LLM Policy Fragment | Data Access Policy Fragment |
+|-----------|--------------------|-----------------------------|
+| Traffic unit | Tokens (prompt + completion) | Queries (SQL REST calls) |
+| Throttle metric | Tokens per minute (TPM) | Queries per minute (QPM) |
+| Risk surface | Token cost overrun; jailbreak | Data exfiltration; row-count explosion |
+| Failure mode | LLM timeout; content safety block | Warehouse cold start (30–90s spin-up) |
+| Usage schema | `token_count`, `model_id` | `query_count`, `warehouse_id` |
+| PII handling | Prompt/completion masking | Result column masking |
+| Fragment names | `frag-llm-usage.xml` | `frag-semantic-usage.xml` |
+
+Each of these three structural differences — risk surface, throttling model, and failure mode — independently justifies a dedicated fragment. Together, they establish that a data access fragment is not a variant of an LLM fragment; it is a different design for a different traffic type.
+
+**Risk surface:** LLM traffic risks are cost-oriented (large context windows) and safety-oriented (prompt injection, jailbreak). Data access traffic risks are data-oriented: a single SQL query with a missing WHERE clause can return millions of rows and exfiltrate the entirety of a business metric's result set. The countermeasures differ: LLM fragments apply content safety and token quotas; data access fragments apply row-count thresholds, result-size limits, and Purview-driven column masking on the response.
+
+**Throttling model:** LLM rate limiting counts tokens because token consumption is the billable unit and the resource under pressure. SQL REST rate limiting counts queries because warehouse compute slots are the resource under pressure — each concurrent query consumes a slot, and the warehouse has a fixed maximum concurrency. Counting tokens on SQL traffic produces a number that has no relationship to warehouse resource consumption.
+
+**Failure mode:** When an LLM endpoint fails, the response is immediate: a 503 or a timeout within seconds. When a Databricks SQL warehouse fails, the most common mode is cold start — the warehouse has auto-suspended and requires 30–90 seconds to spin up before the first query can execute. APIM timeout policies for the semantic backend must be set to accommodate warehouse cold start; the default APIM timeout of 20 seconds will cause the first query to fail on a cold warehouse even when the endpoint is functioning correctly.
+
+### SQL Warehouse Cold Start: Operational Consideration
+
+Databricks serverless SQL warehouses auto-suspend after a configurable inactivity period to reduce cost. The cold start adds 30–90 seconds to the first query after the inactivity threshold is crossed. This is a GA operational property of serverless SQL warehouses, not a preview limitation.
+
+APIM timeout configuration for the semantic backend must account for cold start. Two mitigations are common in practice:
+
+1. **Extended backend timeout** — set the APIM backend timeout for the SQL warehouse endpoint to 120 seconds (vs. the default 20 seconds) to accommodate cold start without triggering a false 504 from APIM
+2. **Keep-alive query** — schedule a lightweight SQL query (e.g., `SELECT 1`) to fire at regular intervals, preventing the warehouse from reaching the auto-suspend threshold during business hours
+
+Neither mitigation requires changes to the APIM policy fragment design. Both are operational configurations independent of the governance enforcement logic.
+
+## Attachment to the Citadel 4-Layer Model
+
+The semantic endpoint registration is a Layer 1 extension. It is not a fifth Citadel layer, a data governance layer, or a data access layer in its own right.
+
+APIM is already the Layer 1 runtime enforcement plane. Registering the Databricks SQL warehouse as a new APIM backend extends that enforcement plane to cover semantic queries, using the same policy fragment model, the same product subscription model, and the same Event Hub usage pipeline already operating for LLM traffic.
+
+The Enterprise Data Foundation stack — OneLake → Unity Catalog → Semantic Layer → APIM governed endpoint — connects to the Citadel platform at three attachment points:
+
+| Attachment Point | Citadel Layer | What Attaches |
+|-----------------|---------------|---------------|
+| APIM backend registration | **Layer 1: Governance Hub** | Semantic endpoint — this page |
+| Usage telemetry (Event Hub → Log Analytics) | **Layer 2: AI Control Plane** | Query-count usage signals, cost attribution |
+| Identity and zero-secrets auth chain | **Layer 4: Security Fabric** | Entra Managed Identity chain for data path credentials |
+
+No new Citadel layer is required or created. The Data Foundation stack piggybacks on the enforcement and observability infrastructure that Layers 1, 2, and 4 already provide.
+
+<CardGroup cols={3}>
+  <Card title="Semantic Layer" icon="chart-bar" href="../data-foundation/semantic-layer">
+    MetricFlow and UC Business Semantics — what the governed endpoint fronts and why platform-native semantics are required for enterprise AI
+  </Card>
+  <Card title="Unity Catalog Governance" icon="database" href="../data-foundation/unity-catalog-governance">
+    Row filters, column masks, and the access control model that governs what semantic queries can return
+  </Card>
+  <Card title="Layer 1: Governance Hub" icon="building-columns" href="../architecture/layer-1-governance-hub">
+    Full APIM capabilities — access contracts, policy fragments, product subscriptions, and Event Hub usage pipeline
+  </Card>
+</CardGroup>

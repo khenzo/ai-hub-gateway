@@ -1,0 +1,286 @@
+---
+title: "Unity Catalog Governance"
+description: "How Unity Catalog separates compute from governance — ABAC design, three-level namespace as the governance contract, and the Iceberg REST + OneLake integration path."
+icon: table
+---
+
+# Unity Catalog as the Governance Backbone
+
+Unity Catalog achieves compute/governance separation because all governance metadata — privileges, row filters, column masks, tags, lineage — is stored in the **metastore**, a control-plane service managed by Databricks that is entirely independent of cluster lifecycle. When a cluster terminates, governance is unaffected. When a dbt model drops and recreates a table, governance persists.
+
+This page covers four core concepts:
+
+1. **Compute vs governance separation** — why governance outlives compute
+2. **ABAC design pattern for scale** — attribute-based access control at catalog/schema level
+3. **Three-level namespace as governance contract** — how `catalog.schema.table` insulates consumers from storage changes
+4. **Iceberg REST + OneLake integration** — GA baseline versus Preview capabilities
+
+<Note>
+Data Foundation connects to the existing AI+ / Citadel 4-layer model at three attachment points — Layer 1 (APIM governance), Layer 2 (observability), and Layer 4 (Security Fabric). Unity Catalog is the governance substrate within that model, not an additional layer.
+</Note>
+
+## Compute vs Governance Separation
+
+### The Metastore as the Control Plane
+
+The metastore is a control-plane service that stores all governance objects:
+
+| Governance Object | Stored In | Evaluated At |
+|---|---|---|
+| GRANT/REVOKE privileges | Metastore | Query time |
+| Row filters | Metastore | Query time |
+| Column masks | Metastore | Query time |
+| Tags (governance attributes) | Metastore | Policy evaluation time |
+| Lineage relationships | Metastore | Runtime capture |
+
+When any query executes — whether from a notebook, SQL warehouse, dbt model, or API call — the metastore evaluates governance policies **independently of which cluster processes the data**. The cluster is the data plane; the metastore is the control plane.
+
+### What Persists Across the Cluster Lifecycle
+
+The following governance objects survive both cluster termination and table rebuilds:
+
+- **Schema-level GRANT** — applies to current AND future tables in the schema; no re-grant required after dbt rebuild
+- **Row filters** — evaluated at query time by the metastore regardless of cluster
+- **Column masks** — evaluated at query time by the metastore regardless of cluster
+- **Tags** — applied at catalog/schema/table/column level; inherited for ABAC evaluation
+- **Lineage** — captured at runtime and retained indefinitely
+
+When a dbt incremental run drops and recreates a table, the new table inherits the schema-level GRANT automatically. No re-grant is required.
+
+### Lineage as a Permanent Audit Trail
+
+Unity Catalog lineage provides:
+
+- **Runtime capture** — recorded across all supported compute interfaces (notebooks, SQL warehouses, jobs, APIs)
+- **Indefinite retention** — all lineage from September 1, 2024 onward is retained
+- **Cross-workspace visibility** — accessible across all workspaces attached to the same metastore
+
+**Architectural implication:** An AI agent's access to a certified metric is permanently auditable through lineage system tables, independent of which cluster processed the query.
+
+```
+                DOWNSTREAM CONSUMERS
+          AI Agents │ Dashboards │ dbt models
+                    │
+                    ▼
+         analytics.gold.customer_metrics
+         ──────────────────────────────
+         GOVERNANCE CONTRACT (metastore)
+         • GRANT SELECT on SCHEMA analytics.gold
+           → applies to this table AND all future tables
+         • Row filter: region = current_user_region()
+           → evaluated at query time regardless of cluster
+         • Column mask: SSN → [REDACTED] unless pii_access=true
+           → evaluated at query time regardless of cluster
+         • Lineage: upstream bronze tables and dbt model version
+           → captured in metastore, retained indefinitely
+         ──────────────────────────────
+                    │
+                    ▼
+         PHYSICAL STORAGE (ADLS)
+         abfss://account.dfs.core.windows.net/path/...
+         (Can be reorganized without breaking the contract above)
+```
+
+## ABAC Design Pattern for Scale
+
+<Warning>
+Unity Catalog Attribute-Based Access Control (ABAC) is in **Public Preview** as of March 2026. It requires Databricks Runtime 16.4 or above, or serverless compute, to enforce policies. Users not subject to an ABAC policy can use any runtime. Validate ABAC on your target runtime before adopting it as your primary governance model for production workloads.
+</Warning>
+
+### Why ABAC Over RBAC at Scale
+
+**RBAC (Role-Based Access Control):**
+- Requires `GRANT SELECT ON TABLE` for every new table created
+- Per-table grants accumulate maintenance overhead
+- New teams require explicit grants on every object
+
+**ABAC (Attribute-Based Access Control):**
+- Policies attach at catalog or schema level
+- Automatically apply to all current and future tables in scope
+- New teams onboard without any per-table grant
+
+### Tags as Governance Attributes
+
+Unity Catalog supports tagging at multiple levels:
+
+| Object Type | Taggable |
+|---|---|
+| Catalogs | Yes |
+| Schemas | Yes |
+| Tables | Yes |
+| Columns | Yes |
+| Views | Yes |
+| Volumes | Yes |
+| Models | Yes |
+
+**Governed tags** (as opposed to simple metadata tags) participate in ABAC policy evaluation.
+
+**SQL syntax notes:**
+- `SET TAG` — DBR 16.1+
+- `SET TAGS` — DBR 13.3+
+
+**Constraint:** Maximum 50 tags per object.
+
+### Tag Inheritance for ABAC Policy Evaluation
+
+**CRITICAL accuracy note:** Tags applied at catalog or schema level are **implicitly inherited** by child objects **when Unity Catalog evaluates ABAC policies**. This inheritance does NOT apply to general tag queries or `INFORMATION_SCHEMA.TABLE_TAGS`. Always qualify tag inheritance as "for ABAC policy evaluation only."
+
+### How New Teams Onboard Without Per-Table ACL Updates
+
+**Step-by-step walkthrough:**
+
+1. **Existing state:** Catalog `analytics` has an ABAC policy: "If tag `domain=finance`, apply row filter `region = user_region()`"
+2. **New team onboarded:** Admin creates schema `analytics.finance_new`
+3. **Tag applied:** Admin tags the schema with `domain=finance`
+4. **Automatic governance:** The catalog-level ABAC policy applies automatically to all tables in `analytics.finance_new`
+5. **No per-table updates:** Tables created in `finance_new` are governed without any table-level policy changes
+
+### Policy Types and the Single-Filter Constraint
+
+Two ABAC policy types exist:
+
+1. **Row filter policies** — limit which rows a user can see
+2. **Column mask policies** — transform column values (e.g., masking SSN)
+
+**Architecture constraint:** Only one distinct row filter can resolve at runtime for a given user and table. If multiple distinct row filters apply, Databricks blocks access and throws an error.
+
+**Design recommendation:** Define policies at the highest applicable level (catalog) to minimize filter collision risk.
+
+```
+CATALOG: analytics   [tag: env=prod]
+  │
+  ├─ SCHEMA: silver  [tag: domain=finance]
+  │    │
+  │    ├─ TABLE: transactions   (inherits both tags for ABAC evaluation)
+  │    └─ TABLE: invoices       (inherits both tags for ABAC evaluation)
+  │
+  └─ SCHEMA: gold    [tag: domain=executive]
+       │
+       └─ TABLE: executive_metrics  (inherits env=prod, domain=executive)
+
+ABAC POLICY (defined once at catalog level):
+  IF tag domain=finance THEN apply row_filter(region = user_region)
+  IF tag domain=executive THEN apply column_mask(salary → [REDACTED] unless exec_role)
+
+New table added to silver schema → automatically governed.
+New schema added to analytics catalog → automatically governed at catalog level.
+No per-table GRANT or policy update required.
+```
+
+**Note:** Row filters and column masks applied directly per table (`ALTER TABLE SET ROW FILTER`) are GA as of DBR 12.2+. The Public Preview status applies to ABAC-managed application of row filters and column masks only.
+
+## The Three-Level Namespace as Governance Contract
+
+### catalog.schema.table as the Stable Consumer Surface
+
+All governance operations use the logical namespace:
+
+- GRANT/REVOKE → `catalog.schema` or `catalog.schema.table`
+- Row filter → `catalog.schema.table`
+- Column mask → `catalog.schema.table`
+- Tag → `catalog.schema.table.column`
+- Lineage → `catalog.schema.table`
+
+Physical storage (ADLS path) is an implementation detail managed internally by Unity Catalog. Storage path can change; the governance contract does not.
+
+### What Downstream Consumers Depend On
+
+When a downstream consumer holds a reference to `analytics.gold.customer_metrics`, that reference remains valid regardless of:
+
+- Which cluster last wrote to the table
+- Whether the ADLS storage account was reorganized
+- Whether the table was rebuilt (CTAS, dbt rebuild, CLONE)
+- Whether the Databricks workspace version was upgraded
+
+The consumer depends on the governance contract, not a physical file path.
+
+### Workspace-Catalog Binding for Environment Isolation
+
+Unity Catalog allows binding specific catalogs to specific workspaces:
+
+| Environment | Catalogs Bound | Consumer Sees |
+|---|---|---|
+| Dev workspace | dev_* catalogs | Only dev data |
+| Staging workspace | staging_* catalogs | Only staging data |
+| Prod workspace | prod_* catalogs | Only prod data |
+
+This provides dev/staging/prod environment isolation **without changing the namespace**. A downstream consumer with access only to the `prod` workspace sees only catalogs bound to that workspace. The namespace is unchanged; binding controls visibility, not naming.
+
+### The dbt Integration Guarantee
+
+**Critical guarantee:** Schema-level grants are the mechanism by which Unity Catalog separates the data governance lifecycle from the data pipeline lifecycle. When dbt drops and recreates a table, no re-grant is required.
+
+This is the foundation for treating dbt models as ephemeral compute artifacts while governance persists as permanent policy.
+
+## Iceberg REST Catalog and OneLake Integration
+
+<Warning>
+The Unity Catalog Iceberg REST Catalog API (`/api/2.1/unity-catalog/iceberg-rest`) is in **Public Preview** as of April 2026 (DBR 16.4+). Write support for managed Iceberg tables is also Public Preview. The currently-GA baseline path for OneLake integration is OneLake metadata mirroring. Do not adopt the Iceberg REST Catalog as a production commitment without validating it in a non-production environment first.
+</Warning>
+
+### The Currently-GA Baseline: OneLake Metadata Mirroring
+
+The GA approach for OneLake-Fabric integration uses metadata mirroring:
+
+- Fabric mirrors the Unity Catalog structure into OneLake
+- Shortcuts are created for Delta/Iceberg tables
+- Fabric engines query Databricks-managed tables via a SQL analytics endpoint
+- No data replication required
+- No Iceberg REST API required
+
+See [OneLake Architecture](/data-foundation/onelake-architecture) for the metadata mirroring pattern.
+
+### Iceberg REST Catalog API (Public Preview)
+
+**Endpoint:** `<workspace-url>/api/2.1/unity-catalog/iceberg-rest`
+
+**External Iceberg clients that can use this endpoint:**
+
+- Apache Spark (with Iceberg connector)
+- Apache Flink
+- Trino
+- Snowflake (via Entra OAuth)
+- PyIceberg
+- Dremio
+
+**Access Matrix:**
+
+| Table Type | Read | Write |
+|---|---|---|
+| Managed Iceberg | Yes | Yes (Public Preview) |
+| Foreign Iceberg | Yes | No |
+| Managed Delta (UniForm/Iceberg reads enabled) | Yes | No |
+| External Delta (UniForm enabled) | Yes | No |
+
+### Reading OneLake Data in Databricks (Verify Before Production)
+
+<Note>
+Reading OneLake data natively in Azure Databricks via Unity Catalog Connections (using Entra Managed Identity) was announced for EOY 2025. Verify current GA status before adopting this path for production workloads. The metadata mirroring path (Fabric querying Databricks) is confirmed GA.
+</Note>
+
+## Unity Catalog in the Citadel Architecture
+
+Unity Catalog governance connects to the AI+ / Citadel 4-layer model at three attachment points:
+
+### Layer 1 (APIM / Governance Hub)
+
+APIM governs semantic endpoint access to the Databricks SQL REST API. Unity Catalog enforces row filters and column masks on the data returned through that endpoint. See [APIM Governed Data Access](/data-foundation/apim-semantic-endpoint) for the integration design.
+
+### Layer 2 (Control Plane / Observability)
+
+Unity Catalog lineage system tables feed into the observability plane. AI agent data access is auditable through the lineage graph, providing permanent audit trails independent of compute lifecycle.
+
+### Layer 4 (Security Fabric)
+
+Unity Catalog column masks propagate through the APIM PII policy to AI agent responses. Entra Managed Identity governs the credential chain from agent through APIM to Databricks SQL to OneLake. See [Security & Identity Patterns](/data-foundation/security-identity-patterns) for the identity chain design.
+
+---
+
+<CardGroup>
+  <Card title="OneLake Architecture" icon="database" href="/data-foundation/onelake-architecture">
+    The universal storage substrate that Unity Catalog governs — metadata mirroring and the three-copy model
+  </Card>
+  <Card title="Citadel 4-Layer Model" icon="layers" href="/architecture/citadel-4-layer-model">
+    How Unity Catalog attaches to Layer 1, Layer 2, and Layer 4 of the Citadel architecture
+  </Card>
+</CardGroup>

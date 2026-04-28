@@ -101,7 +101,13 @@ icon_map = {
     "/ai-patterns/overview": "wand-magic-sparkles",
     "/ai-patterns/foundry-integration": "cloud",
     "/ai-patterns/apim-reference": "server",
-    "/ai-patterns/pattern-comparison": "scale-balanced"
+    "/ai-patterns/pattern-comparison": "scale-balanced",
+    
+    "/data-foundation/onelake-architecture": "hard-drive",
+    "/data-foundation/unity-catalog-governance": "table",
+    "/data-foundation/semantic-layer": "cubes",
+    "/data-foundation/apim-semantic-endpoint": "link",
+    "/data-foundation/security-identity-patterns": "fingerprint"
 }
 
 docs_dir = "."

@@ -1,101 +1,56 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3
-milestone_name: EY Framework Alignment
-status: in_progress
-stopped_at: Completed 19-02-PLAN.md
-last_updated: "2026-04-14T13:28:16.000Z"
-last_activity: "2026-04-14 — Completed Plan 19-02 (Agent Discovery with API Center)"
+milestone: v2.0
+milestone_name: Enterprise Data Foundation
+status: completed
+stopped_at: Completed 28-01 plan (Navigation & Integration)
+last_updated: "2026-04-28T07:38:45.625Z"
+last_activity: 2026-04-28 — Completed 28-01 plan (Navigation & Integration)
 progress:
-  total_phases: 5
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
-  percent: 70
+  total_phases: 13
+  completed_phases: 13
+  total_plans: 24
+  completed_plans: 24
+  percent: 36
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-14)
+See: .planning/PROJECT.md (updated 2026-04-27)
 
 **Core value:** Enable organizations to deploy enterprise-grade AI infrastructure with confidence
-**Current focus:** Milestone v1.3 — EY Framework Alignment
+**Current focus:** Milestone v2.0 — Enterprise Data Foundation (COMPLETED)
 
 ## Current Position
 
-Phase: Phase 19 — MCP, A2A & Agent Discovery (in progress)
-Plan: 02
-Status: Plan 19-02 complete — continuing Phase 19
-Last activity: 2026-04-14 — Completed Plan 19-02 (Agent Discovery with API Center)
+Phase: Phase 28 — Navigation & Integration
+Plan: 28-01
+Status: Complete — Data Foundation tab wired, all 5 pages navigable, cross-links on Layer 2 and Layer 4
+Last activity: 2026-04-28 — Completed 28-01 plan (Navigation & Integration)
 
-Progress: [███████░░░] 70% (3/5 phases complete, 7/7 plans overall in v1.3)
+Progress: [████████████] 100% (6/6 plans complete)
 
-## v1.3 Phase Summary
+## v2.0 Phase Summary
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
-| 16. EY Framework Alignment Overview | Readers can navigate a dedicated EY section and view the full alignment map | ALIGN-01, ALIGN-02 | Complete |
-| 17. Kubernetes & DevOps Patterns | Pro-code engineers can deploy agents to AKS and wire CI/CD with Citadel | KUBE-01, KUBE-02, KUBE-03 | Complete (2/2 plans) |
-| 18. Security & Governance at Scale | Architects can map EY two-tiered governance to Citadel 4-layer architecture | GOVN-01, GOVN-02, GOVN-03 | Complete (3/3 plans) |
-| 19. MCP, A2A & Agent Discovery | Architects can understand Citadel's role in MCP, A2A trust, and agent discovery | PROTO-01, PROTO-02, PROTO-03 | In Progress (2/3 plans) |
-| 20. Attention Points & Recommendations | Readers receive actionable gap analysis and supplemental tool recommendations | GAPS-01 | Not started |
+| 23. OneLake Architecture | Architects can reason about OneLake as universal storage substrate | LAKE-01, LAKE-02, LAKE-03 | Complete (23-01) |
+| 24. Unity Catalog Governance | Design governance model separating compute from data ownership | UCAT-01, UCAT-02, UCAT-03, UCAT-04 | Complete (24-01) |
+| 25. Semantic Layer | Commit to platform-native semantics; design Core vs Edge model | SEML-01, SEML-02, SEML-03, SEML-04 | Complete (25-01) |
+| 26. APIM Governed Data Access | Design Citadel APIM integration for governed semantic endpoint access | DSEC-01, DSEC-02 | Complete (26-01) |
+| 27. Security & Identity Patterns | Zero-secrets data path via Entra MI chain; column mask propagation | DSEC-03, DSEC-04 | Complete (27-01) |
+| 28. Navigation & Integration | Data Foundation tab in Mintlify; all pages wired into docs.json | DNAV-01 | Complete (28-01) |
 
 ## Performance Metrics
 
-**Velocity:**
-- Total plans completed: 9
-- Average duration: 12.6 min
-- Total execution time: 1.9 hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-foundation | 3 | 34 min | 11.3 min |
-| 02-core-architecture | 3 | 50 min | 16.7 min |
-| 03-ai-patterns | 3 | 57 min | 19.0 min |
-
-**Recent Trend:**
-- Last 5 plans: [02-01: 11min, 02-02: 27min, 02-03: 12min, 03-01: 12min, 03-02: 17min, 03-03: 28min]
-- Trend: Increasing (security docs are comprehensive)
+**Velocity (v2.0):**
+- Total plans completed: 3
+- Average duration: 17 min
+- Total execution time: 52 min
 
 *Updated after each plan completion*
-| Phase 02-core-architecture P01 | 11min | 6 tasks | 6 files |
-| Phase 02-core-architecture P02 | 27min | 6 tasks | 6 files |
-| Phase 02-core-architecture P03 | 12min | 6 tasks | 6 files |
-| Phase 03-ai-patterns P01 | 12 min | 4 tasks | 4 files |
-| Phase 03-ai-patterns P02 | 17min | 4 tasks | 4 files |
-| Phase 03-ai-patterns P03 | 28min | 5 tasks | 5 files |
-| Phase 04-implementation-guides P01 | 5min | 3 tasks | 3 files |
-| Phase 04-implementation-guides P02 | 6min | 3 tasks | 4 files |
-| Phase 04-implementation-guides P03 | 8min | 4 tasks | 4 files |
-| Phase 05-integration-validation P01 | 14min | 3 tasks | 5 files |
-| Phase 05-integration-validation P02 | 18min | 5 tasks | 5 files |
-| Phase 05-integration-validation P03 | 36min | 6 tasks | 9 files |
-| Phase 06-guides-section P01 | 133min | 9 tasks | 21 files |
-| Phase 07-agent-factory-foundation P07 | 6min | 8 tasks | 9 files |
-| Phase 08-agentic-web-stack P01 | 1min | 3 tasks | 3 files |
-| Phase 08-agentic-web-stack P02 | 2 min | 3 tasks | 4 files |
-| Phase 09-agentic-design-patterns P01 | 2min | 3 tasks | 3 files |
-| Phase 09-agentic-design-patterns P02 | 1min | 3 tasks | 2 files |
-| Phase 10-enterprise-use-cases P01 | 2 min | 3 tasks | 3 files |
-| Phase 10-enterprise-use-cases P02 | 2 min | 3 tasks | 3 files |
-| Phase 11-open-standards P01 | 1min | 2 tasks | 2 files |
-| Phase 11-open-standards P02 | 1min | 2 tasks | 2 files |
-| Phase 12-agent-security-observability P01 | 2min | 2 tasks | 2 files |
-| Phase 12-agent-security-observability P02 | 2min | 2 tasks | 3 files |
-| Phase 15-navigation-integration P01 | 1min | 4 tasks | 0 files |
-| Phase 16-ey-framework-alignment-overview P01 | 1min | 2 tasks | 2 files |
-| Phase 16-ey-framework-alignment-overview P02 | 2 min | 1 tasks | 1 files |
-| Phase 17-kubernetes-devops-patterns P01 | 2 min | 2 tasks | 2 files |
-| Phase 17-kubernetes-devops-patterns P02 | 2min | 2 tasks | 2 files |
-| Phase 18-security-governance-at-scale P01 | 3min | 2 tasks | 2 files |
-| Phase 18-security-governance-at-scale P02 | 1min | 1 tasks | 1 files |
-| Phase 18-security-governance-at-scale P03 | 1min | 1 tasks | 1 files |
-| Phase 19-mcp-a2a-agent-discovery P01 | 2min | 2 tasks | 2 files |
-| Phase 19-mcp-a2a-agent-discovery P02 | 1 min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -162,15 +117,44 @@ Recent decisions affecting current work:
 - [Phase 19-mcp-a2a-agent-discovery]: Positioned Azure API Center as the enterprise agent registry, addressing EY's future requirement today rather than treating it as a roadmap gap
 - [Phase 19-mcp-a2a-agent-discovery]: Expanded both pages beyond minimum line count with substantive subsections to ensure architectural depth rather than padding — Automated verification required 100+ lines; adding meaningful subsections about enforcement points and trust patterns satisfied the requirement with real value
 - [Phase 19-mcp-a2a-agent-discovery]: Used existing Agent Factory pages as deep-dive targets via CardGroup cross-links, avoiding technical duplication — The plan explicitly required cross-links to agent-factory/mcp-integration and agent-factory/a2a-integration; routing readers there via CardGroup preserves the DRY principle across documentation
+- [Phase 21-refactor-operations-docs]: Consolidated all remaining how-to guides under Citadel Hub since they relate to the APIM-based AI gateway accelerator
+- [Phase 21-refactor-operations-docs]: Removed the Operations tab entirely rather than merging, since the standalone Operations section was redundant with Citadel Hub operations guides and runbooks
+- [Phase 21-refactor-operations-docs]: Preserved implementation/ paths in docs.json navigation under Citadel Hub since they were outside the Guides directory restructure scope
+- [Phase 21-refactor-operations-docs]: Flattened Citadel Hub navigation by removing Integrations and Validation subgroups (pages belong under Implementation tab)
+- [Phase 21-refactor-operations-docs]: Preserved Operations as a Citadel Hub subgroup since operational guides exist under guides/citadel-hub/operations/
+- [Phase 21-refactor-operations-docs]: Moved troubleshooting and checklist pages to the root of the Citadel Hub pages array for simpler navigation
+- [Phase 22-refactor-architecture-getting-started-for-sof1a-20]: Retained 'Citadel' for governance hub/layer references, replaced only umbrella platform references with SOF1A 2.0 AI Governance Platform
+- [Phase 22-refactor-architecture-getting-started-for-sof1a-20]: Added Platform Vision section to 4-layer model to explicitly unify ALZ workloads and Citadel governance
+- [Phase 22-refactor-architecture-getting-started-for-sof1a-20]: Fixed pre-existing broken nav link: llm-routing-architecture renamed to llm-routing to match actual file
+- [Phase 24-unity-catalog-governance]: Confirmed Phase 23 file exists — used standard MDX cross-link to onelake-architecture instead of Note substitution
+- [Phase 24-unity-catalog-governance]: Separated GA direct table-level row filters from ABAC-managed Public Preview to prevent reader confusion
+- [Phase 25-semantic-layer]: ADR-DF-03 is opinionated: platform-native semantics via MetricFlow + UC Business Semantics required for enterprise AI; text-to-SQL rejected as production substitute
+- [Phase 25-semantic-layer]: MetricFlow and UC Business Semantics are complementary layers (transformation time vs consumption time) — not competing alternatives
+- [Phase 26-apim-governed-data-access]: ADR-DF-04: AI agents must never call Databricks SQL directly — three concrete risks: no Entra validation, no usage tracking, no rate limiting
+- [Phase 26-apim-governed-data-access]: Data access policy fragment is architecturally distinct from LLM fragments — three structural differences: risk surface, throttling model (QPM vs TPM), failure mode (warehouse cold start vs LLM timeout)
+- [Phase 27]: Direct MI auth is the default pattern; OBO only when per-user row filters are required
+- [Phase 28-navigation-integration]: security-identity-patterns wired as 5th page and used as Layer 4 cross-link target because Phase 27 file confirmed present at execution time
+
+### v2.0 Architectural Context (Critical for Phases 23-28)
+
+- **Data Foundation is NOT a fifth Citadel layer** — it attaches at 3 existing attachment points: Layer 1 (APIM), Layer 2 (observability), Layer 4 (Security Fabric)
+- **Strict dependency chain**: Phase 23 (OneLake) → Phase 24 (Unity Catalog) → Phase 25 (Semantic Layer) → Phase 26 (APIM Integration) → Phase 27 (Security/Identity) → Phase 28 (Navigation)
+- **Phases 26 and 27 must execute in strict sequence** — Purview label propagation (Phase 27) requires APIM integration (Phase 26) established first
+- **Phase 26 is highest synthesis risk** — must cross-reference existing Citadel docs to avoid contradicting Layer 1/APIM architecture already documented
+- **Phase 28 is a clean closure phase** — docs.json wiring only, no new content pages
+- **8 Pre-GA capabilities across the stack require Warning callouts**: identify and flag in each phase where applicable
+- **Scope: documentation only** — no Bicep, no dbt YAML, no GitHub Actions, no code artifacts of any kind
+
+### Roadmap Evolution
+
+- Phase 21 added: Refactor Mintlify doc tabs for Guides and Operations
+- Phase 22 added: Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform
+- Phases 23-29 added: v2.0 Enterprise Data Foundation (2026-04-27)
+- Phase 25 removed: dbt Medallion Architecture — renumbered phases 26-29 → 25-28
 
 ### Pending Todos
 
-**v1.3 Phases:**
-- Phase 16: EY Framework Alignment Overview (complete)
-- Phase 17: Kubernetes & DevOps Patterns (complete)
-- Phase 18: Security & Governance at Scale (complete — 3/3 plans complete)
-- Phase 19: MCP, A2A & Agent Discovery (pending)
-- Phase 20: Attention Points & Recommendations (pending)
+None — all v2.0 phases complete.
 
 ### Blockers/Concerns
 
@@ -178,39 +162,23 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-14T13:28:16.000Z
-Stopped at: Completed 19-02-PLAN.md
+Last session: 2026-04-28T07:38:45.621Z
+Stopped at: Completed 28-01 plan (Navigation & Integration)
 Resume file: None
 
 ## Milestone Status
 
-**Milestone v1.0: ARCHIVED**
-- All 6 phases completed
-- 17 total plans executed
-- 156 documentation files shipped
-- Archived to `.planning/milestones/v1.0-ROADMAP.md`
-- Git tag: `v1.0`
-
-**Milestone v1.1: AI Agent Factory Integration — ARCHIVED**
-- All 6 phases completed (Phases 7-12)
-- 12 total plans executed
-- 31 documentation files shipped
-- Archived to `.planning/milestones/v1.1-ROADMAP.md`
-- Git tag: `v1.1`
-
+**Milestone v1.0: ARCHIVED** — Git tag: `v1.0`
+**Milestone v1.1: AI Agent Factory Integration — ARCHIVED** — Git tag: `v1.1`
 **Milestone v1.2: Open Platform Agent Factory — ARCHIVED**
-- 3 phases defined (Phases 13-15)
-- 3 total plans executed
-- Focus: Transform Agent Factory to open-platform narrative with deep agent architecture
-- Phase 13: Complete
-- Phase 14: Complete
-- Phase 15: Complete
+**Milestone v1.3: EY Framework Alignment — ARCHIVED** — 7 phases, complete
 
-**Milestone v1.3: EY Framework Alignment — IN PROGRESS**
-- 5 phases defined (Phases 16-20)
-- 11 requirements mapped, 10/11 complete
-- Phase 16: Complete (2/2 plans complete)
-- Phase 17: Complete (2/2 plans complete)
-- Phase 18: Complete (3/3 plans complete)
-- Phase 19: In Progress (2/3 plans complete)
-- Phase 20: Not started
+**Milestone v2.0: Enterprise Data Foundation — COMPLETED**
+- 6 phases (Phases 23-28), 6 plans
+- Requirements: 16 defined, 16 mapped, 16 complete
+- Phase 23: Complete (1/1 plan done)
+- Phase 24: Complete (1/1 plan done)
+- Phase 25: Complete (1/1 plan done)
+- Phase 26: Complete (1/1 plan done)
+- Phase 27: Complete (1/1 plan done)
+- Phase 28: Complete (1/1 plan done)

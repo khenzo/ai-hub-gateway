@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "AI Landing Zone Documentation",
-  "description": "Enterprise-grade AI infrastructure deployment guide",
+  "name": "AI+ Governance Platform Documentation",
+  "description": "Enterprise-grade AI governance platform documentation — unified AI Landing Zone and Citadel Governance Hub",
   "theme": "mint",
   "logo": {
     "light": "/logo/light.svg",
@@ -45,12 +45,12 @@
       "url": "governance"
     },
     {
-      "name": "Operations",
-      "url": "operations"
-    },
-    {
       "name": "EY Alignment",
       "url": "ey-framework-alignment"
+    },
+    {
+      "name": "Data Foundation",
+      "url": "data-foundation"
     }
   ],
   "anchors": [
@@ -118,98 +118,6 @@
         ]
       },
       {
-        "group": "Guides",
-        "tab": "Guides",
-        "pages": [
-          {
-            "group": "Deployment",
-            "icon": "rocket",
-            "pages": [
-              "guides/deployment/quick-start",
-              "guides/deployment-guide",
-              "guides/deployment/full-deployment",
-              "guides/deployment/parameters",
-              "guides/bicep-modules",
-              "guides/deployment-checklist"
-            ]
-          },
-          {
-            "group": "Integrations",
-            "icon": "link",
-            "pages": [
-              "implementation/integration/index",
-              "implementation/integration/foundry-control-plane",
-              "guides/features/llm-backend-onboarding"
-            ]
-          },
-          {
-            "group": "Validation",
-            "icon": "clipboard-check",
-            "pages": [
-              "implementation/validation/index",
-              "implementation/validation/pre-deployment-checklist",
-              "implementation/validation/post-deployment-validation",
-              "implementation/validation/troubleshooting"
-            ]
-          },
-          {
-            "group": "Architecture",
-            "icon": "sitemap",
-            "pages": [
-              "guides/architecture/networking",
-              "guides/architecture/llm-routing",
-              "guides/network-approach"
-            ]
-          },
-          {
-            "group": "Features",
-            "icon": "sparkles",
-            "pages": [
-              "guides/features/pii-masking",
-              "guides/features/throttling-handling"
-            ]
-          },
-          {
-            "group": "Operations",
-            "icon": "gears",
-            "pages": [
-              "guides/operations/citadel-sizing",
-              "guides/operations/estimation-guide",
-              "guides/operations/power-bi-dashboard",
-              "guides/operations/scripts-reference",
-              "guides/operations/usage-analytics"
-            ]
-          },
-          {
-            "group": "Troubleshooting & Checklists",
-            "icon": "clipboard-check",
-            "pages": [
-              "guides/validation-checklist",
-              "guides/troubleshooting",
-              "guides/common-issues"
-            ]
-          },
-          {
-            "group": "Reference",
-            "icon": "book",
-            "pages": [
-              "guides/reference/entraid-auth",
-              "guides/reference/governance-benefits",
-              "guides/configuration-examples",
-              "guides/best-practices"
-            ]
-          },
-          {
-            "group": "Development",
-            "icon": "code",
-            "pages": [
-              "guides/development/shared-resources",
-              "guides/development/testing-tools"
-            ]
-          }
-        ]
-      },
-      {
         "group": "Governance",
         "tab": "Governance",
         "pages": [
@@ -222,18 +130,16 @@
         ]
       },
       {
-        "group": "Operations",
-        "tab": "Operations",
+        "group": "Data Foundation",
+        "icon": "database",
+        "tab": "Data Foundation",
         "pages": [
-          "operations/index",
-          {
-            "group": "Runbooks",
-            "icon": "scroll",
-            "pages": [
-              "operations/runbooks/index",
-              "operations/runbooks/common-issues"
-            ]
-          }
+          "data-foundation/overview",
+          "data-foundation/onelake-architecture",
+          "data-foundation/unity-catalog-governance",
+          "data-foundation/semantic-layer",
+          "data-foundation/apim-semantic-endpoint",
+          "data-foundation/security-identity-patterns"
         ]
       },
       {
@@ -252,6 +158,94 @@
               "ey-framework-alignment/governance-tiers",
               "ey-framework-alignment/guardrails-config",
               "ey-framework-alignment/compliance-tooling"
+            ]
+          },
+          {
+            "group": "Protocols & Discovery",
+            "icon": "network",
+            "pages": [
+              "ey-framework-alignment/mcp-governance",
+              "ey-framework-alignment/a2a-trust-broker",
+              "ey-framework-alignment/agent-discovery"
+            ]
+          },
+          "ey-framework-alignment/gaps-and-recommendations"
+        ]
+      },
+      {
+        "group": "Guides",
+        "tab": "Guides",
+        "pages": [
+          "guides/index",
+          {
+            "group": "AI Landing Zone",
+            "icon": "plane",
+            "pages": [
+              "guides/ai-landing-zone/index",
+              "guides/ai-landing-zone/network-approach",
+              "guides/ai-landing-zone/llm-routing",
+              "guides/ai-landing-zone/networking",
+              "guides/ai-landing-zone/llm-routing"
+            ]
+          },
+          {
+            "group": "Citadel Hub",
+            "icon": "shield",
+            "pages": [
+              "guides/citadel-hub/index",
+              {
+                "group": "Deployment",
+                "icon": "rocket",
+                "pages": [
+                  "guides/citadel-hub/deployment/quick-start",
+                  "guides/citadel-hub/deployment-guide",
+                  "guides/citadel-hub/deployment/full-deployment",
+                  "guides/citadel-hub/deployment/parameters",
+                  "guides/citadel-hub/bicep-modules",
+                  "guides/citadel-hub/deployment-checklist"
+                ]
+              },
+              {
+                "group": "Features",
+                "icon": "sparkles",
+                "pages": [
+                  "guides/citadel-hub/features/llm-backend-onboarding",
+                  "guides/citadel-hub/features/pii-masking",
+                  "guides/citadel-hub/features/throttling-handling"
+                ]
+              },
+              {
+                "group": "Development",
+                "icon": "code",
+                "pages": [
+                  "guides/citadel-hub/development/shared-resources",
+                  "guides/citadel-hub/development/testing-tools"
+                ]
+              },
+              {
+                "group": "Reference",
+                "icon": "book",
+                "pages": [
+                  "guides/citadel-hub/reference/entraid-auth",
+                  "guides/citadel-hub/reference/governance-benefits",
+                  "guides/citadel-hub/configuration-examples",
+                  "guides/citadel-hub/best-practices"
+                ]
+              },
+              {
+                "group": "Operations",
+                "icon": "gears",
+                "pages": [
+                  "guides/citadel-hub/operations/citadel-sizing",
+                  "guides/citadel-hub/operations/estimation-guide",
+                  "guides/citadel-hub/operations/power-bi-dashboard",
+                  "guides/citadel-hub/operations/scripts-reference",
+                  "guides/citadel-hub/operations/usage-analytics"
+                ]
+              },
+              "guides/citadel-hub/validation-checklist",
+              "guides/citadel-hub/troubleshooting",
+              "guides/citadel-hub/common-issues"
             ]
           }
         ]

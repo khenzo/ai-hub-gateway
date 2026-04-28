@@ -8,7 +8,7 @@ icon: layer-group
 
 ## Overview
 
-**Layer 2 — AI Control Plane** provides the **observability and compliance brain** that sits above the gateway. Powered by **Microsoft Foundry Control Plane**, this layer continuously evaluates agent behavior, captures end-to-end traces, runs automated red-teaming, and powers fleet operations dashboards—turning raw telemetry from every spoke into actionable governance insights.
+**Layer 2 — AI Control Plane** provides the **observability and compliance brain** of the AI+ Governance Platform. Powered by **Microsoft Foundry Control Plane**, this layer continuously evaluates agent behavior, captures end-to-end traces, runs automated red-teaming, and powers fleet operations dashboards—turning raw telemetry from every spoke into actionable governance insights.
 
 The Foundry Control Plane also serves as the **observability and compliance brain for Agent Factory workloads**, enabling unified evaluation and monitoring across Copilot Studio agents, Foundry-hosted agents, and Agent 365 identities.
 
@@ -83,7 +83,7 @@ Manage agent ecosystem at scale:
 
 ## Agent Factory Integration
 
-The AI Control Plane is the observability and compliance brain for Microsoft Agent Factory workloads. It unifies evaluation and monitoring across all builder platforms and intelligence layers.
+The AI Control Plane is the observability and compliance brain for  Agent Factory workloads. It unifies evaluation and monitoring across all builder platforms and intelligence layers.
 
 | Agent Factory Element | Layer 2 Capability | Value |
 |-----------------------|-------------------|-------|
@@ -109,7 +109,7 @@ Ready-to-use dashboards provide both platform-wide overviews and agent-specific 
 
 ```mermaid
 graph LR
-    GW["AI Gateway<br/>(Layer 1)"]
+    GW["AI Gateway\n(Layer 1)"]
     subgraph Platform["Platform-Level Observability"]
         APM["Central APM"]
         UA["Usage Tracking"]
@@ -143,6 +143,16 @@ graph LR
 - **Telemetry Source** — Collects runtime data from the AI Gateway
 - **Policy Feedback** — Evaluation results inform gateway policies
 - **Compliance Monitoring** — Usage patterns tracked for compliance
+
+<Note>
+**Data Foundation: Unified Observability for Data Access Workloads**
+
+The Databricks SQL REST API semantic endpoint — fronted by APIM at Layer 1 — emits query-count
+and warehouse-id telemetry to the same Event Hub namespace monitored by the AI Control Plane.
+This enables unified observability across LLM token consumption and structured data access in a
+single compliance dashboard. See [APIM Governed Data Access](../data-foundation/apim-semantic-endpoint)
+for the usage tracking schema and data access policy fragment design.
+</Note>
 
 ### Layer 3: Agent Identity
 
@@ -210,5 +220,5 @@ Evaluation Pipeline:
 - Learn about [Layer 3: Agent Identity](./layer-3-agent-identity) for agent lifecycle management
 - Explore [Agent Factory mapping](/agent-factory/citadel-mapping) to understand the full integration
 - Explore [Foundry Control Plane Integration](../implementation/integration/foundry-control-plane) for implementation guidance
-- Review [AI Evaluations](/operations/monitoring) for quality assurance
-- Review [monitoring dashboards](../operations/monitoring) for operational visibility
+- Review [AI Evaluations](/guides/citadel-hub/operations/usage-analytics) for quality assurance
+- Review [monitoring dashboards](../guides/citadel-hub/operations/usage-analytics) for operational visibility

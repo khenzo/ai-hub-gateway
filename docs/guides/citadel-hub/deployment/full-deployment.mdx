@@ -1,0 +1,706 @@
+---
+title: "Full Deployment"
+description: "Comprehensive deployment guide for development, staging, and production environments with enterprise-grade configuration"
+---
+
+# Full Deployment
+
+This comprehensive guide covers deploying AI Citadel Governance Hub across **development, staging, and production** environments with enterprise-grade configuration, networking, and governance.
+
+For quick non-production deployments, see the [Quick Start](/guides/citadel-hub/deployment/quick-start) guide.
+
+---
+
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Deployment Preparation](#deployment-preparation)
+   - [Parameter Files Strategy](#1-parameter-files-strategy)
+   - [Resource Naming & Tagging](#2-resource-naming--tagging)
+   - [Network Architecture](#3-network-architecture)
+   - [AI Model Deployment](#4-ai-model-deployment-optional)
+   - [Log Analytics Strategy](#5-log-analytics-strategy)
+   - [Inference API Diagnostic Logging](#6-inference-api-diagnostic-logging)
+   - [Security & Compliance](#7-security--compliance)
+3. [Source Control Strategy](#source-control-strategy)
+4. [Deployment Execution](#deployment-execution)
+5. [Environment-Specific Configurations](#environment-specific-configurations)
+6. [Post-Deployment Validation](#post-deployment-validation)
+7. [Troubleshooting](#troubleshooting)
+
+---
+
+## Prerequisites
+
+### Azure Requirements
+
+| Requirement | Details |
+|-------------|---------|
+| **Azure Subscription** | Active subscription with sufficient quota |
+| **Permissions** | Owner or Contributor + User Access Administrator |
+| **Resource Providers** | All required providers registered (see below) |
+| **Service Quotas** | Verified quotas for LLMs, CosmosDB and other elements |
+
+## Deployment Decisions Checklist
+
+Use the below checklist to plan your deployment configuration:
+
+<AccordionGroup>
+  <Accordion title="Subscription & Region">
+    - [ ] Subscription allocation
+      - [ ] New subscription
+      - [ ] Existing subscription
+    - [ ] Target Azure Region(s)
+      - [ ] Primary Region (for core governance components)
+      - [ ] Regions for Foundry instances and model deployments
+  </Accordion>
+  <Accordion title="Network Architecture">
+    - [ ] Network Approach
+      - [ ] Hub-Based (using new subnets in existing hub network)
+      - [ ] AIGovSpoke-Hub-Spoke (create dedicated spoke VNet linked to hub)
+    - [ ] Bring-Your-Own Network
+      - [ ] Create new VNet with customized address space
+      - [ ] Use existing VNet integration (vnet/subnets already created & configured)
+      - [ ] Use exiting Private DNS Zones (better with using existing VNet)
+      - [ ] Create new Private DNS Zones (better with new VNet)
+    - [ ] APIM Network Configuration
+      - [ ] External (public endpoint, suitable for dev/test)
+      - [ ] Internal (private endpoint, recommended for production)
+      - [ ] APIM Custom Domains (list them for gateway, developer portal and management names)
+  </Accordion>
+  <Accordion title="Operations & Monitoring">
+    - [ ] Log Analytics Strategy
+      - [ ] New Workspace will be created
+      - [ ] Use existing centralized Workspace (cross-environment)
+    - [ ] Resource Naming Convention & tags
+      - [ ] Auto-generated names
+      - [ ] Custom names/tags per organizational standards
+    - [ ] Inference API Diagnostic Logging
+      - [ ] Azure Monitor LLM log verbosity (enabled/disabled, message capture, max payload size)
+      - [ ] Application Insights log headers and body capture size
+      - [ ] Use defaults (recommended) or customize per environment
+  </Accordion>
+  <Accordion title="AI Services & Source Control">
+    - [ ] Microsoft Foundry Model Deployment
+      - [ ] Deploy models as part of AI Citadel deployment (specify models/regions)
+      - [ ] None (use existing deployments that will be onboarded later)
+    - [ ] Services SKUs & Capacities per Environment
+      - [ ] Development (cost-optimized SKUs)
+      - [ ] Staging (production SKUs with reduced capacity)
+      - [ ] Production (production SKUs with full capacity)
+    - [ ] Source Control Strategy
+      - [ ] Single repository with branches per environment
+      - [ ] Separate repositories per environment
+    - [ ] Automation Strategy
+      - [ ] Manual deployments using `azd up` or `az deployment sub create`
+      - [ ] CI/CD pipelines (i.e. Azure DevOps or GitHub Actions) for automated deployments
+  </Accordion>
+</AccordionGroup>
+
+Leverage deployment parameter files (<a href="https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/blob/citadel-v1/bicep/infra/main.bicepparam" target="_blank">main.bicepparam</a>) to capture these decisions for each environment.
+
+### Required Resource Providers
+
+You can use Azure Cloud Shell or your local Azure CLI installation to register the required resource providers.
+
+First we make sure that the target subscription is selected:
+
+```bash 
+az login
+az account list --output table
+az account set --subscription "<subscription-name or id>"
+az account show --output table
+```
+
+Then register all required providers:
+
+```bash
+# Register all required providers
+az provider register --namespace Microsoft.AlertsManagement
+az provider register --namespace Microsoft.ApiCenter
+az provider register --namespace Microsoft.ApiManagement
+az provider register --namespace Microsoft.App
+az provider register --namespace Microsoft.Automation
+az provider register --namespace Microsoft.Cache
+az provider register --namespace Microsoft.CognitiveServices
+az provider register --namespace Microsoft.Compute
+az provider register --namespace Microsoft.ContainerRegistry
+az provider register --namespace Microsoft.ContainerService
+az provider register --namespace Microsoft.Diagnostics
+az provider register --namespace Microsoft.DocumentDB
+az provider register --namespace Microsoft.EventHub
+az provider register --namespace Microsoft.Insights
+az provider register --namespace Microsoft.KeyVault
+az provider register --namespace Microsoft.MachineLearningServices
+az provider register --namespace Microsoft.ManagedIdentity
+az provider register --namespace Microsoft.Monitor
+az provider register --namespace Microsoft.Network
+az provider register --namespace Microsoft.OperationalInsights
+az provider register --namespace Microsoft.Resources
+az provider register --namespace Microsoft.Search
+az provider register --namespace Microsoft.Sql
+az provider register --namespace Microsoft.Storage
+az provider register --namespace Microsoft.Web
+
+# Verify registration status
+az provider list --query "[?registrationState=='Registered'].namespace" -o table
+```
+
+### Deployment Tools
+
+<AccordionGroup>
+  <Accordion title="Option 1: Local Machine">
+    - [Azure Developer CLI (azd)](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
+    - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) (v2.50.0+)
+    - [Bicep CLI](https://learn.microsoft.com/azure/azure-resource-manager/bicep/install) (v0.20.0+)
+    - [Git](https://git-scm.com/downloads)
+    - [VS Code](https://code.visualstudio.com/) with Bicep extension
+  </Accordion>
+  <Accordion title="Option 2: Azure Cloud Shell">
+    - All tools pre-installed
+    - Storage account for persistence must be attached
+    - Built-in editor (in the classic mode)
+  </Accordion>
+  <Accordion title="Option 3: DevOps (Azure DevOps / GitHub Actions)">
+    - Self-hosted or Microsoft-hosted agents
+    - Service Principal with appropriate permissions
+    - Secure variable groups for secrets
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Deployment Preparation
+
+Based on your choices in the [Deployment Decisions Checklist](#deployment-decisions-checklist), you can now prepare your deployment configuration.
+
+For source control, make sure you have a working directory linked to your source control repository.
+
+First you need to get the deployment template files:
+
+```bash
+# Create a working directory:
+mkdir ai-hub-citadel-deployment
+# Make the repository your current directory:
+cd ai-hub-citadel-deployment # it may differ if you used git clone
+
+# Copy repo files
+azd init --template Azure-Samples/ai-hub-gateway-solution-accelerator -e ai-hub-citadel-dev --branch citadel-v1
+
+# or use git clone:
+# git clone -b citadel-v1 https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator.git
+# git checkout citadel-v1
+```
+
+Once you have the Infrastructure-as-Code files, proceed to configure your deployment based on the following strategies.
+
+You can perform the deployment using either `azd up` (recommended) or `az deployment sub create` commands.
+
+### 1. Parameter Files Strategy
+
+AI Citadel Governance Hub uses **Bicep parameter files (.bicepparam)** for environment-specific configurations.
+
+<Warning>
+Always keep a separate copy of your customized parameter files with different names of the main repository `main.bicepparam` to avoid overwriting during updates.
+</Warning>
+
+#### Available Parameter Files
+
+| File | Purpose | Use Case |
+|------|---------|----------|
+| <a href="https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/blob/citadel-v1/bicep/infra/main.bicepparam" target="_blank">main.bicepparam</a> | Environment variables | Used in azd deployments, CI/CD (Default values come from here) |
+| <a href="https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/blob/citadel-v1/bicep/infra/main.parameters.dev.bicepparam" target="_blank">main.parameters.dev.bicepparam</a> | Development | Dev/test environments |
+| <a href="https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/blob/citadel-v1/bicep/infra/main.parameters.prod.bicepparam" target="_blank">main.parameters.prod.bicepparam</a> | Production | Production workloads |
+| <a href="https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/blob/citadel-v1/bicep/infra/main.parameters.complete.bicepparam" target="_blank">main.parameters.complete.bicepparam</a> | Reference | All parameters documented |
+
+#### Parameter File Structure
+
+<CodeGroup>
+```bicep Basic Configuration
+using './main.bicep'
+
+// Basic Configuration
+param environmentName = 'citadel-dev'
+param location = 'eastus'
+param tags = {
+  'azd-env-name': 'citadel-dev'
+  Environment: 'Development'
+  CostCenter: 'Engineering'
+}
+```
+
+```bicep Compute SKUs
+// Compute SKUs
+param apimSku = 'Developer'
+param apimSkuUnits = 1
+
+// Networking
+param useExistingVnet = false
+param useExistingLogAnalytics = false
+
+// Features
+param enableAIFoundry = true
+param enableAPICenter = true
+```
+</CodeGroup>
+
+---
+
+### 2. Resource Naming & Tagging
+
+#### Naming Strategy
+
+AI Citadel supports two naming approaches:
+
+<AccordionGroup>
+  <Accordion title="Option A: Auto-Generated Names (for default non-production deployment)">
+```bicep
+param resourceGroupName = ''  // Auto-generated: rg-citadel-dev
+param apimServiceName = ''    // Auto-generated: apim-abc123def
+param logAnalyticsName = ''   // Auto-generated: log-abc123def
+```
+
+Benefits:
+- ✅ Quick naming across environments
+- ✅ Unique names prevent conflicts
+- ✅ Includes environment hash for traceability
+</Accordion>
+<Accordion title="Option B: Custom Names">
+```bicep
+param resourceGroupName = 'rg-ai-gov-citadel-prod-eastus'
+param apimServiceName = 'apim-ai-gov-citadel-prod'
+param logAnalyticsName = 'law-ai-gov-citadel-shared'
+```
+
+Benefits:
+- ✅ Human-readable names
+- ✅ Matches organizational naming standards
+- ✅ Easier to locate in portal
+</Accordion>
+</AccordionGroup>
+
+#### Tagging Strategy
+
+**Minimum Required Tags:**
+```bicep
+param tags = {
+  'azd-env-name': 'ai-gov-citadel-prod'
+  Environment: 'Production'
+  CostCenter: 'Platform'
+  Owner: 'platform-team@company.com'
+  Criticality: 'High'
+}
+```
+
+**Recommended Tags by Environment:**
+
+| Tag | Dev | Staging | Production |
+|-----|-----|---------|------------|
+| Environment | Development | Staging | Production |
+| Criticality | Low | Medium | High |
+| CostCenter | Engineering | Engineering | Platform |
+
+---
+
+### 3. Network Architecture
+
+#### Network Deployment Approaches
+
+AI Citadel Governance Hub supports **two architectural patterns** for network integration.
+
+Based on your decisions in the earlier checklist, choose one of the following approaches:
+
+<AccordionGroup>
+  <Accordion title="Approach 1: Hub-Based (Citadel as Part of Hub)">
+Citadel Governance Hub deployed **within** your existing hub VNet.
+
+```
+┌─────────────────────────────────────┐
+│         Hub Network (VNet)          │
+│  ┌──────────────────────────────┐   │
+│  │   Citadel Governance Hub     │   │
+│  │   - APIM (External/Internal) │   │
+│  │   - Private Endpoints        │   │
+│  │   - Log Analytics            │   │
+│  └──────────────────────────────┘   │
+│  ┌──────────────────────────────┐   │
+│  │   Shared Services            │   │
+│  │   - Azure Firewall           │   │
+│  │   - DNS                      │   │
+│  └──────────────────────────────┘   │
+└─────────────────────────────────────┘
+```
+
+**Configuration:**
+```bicep
+param useExistingVnet = true
+param vnetName = 'vnet-hub-eastus'
+param existingVnetRG = 'rg-network-hub'
+param apimSubnetName = 'snet-citadel-apim'
+param privateEndpointSubnetName = 'snet-citadel-private-endpoints'
+param functionAppSubnetName = 'snet-citadel-functions'
+```
+
+**When to Use:**
+- ✅ Citadel manages all enterprise AI traffic
+- ✅ Direct spoke-to-hub connectivity
+- ✅ Simplified network topology
+</Accordion>
+  <Accordion title="Approach 2: Hub-Spoke (Citadel as Dedicated Spoke)">
+Citadel deployed in a **dedicated spoke** with firewall in between.
+
+**Configuration:**
+```bicep
+param useExistingVnet = false  // Creates new spoke VNet
+param vnetName = 'vnet-citadel-eastus'
+param vnetAddressPrefix = '10.170.0.0/24'
+param dnsZoneRG = 'rg-network-hub'
+param dnsSubscriptionId = '<hub-subscription-id>'
+
+// Post-deployment: Configure VNet peering to hub
+```
+
+**When to Use:**
+- ✅ Defense-in-depth security (dual inspection)
+- ✅ Isolated AI workloads from general traffic
+- ✅ Separate cost centers/subscriptions
+- ✅ Compliance requirements for network isolation
+</Accordion>
+</AccordionGroup>
+
+Detailed networking guide: [Network Architecture](/guides/ai-landing-zone/networking)
+
+---
+
+### 4. AI Model Deployment (Optional)
+
+#### Microsoft Foundry Configuration
+
+AI Citadel can deploy **Microsoft Foundry instances** with model deployments as part of the primary landing zone provisioning.
+
+Input parameters are separated into two parts:
+
+<CodeGroup>
+```bicep Foundry Instances
+// AI Foundry instances configuration array
+param aiFoundryInstances = [
+  {
+    name: readEnvironmentVariable('AI_FOUNDRY_RESOURCE_NAME', '')
+    location: readEnvironmentVariable('AZURE_LOCATION', 'swedencentral')
+    customSubDomainName: ''
+    defaultProjectName: 'citadel-governance-project'
+  }
+  {
+    name: readEnvironmentVariable('AI_FOUNDRY_RESOURCE_NAME', '')
+    location: 'eastus2'
+    customSubDomainName: ''
+    defaultProjectName: 'citadel-governance-project'
+  }
+]
+```
+
+```bicep Model Deployments
+// AI Foundry model deployments configuration
+param aiFoundryModelsConfig = [
+  {
+    name: 'gpt-4o-mini'
+    publisher: 'OpenAI'
+    version: '2024-07-18'
+    sku: 'GlobalStandard'
+    capacity: 100
+    aiserviceIndex: 0 // First instance in aiFoundryInstances array
+  }
+  {
+    name: 'gpt-4o'
+    publisher: 'OpenAI'
+    version: '2024-11-20'
+    sku: 'GlobalStandard'
+    capacity: 100
+    aiserviceIndex: 0
+  }
+]
+```
+</CodeGroup>
+
+<Note>
+Ensure that your target subscription has sufficient quota for the selected models.
+</Note>
+
+**Disable Microsoft Foundry Model deployment:**
+
+If you are planning to leverage existing model deployments or you are planning to provision the LLMs separately, you can skip model deployment during Citadel provisioning:
+
+```bicep
+param aiFoundryModelsConfig = [] // No models will be deployed
+```
+
+---
+
+### 5. Log Analytics Strategy
+
+#### Option 1: Create New Log Analytics Workspace
+
+**Recommended for:** Isolated environments, proof-of-concept, dedicated subscriptions
+
+```bicep
+param useExistingLogAnalytics = false
+param logAnalyticsName = ''  // Auto-generated if empty or supply a compliant name.
+```
+
+Benefits:
+- ✅ Isolated logs per environment
+- ✅ Independent retention policies
+- ✅ Simplified RBAC
+- ✅ Environment-specific dashboards
+
+#### Option 2: Bring Your Own Log Analytics (Recommended for Enterprise)
+
+**Recommended for:** Enterprise, multi-environment, centralized monitoring
+
+```bicep
+param useExistingLogAnalytics = true
+param existingLogAnalyticsName = 'law-centralized-prod'
+param existingLogAnalyticsRG = 'rg-monitoring-prod'
+param existingLogAnalyticsSubscriptionId = '00000000-0000-0000-0000-000000000000'
+```
+
+<Note>
+Log Analytics can exists in a different subscription than the Citadel governance hub deployment subscription.
+</Note>
+
+Benefits:
+- ✅ Centralized logging across all environments
+- ✅ Integration with central SIEM
+- ✅ Cross-environment correlation
+- ✅ Compliance and audit requirements
+
+---
+
+### 6. Inference API Diagnostic Logging
+
+AI Citadel configures **per-API diagnostic logging** on every inference API (Universal LLM API and Azure OpenAI API). Two diagnostic channels are provisioned:
+
+| Channel | Purpose | Default Destination |
+|---------|---------|--------------------|
+| **Azure Monitor** (`azuremonitor`) | LLM-aware diagnostics sent to Log Analytics | Azure Monitor / Log Analytics |
+| **Application Insights** (`applicationinsights`) | Request/response tracing with custom headers | Application Insights |
+
+#### Azure Monitor Log Settings
+
+<CodeGroup>
+```bicep Default
+param azureMonitorLogSettings = {
+  frontend: {
+    request:  { headers: [], body: { bytes: 0 } }
+    response: { headers: [], body: { bytes: 0 } }
+  }
+  backend: {
+    request:  { headers: [], body: { bytes: 0 } }
+    response: { headers: [], body: { bytes: 0 } }
+  }
+  largeLanguageModel: {
+    logs: 'enabled'
+    requests:  { messages: 'all', maxSizeInBytes: 262144 }
+    responses: { messages: 'all', maxSizeInBytes: 262144 }
+  }
+}
+```
+
+```bicep Production with Header Capture
+param azureMonitorLogSettings = {
+  frontend: {
+    request:  { headers: [ 'Content-type', 'User-agent' ], body: { bytes: 0 } }
+    response: { headers: [ 'x-ms-region' ], body: { bytes: 0 } }
+  }
+  backend: {
+    request:  { headers: [ 'Content-type' ], body: { bytes: 8192 } }
+    response: { headers: [ 'x-ratelimit-remaining-tokens', 'x-ratelimit-remaining-requests' ], body: { bytes: 8192 } }
+  }
+  largeLanguageModel: {
+    logs: 'enabled'
+    requests:  { messages: 'all', maxSizeInBytes: 131072 }
+    responses: { messages: 'all', maxSizeInBytes: 131072 }
+  }
+}
+```
+</CodeGroup>
+
+#### Recommended Settings by Environment
+
+| Setting | Development | Staging | Production |
+|---------|-------------|---------|------------|
+| **Azure Monitor LLM logs** | `'enabled'` | `'enabled'` | `'enabled'` (or `'disabled'` for PII-sensitive workloads) |
+| **LLM messages capture** | `'all'` | `'all'` | `'all'` or `'none'` |
+| **LLM max payload (bytes)** | `262144` (256 KB) | `262144` (256 KB) | `131072`–`262144` (128–256 KB) |
+| **App Insights body bytes** | `8192` (8 KB) | `0` | `0` |
+| **App Insights headers** | All 5 defaults | All 5 defaults | All 5 defaults |
+
+<Note>
+Increasing body byte capture or LLM payload sizes will increase Log Analytics and Application Insights ingestion costs. For production environments, balance observability needs against cost and data-sensitivity requirements.
+</Note>
+
+---
+
+### 7. Security & Compliance
+
+#### Entra ID Authentication
+
+**Production Requirement:** Enable JWT-based authentication
+
+```bicep
+param entraAuth = true
+param entraTenantId = '00000000-0000-0000-0000-000000000000'
+param entraClientId = '11111111-2222-3333-4444-555555555555'
+param entraAudience = 'api://citadel-gateway'
+```
+
+Guide: [Entra ID Authentication](/guides/citadel-hub/reference/entraid-auth)
+
+#### Network Security
+
+All applicable network security settings are configurable through the parameters of the accelerator:
+
+**Suggested Production Configuration:**
+```bicep
+// APIM Security
+param apimNetworkType = 'Internal'  // No public access
+param apimV2UsePrivateEndpoint = true
+param apimV2PublicNetworkAccess = false
+
+// Service Network Access
+param cosmosDbPublicAccess = 'Disabled'
+param eventHubNetworkAccess = 'Disabled'
+param languageServiceExternalNetworkAccess = 'Disabled'
+param aiContentSafetyExternalNetworkAccess = 'Disabled'
+```
+
+---
+
+## Deployment Execution
+
+It is recommended to leverage Azure Developer CLI (`azd`) for simplified deployments of both the infrastructure and application (Logic Apps workflows).
+
+### Using `az deployment sub create`:
+
+<CodeGroup>
+```bash Development
+az deployment sub create \
+  --location eastus \
+  --template-file ./bicep/infra/main.bicep \
+  --parameters ./bicep/infra/main.parameters.dev.bicepparam
+```
+
+```bash Production
+az deployment sub create \
+  --location eastus \
+  --template-file ./bicep/infra/main.bicep \
+  --parameters ./bicep/infra/main.parameters.prod.bicepparam
+```
+</CodeGroup>
+
+<Note>
+Using `az deployment sub create` will only provision the infrastructure. You still will need to deploy the `Logic App` workflows separately after the infrastructure is ready.
+</Note>
+
+### Using `azd up`:
+
+```bash
+# Authenticate to Azure
+azd auth login
+
+# Initialize environment
+azd env new ai-hub-citadel-dev-01
+
+# Provision and deploy everything based on defaults
+azd up
+```
+
+<Note>
+Using `azd up` will use the `main.bicepparam` file for parameter values. You can modify it or set environment variables to override specific parameters. This command provisions the infrastructure and deploys the Logic App workflows in one step.
+</Note>
+
+---
+
+## Post-Deployment Validation
+
+### Verify Resource Deployment
+
+```bash
+# List all resources in resource group
+RG_NAME=$(az deployment sub show \
+  --name <deployment-name> \
+  --query properties.outputs.resourceGroupName.value -o tsv)
+
+az resource list \
+  --resource-group $RG_NAME \
+  --output table
+```
+
+### Validate Governance Hub functionality
+
+This repo includes set of validation NoteBooks under `/validation` folder.
+
+See [Testing Tools](/guides/citadel-hub/development/testing-tools) for details on running validation notebooks.
+
+---
+
+## Deploy Citadel Governance Hub Updates
+
+Once the initial deployment is completed, you can still further updates and enhancements of the governance hub by synchronizing your local repository `original branch` with the upstream changes, then you can create a `Pull-Request` to your environment-specific branch to merge the changes.
+
+## Troubleshooting
+
+Visit the [Troubleshooting](/guides/citadel-hub/troubleshooting) guide for common issues and resolutions.
+
+---
+
+### Getting Help
+
+- **GitHub Issues:** [Report a bug](https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator/issues)
+
+---
+
+## Next Steps
+
+**After Successful Deployment:**
+
+<CardGroup cols={2}>
+  <Card title="Enable Security" icon="shield-halved">
+    - [Entra ID Authentication](/guides/citadel-hub/reference/entraid-auth)
+    - [PII Detection](/guides/citadel-hub/features/pii-masking)
+  </Card>
+  <Card title="Set Up Monitoring" icon="chart-line">
+    - [Power BI Dashboard](/guides/citadel-hub/operations/power-bi-dashboard)
+    - [Usage Analytics](/guides/citadel-hub/operations/usage-analytics)
+    - [Alert Configuration](/guides/citadel-hub/features/throttling-handling)
+  </Card>
+  <Card title="Validate & Test" icon="vial" href="/guides/citadel-hub/development/testing-tools">
+    - 🧪 Run validation notebooks
+    - ✅ Test backend connectivity
+    - 📊 Verify usage logging
+  </Card>
+  <Card title="Deploy LLM Backends" icon="plug">
+    - [Onboard Existing LLMs](/guides/citadel-hub/features/llm-backend-onboarding)
+    - [LLM Routing Architecture](/guides/ai-landing-zone/llm-routing)
+  </Card>
+</CardGroup>
+
+---
+
+**Congratulations! Your AI Citadel Governance Hub is now deployed and ready for enterprise AI workloads.** 🎉
+
+---
+
+## Related Guides
+
+<CardGroup cols={3}>
+  <Card title="Quick Start" icon="bolt" href="/guides/citadel-hub/deployment/quick-start">
+    Fastest path to deployment
+  </Card>
+  <Card title="Parameters" icon="sliders" href="/guides/citadel-hub/deployment/parameters">
+    Configuration and customization
+  </Card>
+  <Card title="Network Architecture" icon="network-wired" href="/guides/ai-landing-zone/networking">
+    Hub-spoke topology patterns
+  </Card>
+</CardGroup>

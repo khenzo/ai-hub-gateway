@@ -1,6 +1,6 @@
 ---
-title: "Citadel 4-Layer Architecture Model"
-description: "Comprehensive overview of the Foundry Citadel Platform's layered security architecture for enterprise AI governance"
+title: "4-Layer Architecture Model"
+description: "Comprehensive overview of the AI+ Governance Platform's layered security architecture for enterprise AI governance"
 icon: sitemap
 ---
 
@@ -8,7 +8,11 @@ icon: sitemap
 
 ## Overview
 
-The **Foundry Citadel Platform** implements a unified, layered approach to AI security and governance. This architecture enables enterprises to scale AI innovation while maintaining trust, security, and regulatory compliance through **separation of concerns with unified oversight**.
+The **AI+ Governance Platform** implements a unified, layered approach to AI security and governance. This architecture enables enterprises to scale AI innovation while maintaining trust, security, and regulatory compliance through **separation of concerns with unified oversight**.
+
+## Platform Vision
+
+The 4-layer model is the architectural blueprint of the AI+ Governance Platform. It unifies AI Landing Zone workloads and Citadel governance into a single, coherent enterprise platform. Each layer owns a distinct governance responsibility, yet all layers interlock to deliver end-to-end trust across both secure workload environments and centralized governance controls.
 
 ## Architectural Philosophy
 
@@ -36,10 +40,10 @@ The four layers are not isolated silos—they form an integrated architecture wh
 
 ```mermaid
 graph TB
-    L4["🛡️ Layer 4: Security Fabric<br/>Defender · Purview · Entra — Unified Protection"]
-    L3["🟢 Layer 3: Agent Identity<br/>Entra ID — Identity &amp; Lifecycle"]
-    L2["🔶 Layer 2: AI Control Plane<br/>Foundry Control Plane — Observability &amp; Compliance"]
-    L1["🔷 Layer 1: Governance Hub<br/>API Management — Runtime Enforcement &amp; Gateway"]
+    L4["🛡️ Layer 4: Security Fabric\nDefender · Purview · Entra — Unified Protection"]
+    L3["🟢 Layer 3: Agent Identity\nEntra ID — Identity &amp; Lifecycle"]
+    L2["🔶 Layer 2: AI Control Plane\nFoundry Control Plane — Observability &amp; Compliance"]
+    L1["🔷 Layer 1: Governance Hub\nAPI Management — Runtime Enforcement &amp; Gateway"]
     AG["AI Agents &amp; Applications"]
 
     L4 --> L3
@@ -81,9 +85,9 @@ Citadel's layered approach transforms this:
 - **🛡️ Security:** 80% reduction in shadow AI-related data breach risk
 - **🏆 Success:** 95% improvement in GenAI pilot success vs. ungoverned approaches
 
-## Relationship to Microsoft Agent Factory
+## Relationship Agent Factory
 
-Citadel provides the **governance and security foundation** for Microsoft Agent Factory deployments. The Agent Factory brings together intelligence layers, builder platforms, and governance capabilities into a unified operating model for enterprise AI agents.
+Citadel provides the **governance and security foundation** for  Agent Factory deployments. The Agent Factory brings together intelligence layers, builder platforms, and governance capabilities into a unified operating model for enterprise AI agents.
 
 - **Citadel Layer 1** enforces runtime policies for agents built in Copilot Studio and Azure AI Foundry
 - **Citadel Layer 2** provides observability and evaluations for Agent Factory workloads through the Foundry Control Plane
@@ -156,5 +160,5 @@ For comprehensive documentation of each layer, see:
 ## Next Steps
 
 - Learn about [Layer 1: Governance Hub](./layer-1-governance-hub) — the runtime enforcement foundation
-- Explore [networking patterns](/guides/network-approach) for hub-spoke deployment
+- Explore [networking patterns](/guides/ai-landing-zone/network-approach) for hub-spoke deployment
 - Review [deployment guides](/getting-started/quick-start) to implement the architecture

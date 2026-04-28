@@ -1,0 +1,48 @@
+---
+title: "AI Landing Zone"
+description: "Quickstart and guidance for deploying the AI Landing Zone"
+---
+
+# AI Landing Zone
+
+The AI Landing Zone provides the foundational Azure infrastructure for running secure, scalable AI workloads. It establishes the hub-spoke network topology, governance policies, and landing zone architecture required before adding AI gateway capabilities.
+
+## What It Provides
+
+- **Hub-spoke networking** with centralized connectivity and network segmentation
+- **Governance and policy foundation** via Azure Policy initiatives
+- **Landing zone architecture** ready for AI workload deployment
+- **Secure baseline** for generative AI applications at enterprise scale
+
+## Official Repository
+
+<Card title="Azure/AI-Landing-Zones" icon="github" href="https://github.com/Azure/AI-Landing-Zones">
+  View the Bicep modules, deployment scripts, and architecture documentation for the AI Landing Zone.
+</Card>
+
+## Recommended Path
+
+<Tip>
+  Start here before deploying Citadel Hub. The AI Landing Zone creates the Azure foundation that Citadel Hub extends with AI gateway capabilities.
+</Tip>
+
+## Guides in This Section
+
+<CardGroup cols={2}>
+  <Card title="Networking Approach" icon="network-wired" href="/guides/ai-landing-zone/network-approach">
+    Network topology and connectivity patterns for the AI Landing Zone.
+  </Card>
+  <Card title="LLM Routing Architecture" icon="route" href="/guides/ai-landing-zone/llm-routing-architecture">
+    Architecture patterns for routing and load balancing LLM requests.
+  </Card>
+  <Card title="Networking Guide" icon="sitemap" href="/guides/ai-landing-zone/networking">
+    Detailed network configuration and implementation guidance.
+  </Card>
+  <Card title="LLM Routing" icon="arrow-right-arrow-left" href="/guides/ai-landing-zone/llm-routing">
+    Request routing, failover, and backend selection strategies.
+  </Card>
+</CardGroup>
+
+## Next Step
+
+Once the AI Landing Zone is deployed, add the [Citadel Hub AI Gateway](/guides/citadel-hub) for PII masking, throttling, usage analytics, and LLM routing through Azure API Management.

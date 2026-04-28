@@ -1,0 +1,281 @@
+---
+title: "Testing Tools"
+description: "Validation notebooks and testing utilities for AI Hub Gateway"
+---
+
+# Testing Tools
+
+The AI Hub Gateway provides comprehensive testing utilities and validation notebooks for verifying deployments, testing features, and validating configurations.
+
+## Validation Notebooks
+
+Jupyter notebooks in the `validation/` directory provide interactive testing scenarios.
+
+### Available Notebooks
+
+| Notebook | Purpose | Related Guide |
+|----------|---------|---------------|
+| `citadel-access-contracts-tests.ipynb` | Test access contracts and governance | Access Contracts |
+| `citadel-agent-frameworks-tests.ipynb` | Validate agent framework integrations | AI Patterns |
+| `citadel-pii-processing-tests.ipynb` | Test PII detection and masking | PII Masking |
+| `llm-backend-onboarding-runner.ipynb` | Validate LLM backend onboarding | LLM Onboarding |
+
+### Running Notebooks
+
+#### Option 1: VS Code with Jupyter Extension
+
+1. Open the repository in VS Code
+2. Install Jupyter extension
+3. Navigate to `validation/` folder
+4. Open notebook (`.ipynb` file)
+5. Select Python kernel
+6. Run cells sequentially
+
+#### Option 2: Jupyter Lab
+
+```bash
+# Install Jupyter
+pip install jupyterlab
+
+# Launch Jupyter Lab
+jupyter lab validation/
+```
+
+#### Option 3: Azure Machine Learning
+
+1. Upload notebooks to AML workspace
+2. Use AML compute or attached compute
+3. Run with managed environment
+
+### Notebook Structure
+
+Each validation notebook follows a consistent pattern:
+
+```python
+# Cell 1: Environment Setup
+# %load ../shared/snippets/api-http-requests.py
+
+# Cell 2: Configuration
+apim_gateway_url = "https://your-apim.azure-api.net"
+subscription_key = "your-key"
+
+# Cell 3: Test Execution
+def test_endpoint():
+    # Test logic
+    pass
+
+# Cell 4: Validation
+assert test_result.success, "Test failed"
+print("✅ Test passed")
+```
+
+## HTTP Testing Files
+
+The `src/testing/openai-testing.http` file provides ready-to-use HTTP requests for VS Code REST Client extension.
+
+### Setup
+
+1. Install [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension
+2. Update variables in `openai-testing.http`:
+
+```http
+@aiHubGatewayOpenAIBaseUrl = "https://your-apim.azure-api.net/openai/deployments"
+@aiHRSubscriptionKey = "your-hr-subscription-key"
+@aiRetailSubscriptionKey = "your-retail-subscription-key"
+```
+
+### Available Requests
+
+| Request | Description |
+|---------|-------------|
+| `gpt-35-turbo/AI-HR` | Chat completion with HR subscription |
+| `gpt-4o/AI-HR` | GPT-4o with HR subscription |
+| `gpt-35-turbo/AI-Retail` | Chat completion with Retail subscription |
+
+### Using REST Client
+
+1. Open `openai-testing.http`
+2. Click "Send Request" above any request
+3. View response inline
+
+## Test Scenarios
+
+### Post-Deployment Validation
+
+Use `llm-backend-onboarding-runner.ipynb` after deployment:
+
+1. **Connectivity Test**
+   ```python
+   # Verify APIM is accessible
+   response = requests.get(f"{gateway_url}/status")
+   assert response.status_code == 200
+   ```
+
+2. **Authentication Test**
+   ```python
+   # Test subscription key auth
+   headers = {"Ocp-Apim-Subscription-Key": subscription_key}
+   response = requests.post(url, headers=headers, json=payload)
+   assert response.status_code == 200
+   ```
+
+3. **Model Routing Test**
+   ```python
+   # Verify routing to correct backend
+   response = call_model("gpt-4o")
+   assert response.json()["model"] == "gpt-4o"
+   ```
+
+### PII Processing Validation
+
+Use `citadel-pii-processing-tests.ipynb`:
+
+```python
+# Test PII detection
+response = call_with_pii("My email is john@example.com")
+assert "[EMAIL]" in response.text
+
+# Test PII masking
+response = call_with_pii("SSN: 123-45-6789")
+assert "###" in response.text
+```
+
+### Access Contracts Testing
+
+Use `citadel-access-contracts-tests.ipynb`:
+
+```python
+# Test contract enforcement
+response = call_with_contract(
+    contract_id="hr-contract",
+    model="gpt-4o"
+)
+assert response.status_code == 200
+
+# Test contract violation
+response = call_with_contract(
+    contract_id="basic-contract",
+    model="unauthorized-model"
+)
+assert response.status_code == 403
+```
+
+## Shared Testing Utilities
+
+Import utilities from `shared/` for consistent testing:
+
+```python
+import sys
+sys.path.insert(1, '../shared')
+
+from utils import print_info, print_ok, print_error
+from apimtools import APIMClientTool
+
+# Initialize APIM client
+apim = APIMClientTool(
+    resource_group_name="rg-citadel",
+    apim_resource_name="apim-citadel"
+)
+apim.initialize()
+
+# Get subscription keys
+for sub in apim.apim_subscriptions:
+    print_info(f"Subscription: {sub['name']}")
+```
+
+## Automated Testing
+
+### CI/CD Integration
+
+Convert notebooks to Python scripts for CI/CD:
+
+```bash
+# Install nbconvert
+pip install nbconvert
+
+# Convert notebook to script
+jupyter nbconvert --to script validation/test-notebook.ipynb
+
+# Run as Python script
+python validation/test-notebook.py
+```
+
+### Pytest Integration
+
+Create test functions from notebook cells:
+
+```python
+# test_gateway.py
+import pytest
+from shared.apimtools import APIMClientTool
+
+def test_gateway_health():
+    apim = APIMClientTool("rg-test", "apim-test")
+    apim.initialize()
+    assert apim.apim_resource_gateway_url is not None
+
+def test_model_routing():
+    # Test routing logic
+    assert route_model("gpt-4o") == "gpt-4o-pool"
+```
+
+Run with pytest:
+```bash
+pytest tests/ -v
+```
+
+## Best Practices
+
+1. **Run sequentially** - Notebooks often have cell dependencies
+2. **Check prerequisites** - Verify APIM and backends are running
+3. **Use fresh kernels** - Restart kernel if tests fail unexpectedly
+4. **Document results** - Save test outputs for compliance
+5. **Version control** - Commit notebooks after successful runs
+6. **Parameterize configs** - Use variables for environment-specific values
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Notebook Kernel Not Found">
+```bash
+# Install IPython kernel
+pip install ipykernel
+python -m ipykernel install --user --name=myenv
+
+# Select kernel in VS Code
+# Click kernel selector → Choose 'myenv'
+```
+  </Accordion>
+  <Accordion title="Import Errors">
+```bash
+# Install requirements
+pip install -r shared/requirements.txt
+
+# Verify path
+import sys
+print(sys.path)
+```
+  </Accordion>
+  <Accordion title="Connection Timeouts">
+- Check VPN/firewall settings
+- Verify APIM gateway URL
+- Check subscription key validity
+- Review NSG rules
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Related Guides
+
+<CardGroup cols={3}>
+  <Card title="Shared Resources" icon="share-nodes" href="/guides/citadel-hub/development/shared-resources">
+    Python utilities and snippets
+  </Card>
+  <Card title="LLM Backend Onboarding" icon="plug" href="/guides/citadel-hub/features/llm-backend-onboarding">
+    Configure and test backends
+  </Card>
+  <Card title="PII Masking" icon="shield-halved" href="/guides/citadel-hub/features/pii-masking">
+    Test PII processing
+  </Card>
+</CardGroup>
