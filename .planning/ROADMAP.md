@@ -213,7 +213,9 @@ Plans:
   1. Reader can describe the governed semantic endpoint pattern — how Citadel APIM fronts the Databricks SQL REST API semantic endpoint, what Entra token validation enforces, and how usage tracking and rate limiting apply (DSEC-01)
   2. Reader can justify why a dedicated data access policy fragment is architecturally distinct from reusing LLM policy fragments — citing the different risk surface, throttling model, and failure modes (DSEC-02)
   3. Reader can identify where this integration attaches to the existing Citadel 4-layer model — specifically at Layer 1 (Governance Hub / APIM) — without treating it as a fifth layer
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 26-01-PLAN.md — Create APIM governed data access page and Layer 1 cross-link (DSEC-01, DSEC-02)
 
 ### Phase 27: Security & Identity Patterns
 **Goal**: Architects can implement a zero-secrets data path using the Entra MI chain from agent through APIM to Databricks SQL to OneLake, and can explain how Unity Catalog column masks propagate through the APIM PII policy to AI agent responses as governance by construction

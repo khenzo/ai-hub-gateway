@@ -443,3 +443,39 @@
 |------|--------|---------|---------|--------|
 | 15:57 | Created .planning/phases/24-unity-catalog-governance/24-RESEARCH.md | — | ~11008 |
 | 15:58 | Research Phase 24: Unity Catalog Governance | .planning/phases/24-unity-catalog-governance/24-RESEARCH.md | Created RESEARCH.md with HIGH confidence — ABAC (Public Preview, DBR 16.4+), Iceberg REST Catalog (Public Preview), row filters/column masks (GA), three-level namespace pattern, compute/governance separation architecture | ~8500 |
+| 16:00 | Created .planning/phases/24-unity-catalog-governance/24-VALIDATION.md | — | ~1096 |
+| 16:03 | Created .planning/phases/24-unity-catalog-governance/24-01-PLAN.md | — | ~5702 |
+| 16:09 | Created .planning/phases/24-unity-catalog-governance/24-01-PLAN.md | — | ~5897 |
+| 16:11 | Session end: 4 writes across 3 files (24-RESEARCH.md, 24-VALIDATION.md, 24-01-PLAN.md) | 14 reads | ~89758 tok |
+
+## Session: 2026-04-27 23:00
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 23:06 | Created .planning/phases/25-semantic-layer/25-RESEARCH.md | — | ~9182 |
+| 23:08 | Created .planning/phases/25-semantic-layer/25-VALIDATION.md | — | ~761 |
+| 23:12 | Created .planning/phases/25-semantic-layer/25-01-PLAN.md | — | ~8303 |
+| 23:14 | Created .planning/ROADMAP.md | — | ~5802 |
+| 23:15 | Created Phase 25 Semantic Layer plan (25-01-PLAN.md) covering SEML-01 through SEML-04 in a single semantic-layer.mdx page | .planning/phases/25-semantic-layer/25-01-PLAN.md, .planning/ROADMAP.md | committed 00dd526 | ~8000 |
+| 23:18 | Created .planning/REQUIREMENTS.md | — | ~1561 |
+| 23:19 | Created .planning/phases/25-semantic-layer/25-VALIDATION.md | — | ~748 |
+| 23:20 | revision: fixed REQUIREMENTS.md SEML-01–04 Phase 26→25; VALIDATION.md wave 1→3; removed docs.json from Wave 0 Requirements | .planning/REQUIREMENTS.md, .planning/phases/25-semantic-layer/25-VALIDATION.md | complete | ~800 |
+| 23:22 | Session end: 6 writes across 5 files (25-RESEARCH.md, 25-VALIDATION.md, 25-01-PLAN.md, ROADMAP.md, REQUIREMENTS.md) | 19 reads | ~96413 tok |
+
+## Session: 2026-04-27 23:22
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 23:37 | Created docs/data-foundation/semantic-layer.mdx | — | ~5945 |
+| 23:50 | Created .planning/phases/25-semantic-layer/25-01-SUMMARY.md | — | ~1815 |
+| 23:51 | Edited .planning/phases/25-semantic-layer/25-01-SUMMARY.md | expanded (+6 lines) | ~50 |
+| 23:53 | Created semantic-layer.mdx (257 lines) — ADR-DF-03, two-phase grounding, Core/Edge governance, author-once trace | docs/data-foundation/semantic-layer.mdx | Complete — SEML-01 through SEML-04 | ~3500 tok |
+| 23:57 | Created .planning/phases/25-semantic-layer/25-VERIFICATION.md | — | ~3174 |
+| 23:57 | Session end: 4 writes across 3 files (semantic-layer.mdx, 25-01-SUMMARY.md, 25-VERIFICATION.md) | 7 reads | ~32377 tok |
+
+## Session: 2026-04-27 23:58
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 00:04 | Created .planning/phases/26-apim-governed-data-access/26-RESEARCH.md | — | ~6447 |
+| 00:04 | Research Phase 26 APIM Governed Data Access | .planning/phases/26-apim-governed-data-access/26-RESEARCH.md | Created research document; DSEC-01 + DSEC-02 coverage confirmed | ~9000 |
