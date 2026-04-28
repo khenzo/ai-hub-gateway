@@ -236,7 +236,9 @@ Plans:
   2. Every page produced in Phases 23-28 is reachable from the Data Foundation tab without dead links
   3. Existing Citadel architecture pages (Layer 1/APIM, Layer 2/observability, Layer 4/Security Fabric) include cross-links into the relevant Data Foundation pages
   4. No previously working internal links are broken by the docs.json changes
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 28-01-PLAN.md — Wire Data Foundation tab in docs.json and add cross-links to Layer 2 and Layer 4 (DNAV-01)
 
 ## Progress
 
@@ -269,4 +271,4 @@ Plans:
 | 25. Semantic Layer | 1/1 | Complete   | 2026-04-27 | - |
 | 26. APIM Governed Data Access | 1/1 | Complete   | 2026-04-28 | - |
 | 27. Security & Identity Patterns | v2.0 | 0/TBD | Not started | - |
-| 28. Navigation & Integration | v2.0 | 0/TBD | Not started | - |
+| 28. Navigation & Integration | v2.0 | 0/1 | Not started | - |
