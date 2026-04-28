@@ -83,7 +83,7 @@ Manage agent ecosystem at scale:
 
 ## Agent Factory Integration
 
-The AI Control Plane is the observability and compliance brain for Microsoft Agent Factory workloads. It unifies evaluation and monitoring across all builder platforms and intelligence layers.
+The AI Control Plane is the observability and compliance brain for  Agent Factory workloads. It unifies evaluation and monitoring across all builder platforms and intelligence layers.
 
 | Agent Factory Element | Layer 2 Capability | Value |
 |-----------------------|-------------------|-------|
@@ -143,6 +143,16 @@ graph LR
 - **Telemetry Source** — Collects runtime data from the AI Gateway
 - **Policy Feedback** — Evaluation results inform gateway policies
 - **Compliance Monitoring** — Usage patterns tracked for compliance
+
+<Note>
+**Data Foundation: Unified Observability for Data Access Workloads**
+
+The Databricks SQL REST API semantic endpoint — fronted by APIM at Layer 1 — emits query-count
+and warehouse-id telemetry to the same Event Hub namespace monitored by the AI Control Plane.
+This enables unified observability across LLM token consumption and structured data access in a
+single compliance dashboard. See [APIM Governed Data Access](../data-foundation/apim-semantic-endpoint)
+for the usage tracking schema and data access policy fragment design.
+</Note>
 
 ### Layer 3: Agent Identity
 

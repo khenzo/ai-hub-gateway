@@ -193,6 +193,16 @@ Security is built into every layer:
 | **Purview Policies** | Data governance enforced on traffic |
 | **Entra Authentication** | Identity validation at entry point |
 
+<Note>
+**Data Foundation: Governance by Construction via Purview Column Masks**
+
+Purview sensitivity labels assigned to Unity Catalog columns propagate through the APIM data
+access policy to AI agent responses — column masks are enforced at the API boundary, not just
+at the warehouse. This means AI agents receive pre-filtered data without requiring application-
+level redaction logic. See [Security & Identity Patterns](../data-foundation/security-identity-patterns)
+for the Entra Managed Identity chain and column mask propagation design.
+</Note>
+
 ### Layer 2: AI Control Plane
 
 | Integration | Function |
