@@ -8,7 +8,7 @@ icon: shield-check
 This integration attaches at **Layer 1: Governance Hub**. It is not a fifth Citadel layer. Registering the Databricks SQL warehouse as an APIM backend extends the existing Layer 1 runtime enforcement plane to cover semantic queries. See [Layer 1: Governance Hub](../architecture/layer-1-governance-hub) for the full APIM capabilities this page builds on.
 </Note>
 
-Phase 26 closes the governance gap between the semantic layer and the Citadel enforcement plane. Phases 23–25 established the Enterprise Data Foundation stack — OneLake as unified storage, Unity Catalog as governance, MetricFlow and UC Business Semantics as the semantic interface. This page documents how AI agents access that semantic layer in production: through Citadel APIM, never directly.
+Phase 26 closes the governance gap between the [semantic layer](../data-foundation/semantic-layer) and the Citadel enforcement plane. Phases 23–25 established the Enterprise Data Foundation stack — OneLake as unified storage, Unity Catalog as governance, MetricFlow and UC Business Semantics as the semantic interface. This page documents how AI agents access that semantic layer in production: through Citadel APIM, never directly.
 
 This page covers:
 
@@ -158,11 +158,11 @@ The Enterprise Data Foundation stack — OneLake → Unity Catalog → Semantic 
 No new Citadel layer is required or created. The Data Foundation stack piggybacks on the enforcement and observability infrastructure that Layers 1, 2, and 4 already provide.
 
 <CardGroup cols={3}>
+  <Card title="Semantic Layer" icon="chart-bar" href="../data-foundation/semantic-layer">
+    MetricFlow and UC Business Semantics — what the governed endpoint fronts and why platform-native semantics are required for enterprise AI
+  </Card>
   <Card title="Unity Catalog Governance" icon="database" href="../data-foundation/unity-catalog-governance">
     Row filters, column masks, and the access control model that governs what semantic queries can return
-  </Card>
-  <Card title="Layer 4: Security Fabric" icon="shield" href="../architecture/layer-4-security-fabric">
-    Zero-secrets identity chain and Purview label propagation that Phase 27 will wire to the semantic endpoint
   </Card>
   <Card title="Layer 1: Governance Hub" icon="building-columns" href="../architecture/layer-1-governance-hub">
     Full APIM capabilities — access contracts, policy fragments, product subscriptions, and Event Hub usage pipeline
