@@ -33,8 +33,8 @@
 
 ### APIM Integration & Security (DSEC)
 
-- [ ] **DSEC-01**: User can understand how Citadel APIM fronts the Databricks SQL REST API semantic endpoint — Entra token validation, usage tracking, and rate limiting (governed semantic endpoint pattern)
-- [ ] **DSEC-02**: User can understand why a dedicated data access policy fragment is needed vs reusing LLM policy fragments — different risk surface, different throttling model
+- [x] **DSEC-01**: User can understand how Citadel APIM fronts the Databricks SQL REST API semantic endpoint — Entra token validation, usage tracking, and rate limiting (governed semantic endpoint pattern)
+- [x] **DSEC-02**: User can understand why a dedicated data access policy fragment is needed vs reusing LLM policy fragments — different risk surface, different throttling model
 - [ ] **DSEC-03**: User can understand the Entra Managed Identity chain for agent→APIM→Databricks SQL→OneLake — zero secrets in Key Vault for the data path
 - [ ] **DSEC-04**: User can understand how Unity Catalog column masks propagate through the APIM PII policy to AI agent responses — governance by construction, not procedural enforcement
 
@@ -82,8 +82,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEML-02 | Phase 25 | Complete |
 | SEML-03 | Phase 25 | Complete |
 | SEML-04 | Phase 25 | Complete |
-| DSEC-01 | Phase 27 | Pending |
-| DSEC-02 | Phase 27 | Pending |
+| DSEC-01 | Phase 27 | Complete |
+| DSEC-02 | Phase 27 | Complete |
 | DSEC-03 | Phase 28 | Pending |
 | DSEC-04 | Phase 28 | Pending |
 | DNAV-01 | Phase 29 | Pending |
