@@ -1,0 +1,608 @@
+---
+title: "Security & Identity Patterns"
+description: "Zero-secrets data path using Entra Managed Identity chains and governance-by-construction using Unity Catalog column masks for the SOF1A 2.0 AI Governance Platform."
+icon: lock
+---
+
+# 🔐 Security & Identity Patterns
+
+## Overview
+
+Phase 27 documents the security and identity patterns that close the governance loop for the Enterprise Data Foundation stack. Phases 23–26 established the data platform — OneLake as unified storage, Unity Catalog as governance layer, MetricFlow and UC Business Semantics as the semantic interface, and APIM as the governed endpoint gateway. This page answers two critical questions:
+
+1. **How do AI agents authenticate to data without secrets in the request path?** — The zero-secrets Managed Identity chain (DSEC-03)
+2. **How does data governance enforce security structurally at query time?** — Governance-by-construction with Unity Catalog column masks (DSEC-04)
+
+These patterns are not optional add-ons. They are structural requirements for any production deployment where AI agents access enterprise data through the semantic layer.
+
+<Note>
+The patterns in this page attach at **Layer 1: Governance Hub** (APIM token validation, Managed Identity authentication) and **Layer 4: Security Fabric** (Entra ID identity chain, Unity Catalog governance-by-construction). They do **not** create a fifth Citadel layer. The Data Foundation stack connects to Citadel at existing attachment points already documented in [Layer 1](../architecture/layer-1-governance-hub) and [Layer 4](../architecture/layer-4-security-fabric). See [Attachment to the Citadel 4-Layer Model](#attachment-to-the-citadel-4-layer-model) for the full mapping.
+</Note>
+
+This page covers:
+
+- **DSEC-03**: Zero-secrets Entra Managed Identity chain from agent through APIM to Databricks SQL to OneLake
+- **DSEC-04**: Unity Catalog column mask propagation — governance-by-construction vs procedural enforcement
+- **APIM Policy Fragments**: Reusable data governance fragments for token validation and defense-in-depth response masking
+- **Token Exchange Patterns**: OBO flow, direct MI auth, and client credentials — when to use each
+- **Common Pitfalls**: Anti-patterns that break the zero-secrets guarantee or bypass structural governance
+
+---
+
+## DSEC-03: Zero-Secrets Managed Identity Chain
+
+### The Problem: Secrets in the Data Path
+
+Traditional data access patterns rely on secrets — Personal Access Tokens (PATs), connection strings, or API keys stored in Key Vault and retrieved at runtime. This creates three structural problems in an AI governance platform:
+
+| Problem | Consequence |
+|---------|-------------|
+| **Secret rotation** | PATs expire and must be rotated manually or through automation that itself requires credentials |
+| **Secret exfiltration** | Any compromise of the agent, APIM configuration, or Key Vault exposes the data access credential |
+| **No identity chain** | The data layer sees a token or connection string, not the original caller's identity — row-level security cannot evaluate per-user or per-agent access |
+
+The zero-secrets pattern eliminates all three problems by replacing every secret in the data path with an Entra identity that is validated at each hop.
+
+### Architecture: The Complete Identity Chain
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    ZERO-SECRETS MANAGED IDENTITY CHAIN                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│   AI Agent (Spoke VNet)                                                 │
+│   ├─ Entra Managed Identity (user-assigned)                             │
+│   └─ Authenticates as itself (not a service account secret)             │
+│        │                                                                │
+│        ▼ HTTPS + Entra Bearer Token                                     │
+│   ┌─────────────────────────────────────────────────────────────────┐   │
+│   │  APIM Gateway (Hub VNet, private endpoint)                       │   │
+│   │  ├─ [inbound] validate-azure-ad-token                            │   │
+│   │  │   └─ Verify: audience, issuer, expiry, MI claim               │   │
+│   │  ├─ [inbound] caller-identity context                            │   │
+│   │  │   └─ Extract: object_id, app_id, tenant_id                    │   │
+│   │  └─ [backend] authentication-managed-identity                    │   │
+│   │      └─ APIM exchanges its MI token for Databricks resource      │   │
+│   └─────────────────────────────────────────────────────────────────┘   │
+│        │                                                                │
+│        ▼ HTTPS (private endpoint)                                       │
+│   Databricks SQL Warehouse                                              │
+│   ├─ Receives: APIM's MI token (forwarded agent identity)             │
+│   ├─ Unity Catalog: evaluates row filters + column masks              │
+│   │   └─ Per-identity access control: agent's object_id is the       │
+│   │       principal evaluated by UC                                  │
+│   └─ Query execution against Delta tables                             │
+│        │                                                                │
+│        ▼                                                                │
+│   OneLake (Unified Storage)                                             │
+│   ├─ Entra ID authentication on every storage request                 │
+│   └─ No SAS tokens, no account keys, no shared secrets                │
+│                                                                         │
+│   ═══════════════════════════════════════════════════════════════════   │
+│   KEY VAULT: Contains NO secrets for the data access path             │
+│   The only "secret" is the MI credential managed by Azure             │
+│   ═══════════════════════════════════════════════════════════════════   │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Identity Hop by Hop
+
+#### Hop 1: Agent → APIM (Entra Token Validation)
+
+The AI agent authenticates using its Entra Managed Identity. The outbound HTTP request to APIM includes a bearer token obtained from the Entra token endpoint:
+
+```
+Authorization: Bearer {entra-access-token}
+x-apim-subscription-key: {agent-product-subscription-key}
+```
+
+APIM validates this token using the `validate-azure-ad-token` policy:
+
+```xml
+<!-- frag-semantic-entra-auth.xml -->
+<validate-azure-ad-token
+  tenant-id="{{entra-tenant-id}}"
+  header-name="Authorization"
+  failed-validation-httpcode="401"
+  failed-validation-error-message="Invalid or expired Entra token">
+  <audiences>
+    <audience>api://citadel-apim-semantic-endpoint</audience>
+  </audiences>
+  <required-claims>
+    <claim name="oid" match="any">
+      <!-- Object ID of the calling MI must be present -->
+    </claim>
+    <claim name="iss" match="any">
+      <value>https://sts.windows.net/{{entra-tenant-id}}/</value>
+    </claim>
+  </required-claims>
+</validate-azure-ad-token>
+```
+
+**Why no secret here:** The agent does not hold a secret. Its MI credential is managed by Azure. The token is short-lived (typically 1 hour) and scoped to a specific audience. Compromising the token gives an attacker one hour of access, not indefinite access to a PAT.
+
+#### Hop 2: APIM → Databricks SQL (Managed Identity Authentication)
+
+After validating the inbound token, APIM forwards the request to the Databricks SQL warehouse using its own Managed Identity. This is the critical hop that eliminates secrets from the backend authentication:
+
+```xml
+<!-- APIM backend authentication policy -->
+<authentication-managed-identity
+  resource="https://analysis.windows.net/powerbi/connector/databricks"
+  client-id="{{apim-user-assigned-mi-client-id}}"
+  output-token-variable-name="databricks-mi-token" />
+
+<!-- Forward the MI token in the Authorization header to Databricks -->
+<set-header name="Authorization" exists-action="override">
+  <value>@("Bearer " + (string)context.Variables["databricks-mi-token"])</value>
+</set-header>
+```
+
+**Why no secret here:** APIM does not retrieve a PAT or connection string from Key Vault. It uses its own Managed Identity to obtain an access token for the Databricks resource. The token is obtained at runtime from Entra ID, not from static storage. Key Vault contains no credential for this authentication path.
+
+#### Hop 3: Databricks SQL → Unity Catalog (Identity Evaluation)
+
+Databricks SQL receives the APIM MI token and evaluates the caller's identity against Unity Catalog permissions. For row filters and column masks that reference `current_user()`, the principal evaluated is the identity in the token — which can be either:
+
+| Scenario | Identity Evaluated | UC Behavior |
+|----------|-------------------|-------------|
+| **Direct MI auth** (default) | APIM's MI object ID | UC grants must be issued to APIM's MI; all agents share APIM's UC permissions |
+| **OBO flow** (user context) | Original user's object ID | UC grants issued per user; agents propagate user identity |
+| **Service principal + OBO** | Not supported | OBO only works for user principals, not service principals or MIs |
+
+The default pattern (direct MI auth) means APIM's MI is the UC principal. This is correct when APIM is the governance boundary — APIM's inbound policies (Entra validation, rate limiting, usage tracking) are the per-agent differentiation point, and UC enforces data-level governance uniformly for all traffic that reaches it through APIM.
+
+#### Hop 4: Unity Catalog → OneLake (Entra Authentication)
+
+When UC executes a query against Delta tables stored in OneLake, every storage request uses Entra ID authentication:
+
+```
+OneLake Storage Request:
+  Authentication: OAuth 2.0 (Entra ID)
+  Principal: Databricks workspace managed identity
+  Authorization: RBAC + ABAC on the OneLake item
+```
+
+OneLake supports granular security through Entra ID — no SAS tokens, no account keys, no shared secrets. The workspace MI authenticates to OneLake using the same Entra infrastructure that authenticates the agent to APIM.
+
+### MI Type Recommendations
+
+| Type | Use Case | Recommendation |
+|------|----------|----------------|
+| **User-assigned MI** | APIM gateway, shared by multiple agent workloads | **Recommended** — lifecycle independent of APIM instance, can be pre-provisioned with UC grants |
+| **System-assigned MI** | Single-purpose APIM instance, tight coupling acceptable | Acceptable — simpler setup, but MI is deleted if APIM is deleted, causing UC grant cleanup |
+| **Service principal + secret** | Legacy integration, no MI support | **Not recommended** — reintroduces secret management into the chain |
+
+### Token Forwarding vs MI Auth Decision Matrix
+
+| Pattern | When to Use | Tradeoff |
+|---------|-------------|----------|
+| **MI auth (APIM's MI → Databricks)** | Default for all agent-to-data access | Simpler, no OBO complexity, all agents share APIM's UC identity |
+| **Token forwarding (agent's token → Databricks)** | When UC must distinguish individual agents | Requires OBO (user principals only) or direct token pass-through (not supported by Databricks SQL REST API for MIs) |
+| **OBO flow** | When user context must propagate to UC for row filters | Adds latency (+1 token exchange call), user principals only, adds failure point |
+
+**Recommendation:** Start with direct MI auth. Add OBO only when a specific use case requires per-user row filters that cannot be satisfied by APIM-level differentiation.
+
+---
+
+## DSEC-04: Governance-by-Construction with Column Masks
+
+### The Distinction: Structural vs Procedural Enforcement
+
+Data governance can enforce security in two fundamentally different ways:
+
+| Dimension | Governance-by-Construction (Structural) | Procedural Enforcement |
+|-----------|----------------------------------------|------------------------|
+| **When enforcement happens** | At query time, in the query engine | After data is returned, in middleware or application code |
+| **Can it be bypassed?** | No — the query engine computes the result set; masked data is never materialized | Yes — a bug, misconfiguration, or alternate API path can skip the enforcement layer |
+| **Performance impact** | Minimal — masks are SQL UDFs evaluated inline with the query | Additional processing layer adds latency |
+| **Audit guarantee** | Strong — UC audit log records every query with mask evaluation | Weaker — depends on middleware logging |
+| **Example** | UC column mask: `email` column returns `***@domain.com` for unauthorized principals | APIM outbound regex that replaces email patterns in the response body |
+
+**Governance-by-construction means the security property is built into the data structure itself.** A column mask is not a filter applied after the fact — it is part of the table definition. When a query selects the masked column, the mask function executes as part of the query plan. The unmasked value is never in the result set.
+
+### Architecture: Mask Propagation Through the Stack
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│              GOVERNANCE-BY-CONSTRUCTION: COLUMN MASK FLOW                │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│   Unity Catalog (structural enforcement point)                          │
+│   ┌─────────────────────────────────────────────────────────────────┐   │
+│   │  Table: customers                                               │   │
+│   │  ├── column: customer_id  (no mask)                             │   │
+│   │  ├── column: full_name    (no mask)                             │   │
+│   │  ├── column: email        ← MASK: mask_email_udf()              │   │
+│   │  │   └─ SQL UDF: RETURN CASE WHEN is_member('pii-readers')      │   │
+│   │  │      THEN email ELSE CONCAT('***@', split_part(email, '@', 2))│   │
+│   │  └── column: ssn          ← MASK: mask_ssn_udf()                │   │
+│   │      └─ SQL UDF: RETURN CASE WHEN is_member('hr-admin')         │   │
+│   │         THEN ssn ELSE 'XXX-XX-' || RIGHT(ssn, 4)                │   │
+│   └─────────────────────────────────────────────────────────────────┘   │
+│        │                                                                │
+│        ▼ Query-Time Enforcement                                         │
+│   SQL Query: SELECT * FROM customers                                    │
+│   ├─ customer_id: 12345        ← returned as-is                        │
+│   ├─ full_name: "Alice Smith"  ← returned as-is                        │
+│   ├─ email: "***@example.com"  ← mask applied by query engine          │
+│   └─ ssn: "XXX-XX-6789"        ← mask applied by query engine          │
+│        │                                                                │
+│        ▼                                                                │
+│   Databricks SQL Warehouse                                              │
+│   ├─ Result set contains ONLY masked values                           │
+│   └─ Unmasked data never leaves the query engine                       │
+│        │                                                                │
+│        ▼ HTTPS                                                          │
+│   APIM Gateway                                                          │
+│   ├─ [outbound] frag-pii-response-masking (defense-in-depth)          │
+│   │   └─ Regex patterns catch any residual PII not covered by masks   │
+│   └─ Response forwarded to agent                                       │
+│        │                                                                │
+│        ▼                                                                │
+│   AI Agent                                                              │
+│   ├─ Receives: masked data only                                       │
+│   └─ Cannot reconstruct original values — they were never in transit   │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### SQL UDF Examples
+
+#### Email Mask
+
+```sql
+CREATE FUNCTION mask_email(email STRING)
+RETURN CASE
+  WHEN is_member('pii-readers-group') THEN email
+  ELSE CONCAT(
+    REPEAT('*', LENGTH(SPLIT_PART(email, '@', 1))),
+    '@',
+    SPLIT_PART(email, '@', 2)
+  )
+END;
+
+ALTER TABLE customers
+ALTER COLUMN email
+SET MASK mask_email;
+```
+
+#### SSN Mask
+
+```sql
+CREATE FUNCTION mask_ssn(ssn STRING)
+RETURN CASE
+  WHEN is_member('hr-admin-group') THEN ssn
+  ELSE CONCAT('XXX-XX-', RIGHT(ssn, 4))
+END;
+
+ALTER TABLE employees
+ALTER COLUMN ssn
+SET MASK mask_ssn;
+```
+
+#### Credit Card Mask
+
+```sql
+CREATE FUNCTION mask_credit_card(cc STRING)
+RETURN CASE
+  WHEN is_member('finance-admin-group') THEN cc
+  ELSE CONCAT(
+    LEFT(cc, 4),
+    ' **** **** ',
+    RIGHT(cc, 4)
+  )
+END;
+
+ALTER TABLE transactions
+ALTER COLUMN card_number
+SET MASK mask_credit_card;
+```
+
+### Why APIM PII Policy Is Defense-in-Depth, Not Primary Enforcement
+
+The APIM outbound `frag-pii-response-masking` fragment applies regex-based redaction to the response body. This is valuable but secondary:
+
+| Aspect | UC Column Mask (Primary) | APIM Response Masking (Defense-in-Depth) |
+|--------|--------------------------|------------------------------------------|
+| **Enforcement point** | Query engine | Gateway middleware |
+| **Can be bypassed?** | No — part of table definition | Yes — alternate API path or direct DB access |
+| **Mask logic** | SQL UDF with group membership | Regex pattern matching |
+| **False negatives** | None — mask always applies | Possible — new PII patterns not in regex list |
+| **Performance** | Inline with query execution | Additional regex scan of full response |
+| **Purpose** | Guarantee masked data at source | Catch residual PII from unmasked columns or new tables |
+
+**The correct mental model:** UC column masks are the guarantee. APIM response masking is the safety net. Both should be present, but the architectural priority is clear — structural enforcement at the data layer, procedural reinforcement at the gateway layer.
+
+### Comparison Table: Governance-by-Construction vs Procedural Enforcement
+
+| Criterion | Governance-by-Construction | Procedural Enforcement |
+|-----------|---------------------------|------------------------|
+| **Security guarantee** | Strong — cannot bypass query engine | Weak — bypassable via alternate paths |
+| **Maintenance burden** | Low — masks travel with table schema | High — regex lists must be updated per new PII type |
+| **Performance** | Optimal — evaluated during query execution | Suboptimal — scans entire response body |
+| **Audit completeness** | Complete — UC audit log captures all | Partial — depends on gateway logging |
+| **Scope of protection** | All queries against the table | Only traffic through APIM |
+| **Organizational fit** | Data team owns mask definition | Platform team owns regex patterns |
+
+---
+
+## APIM Policy Fragment Design
+
+### `data-governance-inbound` Fragment
+
+This fragment combines token validation and caller identity extraction for all data access endpoints:
+
+```xml
+<!-- frag-data-governance-inbound.xml -->
+<fragment>
+  <!-- 1. Validate Entra token -->
+  <validate-azure-ad-token
+    tenant-id="{{entra-tenant-id}}"
+    header-name="Authorization"
+    failed-validation-httpcode="401"
+    failed-validation-error-message="Invalid or expired Entra token" />
+
+  <!-- 2. Extract caller identity for downstream use -->
+  <set-variable name="caller-object-id"
+    value="@(context.Request.Headers.GetValueOrDefault("Authorization", "")
+      .AsJwt()?.Claims.GetValueOrDefault("oid", ""))" />
+  <set-variable name="caller-app-id"
+    value="@(context.Request.Headers.GetValueOrDefault("Authorization", "")
+      .AsJwt()?.Claims.GetValueOrDefault("appid", ""))" />
+
+  <!-- 3. Verify subscription key (product-level access control) -->
+  <check-header name="x-apim-subscription-key" failed-check-httpcode="401"
+    failed-check-error-message="Subscription key required" />
+
+  <!-- 4. Emit usage event for data access audit -->
+  <log-to-eventhub logger-id="data-access-logger">
+    @{
+      return new JObject(
+        new JProperty("timestamp", DateTime.UtcNow.ToString("o")),
+        new JProperty("event_type", "data_access_attempt"),
+        new JProperty("caller_oid", context.Variables.GetValueOrDefault("caller-object-id", "")),
+        new JProperty("subscription_key", context.Subscription.Key),
+        new JProperty("product_id", context.Product.Id),
+        new JProperty("warehouse_id", "{{databricks-warehouse-id}}")
+      ).ToString();
+    }
+  </log-to-eventhub>
+</fragment>
+```
+
+### `pii-response-masking` Fragment (Defense-in-Depth)
+
+```xml
+<!-- frag-pii-response-masking.xml -->
+<fragment>
+  <outbound>
+    <set-body>@{
+      string content = context.Response.Body.As<string>(preserveContent: true);
+
+      // Email pattern masking
+      content = Regex.Replace(content,
+        @"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
+        "***@domain.com");
+
+      // SSN pattern masking
+      content = Regex.Replace(content,
+        @"\b\d{3}-\d{2}-\d{4}\b",
+        "XXX-XX-XXXX");
+
+      // Credit card pattern masking
+      content = Regex.Replace(content,
+        @"\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b",
+        "XXXX-XXXX-XXXX-XXXX");
+
+      return content;
+    }</set-body>
+  </outbound>
+</fragment>
+```
+
+### `governed-data-access` Fragment (Combined Pattern)
+
+```xml
+<!-- frag-governed-data-access.xml -->
+<fragment>
+  <include-fragment source-id="frag-data-governance-inbound" />
+
+  <backend>
+    <authentication-managed-identity
+      resource="https://analysis.windows.net/powerbi/connector/databricks"
+      client-id="{{apim-user-assigned-mi-client-id}}"
+      output-token-variable-name="databricks-mi-token" />
+    <set-header name="Authorization" exists-action="override">
+      <value>@("Bearer " + (string)context.Variables["databricks-mi-token"])</value>
+    </set-header>
+  </backend>
+
+  <include-fragment source-id="frag-pii-response-masking" />
+</fragment>
+```
+
+### Include-Fragment Usage
+
+```xml
+<!-- APIM API policy referencing the governed data access fragment -->
+<policies>
+  <inbound>
+    <include-fragment source-id="frag-governed-data-access" />
+  </inbound>
+  <backend>
+    <forward-request timeout="120" />
+    <!-- 120s timeout accommodates Databricks SQL warehouse cold start -->
+  </backend>
+  <outbound>
+    <!-- PII masking handled by included fragment -->
+  </outbound>
+</policies>
+```
+
+---
+
+## Token Exchange Patterns
+
+### On-Behalf-Of (OBO) Flow
+
+The OBO flow allows APIM to exchange the agent's token for a token to Databricks on behalf of the original user:
+
+```
+Agent (User Principal Token)
+    │
+    ▼
+APIM ──OBO Exchange──▶ Entra ID
+    │                    │
+    │◀──Databricks Token──┘
+    │
+    ▼
+Databricks SQL (receives user principal token)
+```
+
+**OBO Request:**
+```http
+POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
+&client_id={apim-app-id}
+&client_secret={apim-secret}  ← OR client_assertion for certificate auth
+&assertion={agent-access-token}
+&scope=https://analysis.windows.net/powerbi/connector/databricks/.default
+&requested_token_use=on_behalf_of
+```
+
+### Critical Limitation: OBO Only for User Principals
+
+<Warning>
+The On-Behalf-Of flow **only works for user principals**, not service principals or Managed Identities. If your AI agent authenticates with a Managed Identity (the recommended pattern), OBO is **not available**. In this case, use direct Managed Identity authentication from APIM to Databricks, and implement per-agent differentiation at the APIM policy layer (subscription keys, rate limits, usage tracking) rather than at the UC row-filter layer.
+</Warning>
+
+### Decision Matrix: Auth Pattern Selection
+
+| Scenario | Recommended Pattern | Why |
+|----------|-------------------|-----|
+| **Agent uses MI, no per-user row filters needed** | Direct MI auth (APIM's MI → Databricks) | Simplest, no OBO complexity, matches default pattern |
+| **Agent uses user principal, per-user row filters needed** | OBO flow | Propagates user identity to UC for row-filter evaluation |
+| **Agent uses MI, per-user row filters needed** | **Not directly supported** | Options: (a) switch agent to user principal auth, (b) implement row-filter logic in APIM policy, (c) use UC ABAC (Public Preview) with MI attributes |
+| **Legacy service principal with secret** | Client credentials | **Not recommended** — migrate to MI when possible |
+
+---
+
+## Attachment to the Citadel 4-Layer Model
+
+The security and identity patterns in this page attach to the Citadel architecture at two existing layers. They do not create a new layer.
+
+### Layer 1: Governance Hub (Runtime Enforcement)
+
+| Attachment Point | What Attaches | How It Works |
+|-----------------|---------------|--------------|
+| **APIM token validation** | `validate-azure-ad-token` policy | Every inbound semantic query is validated against Entra ID before reaching the data layer |
+| **APIM MI authentication** | `authentication-managed-identity` policy | APIM authenticates to Databricks using its MI, eliminating backend secrets |
+| **Rate limiting** | `rate-limit-by-key` (QPM) | Per-subscription query throttling prevents runaway agents from exhausting warehouse compute |
+| **Usage tracking** | `frag-semantic-usage` | Query-count events emitted to Event Hub for cost attribution and audit |
+| **Defense-in-depth PII masking** | `frag-pii-response-masking` | Regex-based outbound redaction catches any residual sensitive data |
+
+### Layer 4: Security Fabric (Identity and Governance Foundation)
+
+| Attachment Point | What Attaches | How It Works |
+|-----------------|---------------|--------------|
+| **Entra ID** | Identity chain management | Manages MIs for agents, APIM, and Databricks; issues and validates tokens at each hop |
+| **Unity Catalog** | Governance-by-construction | Column masks and row filters evaluated at query time; structural security guarantee |
+| **Purview** | Data classification and labeling | Sensitivity labels drive which columns require masks; classification informs APIM defense-in-depth policies |
+
+### Explicit Statement: This Is NOT a Fifth Layer
+
+<Note>
+The Data Foundation stack — OneLake, Unity Catalog, Semantic Layer, and APIM governed endpoint — connects to Citadel at **three existing attachment points**: Layer 1 (APIM backend registration), Layer 2 (Event Hub usage telemetry), and Layer 4 (Entra identity chain + UC governance). No new Citadel layer is created. The patterns documented in this page are extensions of Layer 1 and Layer 4 capabilities, not a separate "Data Security Layer."
+
+This is consistent with the architectural principle established in [APIM Governed Data Access](./apim-semantic-endpoint): "The Enterprise Data Foundation stack piggybacks on the enforcement and observability infrastructure that Layers 1, 2, and 4 already provide."
+</Note>
+
+---
+
+## Common Pitfalls & Anti-Patterns
+
+### ❌ Using PATs or Connection Strings in the Data Path
+
+**Anti-pattern:** Store a Databricks Personal Access Token in Key Vault and retrieve it in APIM policy to authenticate to the SQL warehouse.
+
+**Why it breaks the pattern:**
+- Reintroduces a secret into the authentication chain
+- PATs are long-lived (default 90 days, can be longer) — compromise window is large
+- PAT rotation requires manual or automated intervention — the rotation mechanism itself needs credentials
+- UC sees the PAT identity, not the original caller — row filters cannot evaluate per-agent or per-user
+
+**Correct pattern:** Use `authentication-managed-identity` in APIM policy. No Key Vault lookup. No secret in the policy or the path.
+
+### ❌ OBO Flow for Service Principals or Managed Identities
+
+**Anti-pattern:** Attempt to use OBO to propagate a Managed Identity's identity from APIM to Databricks.
+
+**Why it breaks:** OBO requires a user principal token as the `assertion`. Passing a service principal or MI token returns an error from Entra ID. This is a protocol limitation, not a configuration issue.
+
+**Correct pattern:** Use direct MI auth from APIM to Databricks. Implement per-agent differentiation at the APIM layer (subscription keys, rate limits, usage tracking) rather than attempting per-agent UC row filters.
+
+### ❌ Complex Python UDFs for Column Masking
+
+**Anti-pattern:** Define column masks as Python UDFs instead of SQL UDFs.
+
+**Why it hurts:**
+- Python UDFs execute in a separate process — significant query performance degradation
+- SQL UDFs execute inline in the query engine — minimal overhead
+- Python UDFs require cluster configuration (DBR version, library availability) — operational complexity
+
+**Correct pattern:** Use SQL UDFs for all column masks. Reserve Python UDFs for complex transformations that cannot be expressed in SQL.
+
+### ❌ Relying Solely on APIM for PII Enforcement
+
+**Anti-pattern:** Disable UC column masks and rely only on APIM outbound regex masking for PII protection.
+
+**Why it breaks:**
+- APIM regex can be bypassed by direct database access (bypassing the gateway)
+- Regex patterns have false negatives — new PII formats not in the pattern list leak through
+- APIM masking is procedural — it can be skipped by a policy change or API misconfiguration
+
+**Correct pattern:** UC column masks are the primary enforcement. APIM response masking is defense-in-depth. Both must be present.
+
+### ❌ UC Limitations with External Engines
+
+**Anti-pattern:** Expect UC column masks and row filters to apply when querying Delta tables through external engines (e.g., Iceberg REST API, Trino connector) that bypass the Databricks query engine.
+
+**Why it breaks:** UC governance is enforced by the Databricks query engine. External engines that read Delta files directly from storage do not execute through UC and therefore do not evaluate column masks or row filters.
+
+**Correct pattern:** All AI agent queries must route through Databricks SQL (via APIM) to ensure UC governance is evaluated. Do not expose OneLake storage directly to external query engines for AI agent consumption.
+
+<Warning>
+Unity Catalog ABAC (Attribute-Based Access Control) policies are in **Public Preview** as of March 2026. ABAC enables attribute-based conditions on grants (e.g., "allow SELECT if user.department = table.owning_department"), which can reduce the need for OBO in some per-user-filter scenarios. Validate ABAC behavior on your target runtime before adopting it for production workloads.
+</Warning>
+
+<Warning>
+OneLake granular security (item-level access control via Entra ID ABAC) is in **Preview**. Currently, OneLake relies primarily on workspace-level and folder-level permissions. As granular security matures, it will provide an additional structural enforcement point at the storage layer. Monitor Azure release notes for GA announcement.
+</Warning>
+
+---
+
+## Summary
+
+The security and identity patterns in this page establish two structural guarantees for the Enterprise Data Foundation stack:
+
+1. **Zero-secrets data path (DSEC-03):** Every hop from AI agent to APIM to Databricks SQL to OneLake uses Entra Managed Identity authentication. No PATs, no connection strings, no secrets in Key Vault for the data access path. The identity of the caller is validated at every layer.
+
+2. **Governance-by-construction (DSEC-04):** Unity Catalog column masks are SQL UDFs attached to table definitions. They execute at query time in the query engine, ensuring masked data is the only data that ever leaves the warehouse. APIM response masking provides defense-in-depth but is not the primary enforcement mechanism.
+
+Both patterns attach at existing Citadel layers — Layer 1 for runtime enforcement and Layer 4 for identity and governance foundation. No fifth layer is required.
+
+<CardGroup cols={3}>
+  <Card title="APIM Governed Data Access" icon="shield-check" href="./apim-semantic-endpoint">
+    Phase 26: ADR-DF-04 and the governed semantic endpoint pattern — how APIM fronts the Databricks SQL warehouse
+  </Card>
+  <Card title="Unity Catalog Governance" icon="database" href="./unity-catalog-governance">
+    Phase 24: Row filters, column masks, and the access control model that governs what semantic queries can return
+  </Card>
+  <Card title="Layer 4: Security Fabric" icon="shield" href="../architecture/layer-4-security-fabric">
+    Defender, Purview, and Entra — the unified protection layer that provides the identity and governance foundation
+  </Card>
+</CardGroup>
