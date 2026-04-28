@@ -70,3 +70,25 @@
 
 ---
 
+## v2.0 Enterprise Data Foundation (Shipped: 2026-04-28)
+
+**Phases completed:** 6 phases (23-28), 6 plans
+**Timeline:** April 27-28, 2026 (2 days)
+**Documentation files:** 5 new pages added (onelake-architecture.mdx, unity-catalog-governance.mdx, semantic-layer.mdx, apim-semantic-endpoint.mdx, security-identity-patterns.mdx)
+**Git range:** 637033d → f462381
+
+**Key accomplishments:**
+1. Documented OneLake as universal storage substrate with shortcut vs mirroring decision matrix and uniform security model
+2. Created Unity Catalog governance page covering compute/governance separation, ABAC design, and three-level namespace contract
+3. Documented Semantic Layer with platform-native semantics ADR, Core vs Edge model, and author-once principle
+4. Designed Citadel APIM integration for governed semantic endpoint access with dedicated data access policy fragment
+5. Documented zero-secrets data path via Entra MI chain and column mask propagation through APIM
+6. Wired Data Foundation tab in Mintlify navigation with all pages and Citadel cross-links
+
+**Delivered:** Enterprise Data Foundation documentation layer — universal storage, governance, semantics, and secure access patterns aligned to Citadel 4-layer architecture
+
+**Archived:**
+- `.planning/milestones/v2.0-ROADMAP.md` — Full phase details
+
+**Git tag:** `v2.0`
+

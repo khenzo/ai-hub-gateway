@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Enterprise Data Foundation
 status: completed
-stopped_at: Completed 26-01 plan (APIM Governed Data Access)
-last_updated: "2026-04-28T06:35:44.201Z"
-last_activity: 2026-04-27 — Completed 24-01 plan (Unity Catalog Governance)
+stopped_at: Completed 28-01 plan (Navigation & Integration)
+last_updated: "2026-04-28T07:38:45.625Z"
+last_activity: 2026-04-28 — Completed 28-01 plan (Navigation & Integration)
 progress:
   total_phases: 13
-  completed_phases: 11
-  total_plans: 23
-  completed_plans: 22
-  percent: 33
+  completed_phases: 13
+  total_plans: 24
+  completed_plans: 24
+  percent: 36
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-27)
 
 **Core value:** Enable organizations to deploy enterprise-grade AI infrastructure with confidence
-**Current focus:** Milestone v2.0 — Enterprise Data Foundation
+**Current focus:** Milestone v2.0 — Enterprise Data Foundation (COMPLETED)
 
 ## Current Position
 
-Phase: Phase 24 — Unity Catalog Governance
-Plan: 24-01
-Status: Complete — Unity Catalog governance page created (285 lines)
-Last activity: 2026-04-27 — Completed 24-01 plan (Unity Catalog Governance)
+Phase: Phase 28 — Navigation & Integration
+Plan: 28-01
+Status: Complete — Data Foundation tab wired, all 5 pages navigable, cross-links on Layer 2 and Layer 4
+Last activity: 2026-04-28 — Completed 28-01 plan (Navigation & Integration)
 
-Progress: [██░░░░░░░░░░] 33% (2/6 plans complete)
+Progress: [████████████] 100% (6/6 plans complete)
 
 ## v2.0 Phase Summary
 
@@ -38,17 +38,17 @@ Progress: [██░░░░░░░░░░] 33% (2/6 plans complete)
 |-------|------|--------------|--------|
 | 23. OneLake Architecture | Architects can reason about OneLake as universal storage substrate | LAKE-01, LAKE-02, LAKE-03 | Complete (23-01) |
 | 24. Unity Catalog Governance | Design governance model separating compute from data ownership | UCAT-01, UCAT-02, UCAT-03, UCAT-04 | Complete (24-01) |
-| 25. Semantic Layer | Commit to platform-native semantics; design Core vs Edge model | SEML-01, SEML-02, SEML-03, SEML-04 | Not started |
-| 26. APIM Governed Data Access | Design Citadel APIM integration for governed semantic endpoint access | DSEC-01, DSEC-02 | Not started |
-| 27. Security & Identity Patterns | Zero-secrets data path via Entra MI chain; column mask propagation | DSEC-03, DSEC-04 | Not started |
-| 28. Navigation & Integration | Data Foundation tab in Mintlify; all pages wired into docs.json | DNAV-01 | Not started |
+| 25. Semantic Layer | Commit to platform-native semantics; design Core vs Edge model | SEML-01, SEML-02, SEML-03, SEML-04 | Complete (25-01) |
+| 26. APIM Governed Data Access | Design Citadel APIM integration for governed semantic endpoint access | DSEC-01, DSEC-02 | Complete (26-01) |
+| 27. Security & Identity Patterns | Zero-secrets data path via Entra MI chain; column mask propagation | DSEC-03, DSEC-04 | Complete (27-01) |
+| 28. Navigation & Integration | Data Foundation tab in Mintlify; all pages wired into docs.json | DNAV-01 | Complete (28-01) |
 
 ## Performance Metrics
 
 **Velocity (v2.0):**
-- Total plans completed: 2
-- Average duration: 18 min
-- Total execution time: 35 min
+- Total plans completed: 3
+- Average duration: 17 min
+- Total execution time: 52 min
 
 *Updated after each plan completion*
 
@@ -132,6 +132,8 @@ Recent decisions affecting current work:
 - [Phase 25-semantic-layer]: MetricFlow and UC Business Semantics are complementary layers (transformation time vs consumption time) — not competing alternatives
 - [Phase 26-apim-governed-data-access]: ADR-DF-04: AI agents must never call Databricks SQL directly — three concrete risks: no Entra validation, no usage tracking, no rate limiting
 - [Phase 26-apim-governed-data-access]: Data access policy fragment is architecturally distinct from LLM fragments — three structural differences: risk surface, throttling model (QPM vs TPM), failure mode (warehouse cold start vs LLM timeout)
+- [Phase 27]: Direct MI auth is the default pattern; OBO only when per-user row filters are required
+- [Phase 28-navigation-integration]: security-identity-patterns wired as 5th page and used as Layer 4 cross-link target because Phase 27 file confirmed present at execution time
 
 ### v2.0 Architectural Context (Critical for Phases 23-28)
 
@@ -152,13 +154,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-**v2.0 Phases:**
-- ✅ Phase 23: OneLake Architecture — Complete (23-01)
-- ✅ Phase 24: Unity Catalog Governance — Complete (24-01)
-- Phase 25: Semantic Layer — Ready to start
-- Phase 26: APIM Governed Data Access
-- Phase 27: Security & Identity Patterns
-- Phase 28: Navigation & Integration
+None — all v2.0 phases complete.
 
 ### Blockers/Concerns
 
@@ -166,8 +162,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-28T06:35:44.194Z
-Stopped at: Completed 26-01 plan (APIM Governed Data Access)
+Last session: 2026-04-28T07:38:45.621Z
+Stopped at: Completed 28-01 plan (Navigation & Integration)
 Resume file: None
 
 ## Milestone Status
@@ -177,9 +173,12 @@ Resume file: None
 **Milestone v1.2: Open Platform Agent Factory — ARCHIVED**
 **Milestone v1.3: EY Framework Alignment — ARCHIVED** — 7 phases, complete
 
-**Milestone v2.0: Enterprise Data Foundation — IN PROGRESS**
-- 6 phases (Phases 23-28)
-- Requirements: 16 defined, 16 mapped, 7 complete (LAKE-01, LAKE-02, LAKE-03, UCAT-01, UCAT-02, UCAT-03, UCAT-04)
+**Milestone v2.0: Enterprise Data Foundation — COMPLETED**
+- 6 phases (Phases 23-28), 6 plans
+- Requirements: 16 defined, 16 mapped, 16 complete
 - Phase 23: Complete (1/1 plan done)
 - Phase 24: Complete (1/1 plan done)
-- Phases 25-28: Pending
+- Phase 25: Complete (1/1 plan done)
+- Phase 26: Complete (1/1 plan done)
+- Phase 27: Complete (1/1 plan done)
+- Phase 28: Complete (1/1 plan done)

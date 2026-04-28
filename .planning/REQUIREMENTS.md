@@ -40,7 +40,7 @@
 
 ### Navigation (DNAV)
 
-- [ ] **DNAV-01**: Data Foundation documentation section exists in docs.json as a new tab with all content pages wired and existing Citadel pages cross-linked into the new section
+- [x] **DNAV-01**: Data Foundation documentation section exists in docs.json as a new tab with all content pages wired and existing Citadel pages cross-linked into the new section
 
 ## Future Requirements
 
@@ -86,7 +86,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DSEC-02 | Phase 27 | Complete |
 | DSEC-03 | Phase 28 | Pending |
 | DSEC-04 | Phase 28 | Pending |
-| DNAV-01 | Phase 29 | Pending |
+| DNAV-01 | Phase 29 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 19 total

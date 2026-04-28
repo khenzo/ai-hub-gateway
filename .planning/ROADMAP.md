@@ -6,7 +6,7 @@
 - ✅ **v1.1 AI Agent Factory Integration** — Phases 7-12 (shipped 2026-04-13)
 - ✅ **v1.2 Open Platform Agent Factory** — Phases 13-15 (shipped 2026-04-13)
 - ✅ **v1.3 EY Framework Alignment** — Phases 16-22 (shipped 2026-04-15)
-- 🔄 **v2.0 Enterprise Data Foundation** — Phases 23-29 (in progress)
+- ✅ **v2.0 Enterprise Data Foundation** — Phases 23-28 (shipped 2026-04-28)
 
 ## Phases
 
@@ -60,12 +60,12 @@ _For full details, see `.planning/milestones/v1.2-ROADMAP.md`_
 
 ### v2.0 Enterprise Data Foundation (Phases 23-28)
 
-- [ ] **Phase 23: OneLake Architecture** - Universal storage patterns, shortcut vs mirror ADR, uniform security model across compute engines
+- [x] **Phase 23: OneLake Architecture** - Universal storage patterns, shortcut vs mirror ADR, uniform security model across compute engines (completed 2026-04-27)
 - [x] **Phase 24: Unity Catalog Governance** - Compute/governance separation, ABAC design, three-level namespace contract, Open API + Iceberg REST integration (completed 2026-04-27)
 - [x] **Phase 25: Semantic Layer** - Platform-native semantics ADR, AI agent query patterns, author-once principle, Core vs Edge model (completed 2026-04-27)
 - [x] **Phase 26: APIM Governed Data Access** - Citadel APIM fronting Databricks SQL REST API, dedicated data access policy fragment design (completed 2026-04-28)
-- [ ] **Phase 27: Security & Identity Patterns** - Entra MI chain for zero-secrets data path, Unity Catalog column mask propagation through APIM
-- [ ] **Phase 28: Navigation & Integration** - Data Foundation docs.json tab, all pages wired, Citadel cross-links established
+- [x] **Phase 27: Security & Identity Patterns** - Entra MI chain for zero-secrets data path, Unity Catalog column mask propagation through APIM (completed 2026-04-28)
+- [x] **Phase 28: Navigation & Integration** - Data Foundation docs.json tab, all pages wired, Citadel cross-links established (completed 2026-04-28)
 
 ## Phase Details
 
@@ -266,9 +266,9 @@ Plans:
 | 20. Attention Points & Recommendations | v1.3 | 2/2 | Complete | 2026-04-15 |
 | 21. Refactor Mintlify doc tabs for Guides and Operations | v1.3 | 2/2 | Complete | 2026-04-15 |
 | 22. Refactor architecture and getting-started for SOF1A 2.0 | v1.3 | 4/4 | Complete | 2026-04-15 |
-| 23. OneLake Architecture | v2.0 | 0/1 | Not started | - |
+| 23. OneLake Architecture | v2.0 | 1/1 | Complete | 2026-04-27 |
 | 24. Unity Catalog Governance | v2.0 | 1/1 | Complete | 2026-04-27 |
-| 25. Semantic Layer | 1/1 | Complete   | 2026-04-27 | - |
-| 26. APIM Governed Data Access | 1/1 | Complete   | 2026-04-28 | - |
-| 27. Security & Identity Patterns | v2.0 | 0/TBD | Not started | - |
-| 28. Navigation & Integration | v2.0 | 0/1 | Not started | - |
+| 25. Semantic Layer | v2.0 | 1/1 | Complete | 2026-04-27 |
+| 26. APIM Governed Data Access | v2.0 | 1/1 | Complete | 2026-04-28 |
+| 27. Security & Identity Patterns | v2.0 | 1/1 | Complete | 2026-04-28 |
+| 28. Navigation & Integration | v2.0 | 1/1 | Complete | 2026-04-28 |

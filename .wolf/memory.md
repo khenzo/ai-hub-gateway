@@ -502,3 +502,22 @@
 |------|--------|---------|---------|--------|
 | 09:21 | Created .planning/phases/28-navigation-integration/28-RESEARCH.md | — | ~5501 |
 | 09:22 | Researched Phase 28: Navigation & Integration | .planning/phases/28-navigation-integration/28-RESEARCH.md | Complete — 4 MDX pages confirmed, docs.json tab pattern documented, Layer 2/4 cross-link gaps identified | ~6000 |
+| 09:27 | Created .planning/phases/28-navigation-integration/28-01-PLAN.md | — | ~4183 |
+| 09:30 | Created .planning/ROADMAP.md | — | ~5879 |
+| 09:30 | Created Phase 28 navigation-integration plan (28-01-PLAN.md) — docs.json tab wiring + Layer 2/Layer 4 cross-links | .planning/phases/28-navigation-integration/28-01-PLAN.md, .planning/ROADMAP.md | success | ~4500 |
+| 09:33 | Session end: 3 writes across 3 files (28-RESEARCH.md, 28-01-PLAN.md, ROADMAP.md) | 12 reads | ~47676 tok |
+
+## Session: 2026-04-28 09:35
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 09:36 | Edited docs/docs.json | 5→9 lines | ~46 |
+| 09:36 | Edited docs/docs.json | expanded (+11 lines) | ~167 |
+| 09:37 | Edited docs/architecture/layer-2-control-plane.mdx | expanded (+10 lines) | ~173 |
+| 09:37 | Edited docs/architecture/layer-4-security-fabric.mdx | expanded (+10 lines) | ~187 |
+| 09:38 | Created .planning/phases/28-navigation-integration/28-01-SUMMARY.md | — | ~1692 |
+| 09:38 | Edited .planning/STATE.md | inline fix | ~20 |
+| 09:39 | Edited .planning/STATE.md | 6→6 lines | ~77 |
+| 09:39 | Edited .planning/STATE.md | 4→4 lines | ~150 |
+| 09:39 | Edited .planning/STATE.md | 2→2 lines | ~32 |
+| 09:39 | Edited .planning/STATE.md | 4→4 lines | ~61 |
