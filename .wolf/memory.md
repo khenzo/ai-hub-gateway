@@ -3,6 +3,8 @@
 > Chronological action log. Hooks and AI append to this file automatically.
 > Old sessions are consolidated by the daemon weekly.
 
+| 13:51 | Removed GSD phase refs (Phase 23–28) and ADR/decision-code acronyms (ADR-DF-xx, DSEC-xx, LAKE-xx) from all docs/data-foundation/ pages | apim-semantic-endpoint.mdx, onelake-architecture.mdx, security-identity-patterns.mdx, semantic-layer.mdx, unity-catalog-governance.mdx | success | ~800 tok |
+
 | 08:36 | Executed 26-01-PLAN.md: APIM Governed Data Access | docs/data-foundation/apim-semantic-endpoint.mdx (new, 170 lines), docs/architecture/layer-1-governance-hub.mdx (surgical Note callout) | Complete — ADR-DF-04, policy fragment comparison, DSEC-01+DSEC-02 satisfied | ~8000 |
 
 | 16:52 | Executed 12-02-PLAN.md: agent observability docs | docs/agent-factory/agent-observability.mdx, docs/operations/monitoring.mdx, docs.json | 2 tasks complete, commits 12f9ec0 and 570ed84, milestone v1.1 100% | ~4000 |
@@ -521,3 +523,36 @@
 | 09:39 | Edited .planning/STATE.md | 4→4 lines | ~150 |
 | 09:39 | Edited .planning/STATE.md | 2→2 lines | ~32 |
 | 09:39 | Edited .planning/STATE.md | 4→4 lines | ~61 |
+
+## Session: 2026-04-28 15:45
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 15:49 | Edited docs/data-foundation/apim-semantic-endpoint.mdx | "How Citadel APIM governs " → "How Citadel APIM governs " | ~53 |
+| 15:49 | Edited docs/data-foundation/semantic-layer.mdx | "Why platform-native seman" → "Why platform-native seman" | ~53 |
+| 15:49 | Edited docs/data-foundation/apim-semantic-endpoint.mdx | inline fix | ~114 |
+| 15:49 | Edited docs/data-foundation/apim-semantic-endpoint.mdx | inline fix | ~31 |
+| 15:49 | Edited docs/data-foundation/semantic-layer.mdx | inline fix | ~34 |
+| 15:49 | Edited docs/data-foundation/apim-semantic-endpoint.mdx | inline fix | ~17 |
+| 15:49 | Edited docs/data-foundation/semantic-layer.mdx | inline fix | ~12 |
+| 15:49 | Edited docs/data-foundation/apim-semantic-endpoint.mdx | inline fix | ~35 |
+| 15:49 | Edited docs/data-foundation/semantic-layer.mdx | inline fix | ~28 |
+| 15:50 | Edited docs/data-foundation/security-identity-patterns.mdx | inline fix | ~89 |
+| 15:50 | Edited docs/data-foundation/security-identity-patterns.mdx | 2→2 lines | ~54 |
+| 15:50 | Edited docs/data-foundation/security-identity-patterns.mdx | inline fix | ~11 |
+| 15:50 | Edited docs/data-foundation/security-identity-patterns.mdx | inline fix | ~13 |
+| 15:50 | Edited docs/data-foundation/security-identity-patterns.mdx | 3→3 lines | ~158 |
+| 15:50 | Edited docs/data-foundation/security-identity-patterns.mdx | 6→6 lines | ~108 |
+| 15:50 | Edited docs/data-foundation/onelake-architecture.mdx | inline fix | ~7 |
+| 15:50 | Edited docs/data-foundation/onelake-architecture.mdx | inline fix | ~13 |
+| 15:51 | Edited docs/data-foundation/onelake-architecture.mdx | inline fix | ~10 |
+| 15:51 | Edited docs/data-foundation/onelake-architecture.mdx | inline fix | ~61 |
+| 15:51 | Edited docs/data-foundation/unity-catalog-governance.mdx | inline fix | ~71 |
+| 15:51 | Edited docs/data-foundation/unity-catalog-governance.mdx | inline fix | ~82 |
+| 15:51 | Session end: 21 writes across 5 files (apim-semantic-endpoint.mdx, semantic-layer.mdx, security-identity-patterns.mdx, onelake-architecture.mdx, unity-catalog-governance.mdx) | 6 reads | ~10979 tok |
+| 15:57 | Created docs/data-foundation/overview.mdx | — | ~3827 |
+| 15:57 | Edited docs/docs.json | 7→8 lines | ~92 |
+| 15:58 | Session end: 23 writes across 7 files (apim-semantic-endpoint.mdx, semantic-layer.mdx, security-identity-patterns.mdx, onelake-architecture.mdx, unity-catalog-governance.mdx) | 9 reads | ~19991 tok |
+| 16:18 | Edited docs/logo/light.svg | 2→2 lines | ~90 |
+| 16:18 | Edited docs/logo/dark.svg | 2→2 lines | ~90 |
+| 16:18 | Session end: 25 writes across 9 files (apim-semantic-endpoint.mdx, semantic-layer.mdx, security-identity-patterns.mdx, onelake-architecture.mdx, unity-catalog-governance.mdx) | 11 reads | ~20629 tok |

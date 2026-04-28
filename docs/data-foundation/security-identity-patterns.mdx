@@ -1,14 +1,14 @@
 ---
 title: "Security & Identity Patterns"
-description: "Zero-secrets data path using Entra Managed Identity chains and governance-by-construction using Unity Catalog column masks for the SOF1A 2.0 AI Governance Platform."
-icon: lock
+description: "Zero-secrets data path using Entra Managed Identity chains and governance-by-construction using Unity Catalog column masks for the AI+ Governance Platform."
+icon: fingerprint
 ---
 
 # 🔐 Security & Identity Patterns
 
 ## Overview
 
-Phase 27 documents the security and identity patterns that close the governance loop for the Enterprise Data Foundation stack. Phases 23–26 established the data platform — OneLake as unified storage, Unity Catalog as governance layer, MetricFlow and UC Business Semantics as the semantic interface, and APIM as the governed endpoint gateway. This page answers two critical questions:
+This page documents the security and identity patterns that close the governance loop for the Enterprise Data Foundation stack — OneLake as unified storage, Unity Catalog as governance layer, MetricFlow and UC Business Semantics as the semantic interface, and APIM as the governed endpoint gateway. It answers two critical questions:
 
 1. **How do AI agents authenticate to data without secrets in the request path?** — The zero-secrets Managed Identity chain (DSEC-03)
 2. **How does data governance enforce security structurally at query time?** — Governance-by-construction with Unity Catalog column masks (DSEC-04)
@@ -21,15 +21,15 @@ The patterns in this page attach at **Layer 1: Governance Hub** (APIM token vali
 
 This page covers:
 
-- **DSEC-03**: Zero-secrets Entra Managed Identity chain from agent through APIM to Databricks SQL to OneLake
-- **DSEC-04**: Unity Catalog column mask propagation — governance-by-construction vs procedural enforcement
+- **Zero-secrets Entra Managed Identity chain** from agent through APIM to Databricks SQL to OneLake
+- **Unity Catalog column mask propagation** — governance-by-construction vs procedural enforcement
 - **APIM Policy Fragments**: Reusable data governance fragments for token validation and defense-in-depth response masking
 - **Token Exchange Patterns**: OBO flow, direct MI auth, and client credentials — when to use each
 - **Common Pitfalls**: Anti-patterns that break the zero-secrets guarantee or bypass structural governance
 
 ---
 
-## DSEC-03: Zero-Secrets Managed Identity Chain
+## Zero-Secrets Managed Identity Chain
 
 ### The Problem: Secrets in the Data Path
 
@@ -186,7 +186,7 @@ OneLake supports granular security through Entra ID — no SAS tokens, no accoun
 
 ---
 
-## DSEC-04: Governance-by-Construction with Column Masks
+## Governance-by-Construction with Column Masks
 
 ### The Distinction: Structural vs Procedural Enforcement
 
@@ -589,18 +589,18 @@ OneLake granular security (item-level access control via Entra ID ABAC) is in **
 
 The security and identity patterns in this page establish two structural guarantees for the Enterprise Data Foundation stack:
 
-1. **Zero-secrets data path (DSEC-03):** Every hop from AI agent to APIM to Databricks SQL to OneLake uses Entra Managed Identity authentication. No PATs, no connection strings, no secrets in Key Vault for the data access path. The identity of the caller is validated at every layer.
+1. **Zero-secrets data path:** Every hop from AI agent to APIM to Databricks SQL to OneLake uses Entra Managed Identity authentication. No PATs, no connection strings, no secrets in Key Vault for the data access path. The identity of the caller is validated at every layer.
 
-2. **Governance-by-construction (DSEC-04):** Unity Catalog column masks are SQL UDFs attached to table definitions. They execute at query time in the query engine, ensuring masked data is the only data that ever leaves the warehouse. APIM response masking provides defense-in-depth but is not the primary enforcement mechanism.
+2. **Governance-by-construction:** Unity Catalog column masks are SQL UDFs attached to table definitions. They execute at query time in the query engine, ensuring masked data is the only data that ever leaves the warehouse. APIM response masking provides defense-in-depth but is not the primary enforcement mechanism.
 
 Both patterns attach at existing Citadel layers — Layer 1 for runtime enforcement and Layer 4 for identity and governance foundation. No fifth layer is required.
 
 <CardGroup cols={3}>
   <Card title="APIM Governed Data Access" icon="shield-check" href="./apim-semantic-endpoint">
-    Phase 26: ADR-DF-04 and the governed semantic endpoint pattern — how APIM fronts the Databricks SQL warehouse
+    The governed semantic endpoint pattern — how APIM fronts the Databricks SQL warehouse
   </Card>
   <Card title="Unity Catalog Governance" icon="database" href="./unity-catalog-governance">
-    Phase 24: Row filters, column masks, and the access control model that governs what semantic queries can return
+    Row filters, column masks, and the access control model that governs what semantic queries can return
   </Card>
   <Card title="Layer 4: Security Fabric" icon="shield" href="../architecture/layer-4-security-fabric">
     Defender, Purview, and Entra — the unified protection layer that provides the identity and governance foundation

@@ -1,23 +1,23 @@
 ---
 title: "APIM Governed Data Access"
-description: "How Citadel APIM governs semantic endpoint access — ADR-DF-04, the governed semantic endpoint pattern, and why data access policy fragments are architecturally distinct from LLM policy fragments."
-icon: shield-check
+description: "How Citadel APIM governs semantic endpoint access — the governed semantic endpoint pattern and why data access policy fragments are architecturally distinct from LLM policy fragments."
+icon: link
 ---
 
 <Note>
 This integration attaches at **Layer 1: Governance Hub**. It is not a fifth Citadel layer. Registering the Databricks SQL warehouse as an APIM backend extends the existing Layer 1 runtime enforcement plane to cover semantic queries. See [Layer 1: Governance Hub](../architecture/layer-1-governance-hub) for the full APIM capabilities this page builds on.
 </Note>
 
-Phase 26 closes the governance gap between the [semantic layer](../data-foundation/semantic-layer) and the Citadel enforcement plane. Phases 23–25 established the Enterprise Data Foundation stack — OneLake as unified storage, Unity Catalog as governance, MetricFlow and UC Business Semantics as the semantic interface. This page documents how AI agents access that semantic layer in production: through Citadel APIM, never directly.
+The Enterprise Data Foundation stack — OneLake as unified storage, Unity Catalog as governance, MetricFlow and UC Business Semantics as the semantic interface — requires governed endpoint access to close the gap between the [semantic layer](../data-foundation/semantic-layer) and the Citadel enforcement plane. This page documents how AI agents access that semantic layer in production: through Citadel APIM, never directly.
 
 This page covers:
 
-- **ADR-DF-04**: AI agents route through APIM, not directly to Databricks SQL — an opinionated requirement, not a design option
+- **AI agents route through APIM, not directly to Databricks SQL** — an opinionated requirement, not a design option
 - **The Governed Semantic Endpoint Pattern**: Entra token validation, QPM rate limiting, and query-count usage tracking
 - **Data Access Policy Fragment Design**: Why a dedicated fragment is architecturally required, not just preferred
 - **Layer 1 Attachment**: Explicit framing of where this integration sits in the Citadel 4-layer model
 
-## ADR-DF-04: AI Agents Route Through APIM, Not Directly to Databricks SQL
+## AI Agents Route Through APIM, Not Directly to Databricks SQL
 
 ### Decision Question
 
@@ -37,7 +37,7 @@ Direct agent access to the Databricks SQL warehouse bypasses three enforcement c
 
 **All semantic queries from AI agents route through Citadel APIM. The Databricks SQL REST API warehouse endpoint is registered as an APIM backend. Direct agent access to the SQL warehouse is not permitted in production deployments.**
 
-This is the required pattern for the SOF1A 2.0 platform. It is not a recommendation for teams to evaluate alongside alternatives. Organizations that need governed, auditable, cost-attributed semantic access for AI agents must route through APIM. The governed endpoint pattern described in this page is how that requirement is satisfied.
+This is the required pattern for the AI+ platform. It is not a recommendation for teams to evaluate alongside alternatives. Organizations that need governed, auditable, cost-attributed semantic access for AI agents must route through APIM. The governed endpoint pattern described in this page is how that requirement is satisfied.
 
 ## The Governed Semantic Endpoint Pattern
 
@@ -153,7 +153,7 @@ The Enterprise Data Foundation stack — OneLake → Unity Catalog → Semantic 
 |-----------------|---------------|---------------|
 | APIM backend registration | **Layer 1: Governance Hub** | Semantic endpoint — this page |
 | Usage telemetry (Event Hub → Log Analytics) | **Layer 2: AI Control Plane** | Query-count usage signals, cost attribution |
-| Identity and zero-secrets auth chain | **Layer 4: Security Fabric** | Entra Managed Identity chain for data path credentials (Phase 27) |
+| Identity and zero-secrets auth chain | **Layer 4: Security Fabric** | Entra Managed Identity chain for data path credentials |
 
 No new Citadel layer is required or created. The Data Foundation stack piggybacks on the enforcement and observability infrastructure that Layers 1, 2, and 4 already provide.
 

@@ -1,13 +1,14 @@
 ---
 title: "OneLake Architecture"
 description: "Universal storage substrate patterns — shortcuts vs mirroring, universal namespace, and uniform security enforcement across compute engines"
+icon: hard-drive
 ---
 
 # OneLake Architecture
 
 OneLake is the universal storage substrate of the Enterprise Data Foundation. Rather than introducing a fifth Citadel layer, it operates as a shared data plane that attaches to existing governance structures at three points: Layer 1 (APIM governs semantic endpoint access), Layer 2 (observability tracks data query patterns), and Layer 4 (Security Fabric enforces identity and column mask propagation). This page addresses three architect-facing questions: when to use shortcuts versus mirroring, how the universal namespace eliminates data movement, and how security is enforced uniformly across compute engines.
 
-## The Universal Namespace (LAKE-02)
+## The Universal Namespace
 
 OneLake provides a single namespace — one ADLS DFS-compatible endpoint — for all Fabric compute engines and external tools. Any application that already reads ADLS Gen2 can read OneLake data at this path without source-specific connectors or ETL pipelines.
 
@@ -52,7 +53,7 @@ Agents / Fabric Compute Engines
 
 AI agents querying across ADLS, Dataverse, and SharePoint sources see a single namespace. They do not need source-specific connectors, custom authentication flows per source, or awareness of where data physically resides. The agent issues queries against the OneLake endpoint and receives unified results regardless of whether the underlying data is native, shortcutted, or mirrored.
 
-## Shortcut vs Mirroring: The Decision Framework (LAKE-01)
+## Shortcut vs Mirroring: The Decision Framework
 
 The choice between shortcuts and mirroring determines the security enforcement surface and data movement model — not merely ingestion convenience. Architects must select the pattern that aligns with source format, governance requirements, and compute engine constraints.
 
@@ -121,7 +122,7 @@ The replicated Delta copy is governed entirely by Fabric workspace roles plus On
 Metadata mirroring is zero-copy. Database mirroring is not — it performs CDC replication into OneLake storage. Treating both as zero-copy leads to incorrect security model assumptions.
 </Note>
 
-## Security Enforcement Architecture (LAKE-03)
+## Security Enforcement Architecture
 
 <Warning>
 OneLake security — the feature providing table-, row-, and column-level security roles enforced across all Fabric compute engines — is in **Public Preview** as of April 2026. Assess production readiness before relying on this feature for enforcement in regulated workloads.
@@ -141,7 +142,7 @@ The same role definition applies across Spark, SQL Analytics endpoint, KQL, and 
 
 ### AI Agent Path Distinction
 
-For AI agents querying via the Databricks SQL REST API (covered in Phase 27, APIM integration), the security enforcement point is Unity Catalog — not OneLake security roles. OneLake security roles apply to Fabric-native compute engines and authorized third-party engines only. Architects must track which enforcement surface governs each agent query path.
+For AI agents querying via the Databricks SQL REST API (covered in the [APIM Governed Data Access](/data-foundation/apim-semantic-endpoint) section), the security enforcement point is Unity Catalog — not OneLake security roles. OneLake security roles apply to Fabric-native compute engines and authorized third-party engines only. Architects must track which enforcement surface governs each agent query path.
 
 Cross-reference: for the Entra managed identity chain (agent to APIM to Databricks SQL to OneLake), see the Security and Identity Patterns section.
 

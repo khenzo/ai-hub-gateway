@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "SOF1A 2.0 AI Governance Platform Documentation",
+  "name": "AI+ Governance Platform Documentation",
   "description": "Enterprise-grade AI governance platform documentation — unified AI Landing Zone and Citadel Governance Hub",
   "theme": "mint",
   "logo": {
@@ -129,7 +129,19 @@
           "governance/pii-protection"
         ]
       },
-
+      {
+        "group": "Data Foundation",
+        "icon": "database",
+        "tab": "Data Foundation",
+        "pages": [
+          "data-foundation/overview",
+          "data-foundation/onelake-architecture",
+          "data-foundation/unity-catalog-governance",
+          "data-foundation/semantic-layer",
+          "data-foundation/apim-semantic-endpoint",
+          "data-foundation/security-identity-patterns"
+        ]
+      },
       {
         "group": "EY Framework Alignment",
         "tab": "EY Alignment",
@@ -236,17 +248,6 @@
               "guides/citadel-hub/common-issues"
             ]
           }
-        ]
-      },
-      {
-        "group": "Data Foundation",
-        "tab": "Data Foundation",
-        "pages": [
-          "data-foundation/onelake-architecture",
-          "data-foundation/unity-catalog-governance",
-          "data-foundation/semantic-layer",
-          "data-foundation/apim-semantic-endpoint",
-          "data-foundation/security-identity-patterns"
         ]
       }
     ]

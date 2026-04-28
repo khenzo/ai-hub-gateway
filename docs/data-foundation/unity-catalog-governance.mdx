@@ -1,6 +1,7 @@
 ---
 title: "Unity Catalog Governance"
 description: "How Unity Catalog separates compute from governance — ABAC design, three-level namespace as the governance contract, and the Iceberg REST + OneLake integration path."
+icon: table
 ---
 
 # Unity Catalog as the Governance Backbone
@@ -15,7 +16,7 @@ This page covers four core concepts:
 4. **Iceberg REST + OneLake integration** — GA baseline versus Preview capabilities
 
 <Note>
-Data Foundation connects to the existing SOF1A 2.0 / Citadel 4-layer model at three attachment points — Layer 1 (APIM governance), Layer 2 (observability), and Layer 4 (Security Fabric). Unity Catalog is the governance substrate within that model, not an additional layer.
+Data Foundation connects to the existing AI+ / Citadel 4-layer model at three attachment points — Layer 1 (APIM governance), Layer 2 (observability), and Layer 4 (Security Fabric). Unity Catalog is the governance substrate within that model, not an additional layer.
 </Note>
 
 ## Compute vs Governance Separation
@@ -259,11 +260,11 @@ Reading OneLake data natively in Azure Databricks via Unity Catalog Connections 
 
 ## Unity Catalog in the Citadel Architecture
 
-Unity Catalog governance connects to the SOF1A 2.0 / Citadel 4-layer model at three attachment points:
+Unity Catalog governance connects to the AI+ / Citadel 4-layer model at three attachment points:
 
 ### Layer 1 (APIM / Governance Hub)
 
-APIM governs semantic endpoint access to the Databricks SQL REST API. Unity Catalog enforces row filters and column masks on the data returned through that endpoint. See Phase 27 for the APIM integration design.
+APIM governs semantic endpoint access to the Databricks SQL REST API. Unity Catalog enforces row filters and column masks on the data returned through that endpoint. See [APIM Governed Data Access](/data-foundation/apim-semantic-endpoint) for the integration design.
 
 ### Layer 2 (Control Plane / Observability)
 
@@ -271,7 +272,7 @@ Unity Catalog lineage system tables feed into the observability plane. AI agent 
 
 ### Layer 4 (Security Fabric)
 
-Unity Catalog column masks propagate through the APIM PII policy to AI agent responses. Entra Managed Identity governs the credential chain from agent through APIM to Databricks SQL to OneLake. See Phase 28 for the security identity chain design.
+Unity Catalog column masks propagate through the APIM PII policy to AI agent responses. Entra Managed Identity governs the credential chain from agent through APIM to Databricks SQL to OneLake. See [Security & Identity Patterns](/data-foundation/security-identity-patterns) for the identity chain design.
 
 ---
 

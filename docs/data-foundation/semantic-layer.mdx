@@ -1,6 +1,7 @@
 ---
 title: "Semantic Layer"
-description: "Why platform-native semantics (MetricFlow + Unity Catalog Business Semantics) are required for production AI agents — ADR-DF-03, the author-once principle, and the Core vs Edge governance model."
+description: "Why platform-native semantics (MetricFlow + Unity Catalog Business Semantics) are required for production AI agents — the author-once principle and the Core vs Edge governance model."
+icon: cubes
 ---
 
 The central problem with tool-embedded business logic is inheritance: when metric definitions live inside BI tools — DAX in Power BI, LookML in Looker, MDX in SSAS — AI agents inherit nothing. To answer a business question, an agent must improvise business definitions from raw table schemas, producing results that are plausible, internally consistent, and entirely ungoverned. Two agents asking the same question may produce different SQL and return different numbers. Neither agent is wrong by its own reasoning; both are wrong by the organization's definition. When semantics live in the data platform next to the data and governance policies, every consumer — dashboards, notebooks, and AI agents — reads from the same governed truth.
@@ -9,17 +10,17 @@ The central problem with tool-embedded business logic is inheritance: when metri
 
 This page covers:
 
-- **ADR-DF-03**: The decision between platform-native and tool-embedded semantics — an opinionated recommendation, not a neutral comparison
+- The decision between platform-native and tool-embedded semantics — an opinionated recommendation, not a neutral comparison
 - **MetricFlow + UC Business Semantics**: How these two layers complement each other (transformation time vs consumption time) and why they are not competing alternatives
 - **AI Agent Grounding**: How production AI agents interact with the semantic layer in exactly two phases — grounding and execution
 - **Author Once, Reuse Everywhere**: The metric lifecycle traced from authorship through Unity Catalog Business Semantics to identical consumption by dashboards, notebooks, and AI agents
 - **Core vs Edge Governance**: What belongs in the Core certified model, what belongs in Edge team models, and how Edge metrics are promoted to Core
 
 <Note>
-The Semantic Layer is the grounded intelligence substrate of the Enterprise Data Foundation stack. It connects to the SOF1A 2.0 / Citadel 4-layer model at Layer 1 (APIM governs semantic endpoint access) and inherits governance from Unity Catalog (column masks and row filters travel with metric definitions). It is not an additional architectural layer — it is the mechanism that makes Unity Catalog governance actionable for AI consumers.
+The Semantic Layer is the grounded intelligence substrate of the Enterprise Data Foundation stack. It connects to the AI+ / Citadel 4-layer model at Layer 1 (APIM governs semantic endpoint access) and inherits governance from Unity Catalog (column masks and row filters travel with metric definitions). It is not an additional architectural layer — it is the mechanism that makes Unity Catalog governance actionable for AI consumers.
 </Note>
 
-## ADR-DF-03: Platform-Native vs Tool-Embedded Semantics
+## Platform-Native vs Tool-Embedded Semantics
 
 ### Decision Question
 
@@ -245,7 +246,7 @@ Edge: Sales    Edge: Finance  Edge: AI Agent
     icon="key"
     href="/data-foundation/apim-semantic-endpoint"
   >
-    How Citadel APIM fronts the semantic layer endpoint with Entra token validation and usage tracking. (Phase 26)
+    How Citadel APIM fronts the semantic layer endpoint with Entra token validation and usage tracking.
   </Card>
   <Card
     title="Agent Factory: Intelligence Layers"
