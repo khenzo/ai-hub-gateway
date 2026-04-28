@@ -3,6 +3,8 @@
 > Chronological action log. Hooks and AI append to this file automatically.
 > Old sessions are consolidated by the daemon weekly.
 
+| 08:36 | Executed 26-01-PLAN.md: APIM Governed Data Access | docs/data-foundation/apim-semantic-endpoint.mdx (new, 170 lines), docs/architecture/layer-1-governance-hub.mdx (surgical Note callout) | Complete — ADR-DF-04, policy fragment comparison, DSEC-01+DSEC-02 satisfied | ~8000 |
+
 | 16:52 | Executed 12-02-PLAN.md: agent observability docs | docs/agent-factory/agent-observability.mdx, docs/operations/monitoring.mdx, docs.json | 2 tasks complete, commits 12f9ec0 and 570ed84, milestone v1.1 100% | ~4000 |
 
 | 10:46 | Added citadel architecture PNGs to docs, citadel link refs to intro page, Citadel Architecture sidebar group to docs.json | docs/architecture/overview.mdx, docs/getting-started/introduction.mdx, docs/docs.json | success | ~600 tok |
@@ -479,3 +481,24 @@
 |------|--------|---------|---------|--------|
 | 00:04 | Created .planning/phases/26-apim-governed-data-access/26-RESEARCH.md | — | ~6447 |
 | 00:04 | Research Phase 26 APIM Governed Data Access | .planning/phases/26-apim-governed-data-access/26-RESEARCH.md | Created research document; DSEC-01 + DSEC-02 coverage confirmed | ~9000 |
+| 00:08 | Created .planning/phases/26-apim-governed-data-access/26-01-PLAN.md | — | ~4018 |
+| 00:09 | Created Phase 26 PLAN.md — APIM Governed Data Access (DSEC-01, DSEC-02) | .planning/phases/26-apim-governed-data-access/26-01-PLAN.md, .planning/ROADMAP.md | Plan created and validated — 2 tasks, wave 1, autonomous | ~8000 |
+
+## Session: 2026-04-28 08:19
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 08:22 | Created docs/data-foundation/apim-semantic-endpoint.mdx | — | ~3891 |
+| 08:33 | Edited docs/architecture/layer-1-governance-hub.mdx | expanded (+6 lines) | ~165 |
+| 08:33 | Edited docs/data-foundation/apim-semantic-endpoint.mdx | inline fix | ~116 |
+| 08:34 | Edited docs/data-foundation/apim-semantic-endpoint.mdx | 11→11 lines | ~197 |
+| 08:35 | Created .planning/phases/26-apim-governed-data-access/26-01-SUMMARY.md | — | ~1641 |
+| 08:39 | Created .planning/phases/26-apim-governed-data-access/26-VERIFICATION.md | — | ~2321 |
+| 08:39 | Session end: 6 writes across 4 files (apim-semantic-endpoint.mdx, layer-1-governance-hub.mdx, 26-01-SUMMARY.md, 26-VERIFICATION.md) | 7 reads | ~35910 tok |
+
+## Session: 2026-04-28 09:09
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 09:21 | Created .planning/phases/28-navigation-integration/28-RESEARCH.md | — | ~5501 |
+| 09:22 | Researched Phase 28: Navigation & Integration | .planning/phases/28-navigation-integration/28-RESEARCH.md | Complete — 4 MDX pages confirmed, docs.json tab pattern documented, Layer 2/4 cross-link gaps identified | ~6000 |
