@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Enterprise Data Foundation
-status: completed
-stopped_at: Completed 28-01 plan (Navigation & Integration)
-last_updated: "2026-04-28T07:38:45.625Z"
-last_activity: 2026-04-28 — Completed 28-01 plan (Navigation & Integration)
+milestone: v3.0
+milestone_name: AI+ HUB Factory Presentation
+status: in_progress
+stopped_at: Milestone v3.0 created — ready to plan Phase 29
+last_updated: "2026-05-03T12:00:00.000Z"
+last_activity: 2026-05-03 — Created v3.0 milestone with 7 phases (29-35)
 progress:
-  total_phases: 13
-  completed_phases: 13
-  total_plans: 24
-  completed_plans: 24
-  percent: 36
+  total_phases: 7
+  completed_phases: 0
+  total_plans: 7
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,150 +21,37 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-27)
 
 **Core value:** Enable organizations to deploy enterprise-grade AI infrastructure with confidence
-**Current focus:** Milestone v2.0 — Enterprise Data Foundation (COMPLETED)
+**Current focus:** Milestone v3.0 — AI+ HUB Factory Presentation (IN PROGRESS)
 
 ## Current Position
 
-Phase: Phase 28 — Navigation & Integration
-Plan: 28-01
-Status: Complete — Data Foundation tab wired, all 5 pages navigable, cross-links on Layer 2 and Layer 4
-Last activity: 2026-04-28 — Completed 28-01 plan (Navigation & Integration)
+Phase: Phase 29 — Opening & Title Sequence
+Plan: None yet
+Status: Ready to plan
+Last activity: 2026-05-03 — Created v3.0 milestone with 7 phases (29-35)
 
-Progress: [████████████] 100% (6/6 plans complete)
+Progress: [░░░░░░░░░░░░] 0% (0/7 plans complete)
 
-## v2.0 Phase Summary
+## v3.0 Phase Summary
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
-| 23. OneLake Architecture | Architects can reason about OneLake as universal storage substrate | LAKE-01, LAKE-02, LAKE-03 | Complete (23-01) |
-| 24. Unity Catalog Governance | Design governance model separating compute from data ownership | UCAT-01, UCAT-02, UCAT-03, UCAT-04 | Complete (24-01) |
-| 25. Semantic Layer | Commit to platform-native semantics; design Core vs Edge model | SEML-01, SEML-02, SEML-03, SEML-04 | Complete (25-01) |
-| 26. APIM Governed Data Access | Design Citadel APIM integration for governed semantic endpoint access | DSEC-01, DSEC-02 | Complete (26-01) |
-| 27. Security & Identity Patterns | Zero-secrets data path via Entra MI chain; column mask propagation | DSEC-03, DSEC-04 | Complete (27-01) |
-| 28. Navigation & Integration | Data Foundation tab in Mintlify; all pages wired into docs.json | DNAV-01 | Complete (28-01) |
+| 29. Opening & Title Sequence | Generate prompts for title card and agenda slides | PRES-01 | Not started |
+| 30. Landing Zone Foundation | Generate prompts for Landing Zone foundation slides | PRES-02 | Not started |
+| 31. Citadel Governance Core | Generate prompts for Citadel 4-layer and APIM slides | PRES-03 | Not started |
+| 32. Data Foundation | Generate prompts for Enterprise Data slides | PRES-04 | Not started |
+| 33. Agentic Layer | Generate prompts for Agentic Intelligence slides | PRES-05 | Not started |
+| 34. Hub-Spoke Topology | Generate prompts for Hub-Spoke scaling slides | PRES-06 | Not started |
+| 35. Closing & Call to Action | Generate prompts for Business Value and CTA slides | PRES-07 | Not started |
 
-## Performance Metrics
+## Presentation Context
 
-**Velocity (v2.0):**
-- Total plans completed: 3
-- Average duration: 17 min
-- Total execution time: 52 min
-
-*Updated after each plan completion*
-
-## Accumulated Context
-
-### Decisions
-
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-1. **Azure Brand Colors (01-01)**: Used #0078D4 as primary color for enterprise alignment
-2. **User Journey Organization (01-01)**: Directories organized by workflow rather than technical component
-3. **Light Mode Default (01-01)**: Set to match enterprise documentation conventions
-4. **6-Group Navigation (01-02)**: Expanded from 4 to 6 groups for better user journey flow
-5. **Implementation Section (01-02)**: Reorganized Deployment into broader Implementation section
-6. **Card-Based Navigation (01-02)**: Established CardGroup pattern for next-step navigation
-7. **Phase Indicators (01-02)**: Placeholder content includes phase indicators for future work
-8. **Template-First Approach (01-03)**: Created templates before Phase 2 content to establish patterns early
-9. **Comprehensive Style Guide (01-03)**: 527-line guide covering all aspects vs. minimal guide
-10. **4-Layer Documentation Structure (02-01)**: Each layer documented with consistent structure: overview, components, integrations, and next steps
-11. **Integration-First Approach (02-01)**: Layer integration created as dedicated document rather than duplicating content across layer docs
-12. **APIM Gateway Pattern (02-03)**: Azure API Management selected for AI gateway with 5 alternatives evaluated
-13. **Hub-Spoke Topology (02-03)**: Hub-spoke networking chosen for centralized governance with workload isolation
-14. **Supplemental AI Landing Zone (02-03)**: Citadel designed to extend existing Azure Landing Zones rather than replace
-15. **Mintlify Documentation Conventions (03-01)**: Pattern documentation uses CardGroup navigation and consistent MDX structure
-16. **ASCII Architecture Diagrams (03-01)**: ASCII art chosen for clarity, maintainability, and version control compatibility
-17. **Three-Pattern Comparison Model (03-01)**: Comparison structured around APIM-based, Foundry-only, and Custom Gateway patterns
-18. **Content Safety as Layer 4 (03-03)**: Positioned Content Safety as Layer 4 Security Fabric component for enterprise alignment
-19. **Purview-First PII Protection (03-03)**: PII protection uses Purview integration with custom patterns for organization-specific data
-20. **Three Security Modes (03-03)**: Security modes defined: high-security (maximum isolation), balanced (enterprise), rapid (POC/hardening path)
-21. **Compliance as Code (03-03)**: Azure Policy initiatives used for automated compliance monitoring across frameworks
-22. **Control Implementation Matrix (03-03)**: Each security control mapped to multiple frameworks (SOC 2, GDPR, HIPAA) for efficiency
-- [Phase 04-implementation-guides]: Scored readiness assessment (0-60 points) with four levels for prerequisites guide
-- [Phase 04-implementation-guides]: Quick-start uses Developer-tier APIM for cost-effective 2-4 hour evaluation path
-- [Phase 04-implementation-guides]: RACI matrix organized in five tabbed deployment phases for readability
-- [Phase 04-implementation-guides P02]: Deployment structured as 3 phases: hub infrastructure, spoke infrastructure, governance/policies
-- [Phase 04-implementation-guides P02]: Bicep modules documented with required vs optional parameter split and composition patterns
-- [Phase 04-implementation-guides P02]: Checklists use owner/status/notes columns for team accountability and tracking
-- [Phase 04-implementation-guides P02]: Validation commands provided inline with expected outputs for each check
-- [Phase 05-integration-validation P02]: Positioned Business Value section between Architecture and Implementation for logical user journey flow
-- [Phase 05-integration-validation P02]: Used four value pillars with distinct colors for visual distinction
-- [Phase 05-integration-validation P02]: ROI framework includes sensitivity analysis showing best/expected/worst case scenarios
-- [Phase 05-integration-validation P02]: Compliance documentation provides detailed control mappings for SOC 2, GDPR, HIPAA
-- [Phase 05-integration-validation P02]: Maintained non-technical writing style for business stakeholder accessibility
-- [Phase 05-integration-validation P03]: Created dedicated validation section under implementation/validation/ for comprehensive pre/post-deployment focus
-- [Phase 05-integration-validation P03]: Structured troubleshooting by issue category (deployment, connectivity, performance, integration, security)
-- [Phase 05-integration-validation P03]: Designed runbooks for specific operational frequencies (daily, weekly, monthly, quarterly)
-- [Phase 05-integration-validation P03]: Used Mintlify grouped navigation for validation and operations sections
-- [Phase 07-agent-factory-foundation]: Synthesized white paper content into structured docs rather than copy-paste
-- [Phase 07-agent-factory-foundation]: Positioned Agent Factory tab between Architecture and Business Value for logical user journey
-- [Phase 07-agent-factory-foundation]: Used existing Mintlify CardGroup and ASCII diagram patterns for consistency
-- [Phase 08-agentic-web-stack]: Added standalone Card in Detailed Layer Documentation section since citadel-4-layer-model.mdx uses bullet lists in that section — Preserved existing layout pattern while surfacing new content
-- [Phase 08-agentic-web-stack]: Used 3 distinct ASCII diagram styles: stacked view, component-to-layer mapping arrows, and vertical traffic flow — Provided multiple visual perspectives on the same architecture for better comprehension
-- [Phase 09-agentic-design-patterns P01]: Positioned design patterns page in Agent Factory navigation after stack diagrams for logical content flow
-- [Phase 09-agentic-design-patterns P01]: Used existing Mintlify CardGroup and ASCII diagram conventions for consistency with prior phases
-- [Phase 09-agentic-design-patterns P01]: Referenced real-world customer examples from the Agent Factory white paper (Fujitsu, ContraForce, GitHub Copilot)
-- [Phase 09-agentic-design-patterns]: Wrapped existing standalone Card in citadel-4-layer-model.mdx into a CardGroup to accommodate new navigation cards while preserving existing layout
-- [Phase 10-enterprise-use-cases]: Linked data analytics Next Steps to existing employee-self-service page instead of non-existent sales-lead-engagement page to maintain valid navigation
-- [Phase 12-agent-security-observability]: Cross-link instead of duplicate: all four existing governance pages referenced via cross-links rather than repeating their content
-- [Phase 12-agent-security-observability]: Warning component for cross-prompt injection to emphasize extended attack surface beyond user input
-- [Phase 12-agent-security-observability]: Agent observability page uses Steps component matching agent-security-blueprint.mdx pattern for consistency
-- [Phase 12-agent-security-observability]: monitoring.mdx retained original frontmatter and structure; body replaced to become active cross-reference rather than dead placeholder
-- [Phase 17-kubernetes-devops-patterns]: Added a Repository Init Checklist section to github-scaffolding.mdx to ensure the page exceeds 100 lines and provides actionable onboarding value
-- [Phase 18-security-governance-at-scale]: Expanded governance-tiers.mdx with layer-specific subsections and cross-references to meet content depth requirements — Improved reader comprehension and navigational continuity while satisfying the 120+ line minimum
-- [Phase 18-security-governance-at-scale]: Established automated vs manual enforcement matrix as a reusable pattern for compliance documentation — Creates a clear boundary that architects and compliance officers can reference when mapping platform capabilities to process requirements
-- [Phase 19-mcp-a2a-agent-discovery]: Positioned Azure API Center as the enterprise agent registry, addressing EY's future requirement today rather than treating it as a roadmap gap
-- [Phase 19-mcp-a2a-agent-discovery]: Expanded both pages beyond minimum line count with substantive subsections to ensure architectural depth rather than padding — Automated verification required 100+ lines; adding meaningful subsections about enforcement points and trust patterns satisfied the requirement with real value
-- [Phase 19-mcp-a2a-agent-discovery]: Used existing Agent Factory pages as deep-dive targets via CardGroup cross-links, avoiding technical duplication — The plan explicitly required cross-links to agent-factory/mcp-integration and agent-factory/a2a-integration; routing readers there via CardGroup preserves the DRY principle across documentation
-- [Phase 21-refactor-operations-docs]: Consolidated all remaining how-to guides under Citadel Hub since they relate to the APIM-based AI gateway accelerator
-- [Phase 21-refactor-operations-docs]: Removed the Operations tab entirely rather than merging, since the standalone Operations section was redundant with Citadel Hub operations guides and runbooks
-- [Phase 21-refactor-operations-docs]: Preserved implementation/ paths in docs.json navigation under Citadel Hub since they were outside the Guides directory restructure scope
-- [Phase 21-refactor-operations-docs]: Flattened Citadel Hub navigation by removing Integrations and Validation subgroups (pages belong under Implementation tab)
-- [Phase 21-refactor-operations-docs]: Preserved Operations as a Citadel Hub subgroup since operational guides exist under guides/citadel-hub/operations/
-- [Phase 21-refactor-operations-docs]: Moved troubleshooting and checklist pages to the root of the Citadel Hub pages array for simpler navigation
-- [Phase 22-refactor-architecture-getting-started-for-sof1a-20]: Retained 'Citadel' for governance hub/layer references, replaced only umbrella platform references with SOF1A 2.0 AI Governance Platform
-- [Phase 22-refactor-architecture-getting-started-for-sof1a-20]: Added Platform Vision section to 4-layer model to explicitly unify ALZ workloads and Citadel governance
-- [Phase 22-refactor-architecture-getting-started-for-sof1a-20]: Fixed pre-existing broken nav link: llm-routing-architecture renamed to llm-routing to match actual file
-- [Phase 24-unity-catalog-governance]: Confirmed Phase 23 file exists — used standard MDX cross-link to onelake-architecture instead of Note substitution
-- [Phase 24-unity-catalog-governance]: Separated GA direct table-level row filters from ABAC-managed Public Preview to prevent reader confusion
-- [Phase 25-semantic-layer]: ADR-DF-03 is opinionated: platform-native semantics via MetricFlow + UC Business Semantics required for enterprise AI; text-to-SQL rejected as production substitute
-- [Phase 25-semantic-layer]: MetricFlow and UC Business Semantics are complementary layers (transformation time vs consumption time) — not competing alternatives
-- [Phase 26-apim-governed-data-access]: ADR-DF-04: AI agents must never call Databricks SQL directly — three concrete risks: no Entra validation, no usage tracking, no rate limiting
-- [Phase 26-apim-governed-data-access]: Data access policy fragment is architecturally distinct from LLM fragments — three structural differences: risk surface, throttling model (QPM vs TPM), failure mode (warehouse cold start vs LLM timeout)
-- [Phase 27]: Direct MI auth is the default pattern; OBO only when per-user row filters are required
-- [Phase 28-navigation-integration]: security-identity-patterns wired as 5th page and used as Layer 4 cross-link target because Phase 27 file confirmed present at execution time
-
-### v2.0 Architectural Context (Critical for Phases 23-28)
-
-- **Data Foundation is NOT a fifth Citadel layer** — it attaches at 3 existing attachment points: Layer 1 (APIM), Layer 2 (observability), Layer 4 (Security Fabric)
-- **Strict dependency chain**: Phase 23 (OneLake) → Phase 24 (Unity Catalog) → Phase 25 (Semantic Layer) → Phase 26 (APIM Integration) → Phase 27 (Security/Identity) → Phase 28 (Navigation)
-- **Phases 26 and 27 must execute in strict sequence** — Purview label propagation (Phase 27) requires APIM integration (Phase 26) established first
-- **Phase 26 is highest synthesis risk** — must cross-reference existing Citadel docs to avoid contradicting Layer 1/APIM architecture already documented
-- **Phase 28 is a clean closure phase** — docs.json wiring only, no new content pages
-- **8 Pre-GA capabilities across the stack require Warning callouts**: identify and flag in each phase where applicable
-- **Scope: documentation only** — no Bicep, no dbt YAML, no GitHub Actions, no code artifacts of any kind
-
-### Roadmap Evolution
-
-- Phase 21 added: Refactor Mintlify doc tabs for Guides and Operations
-- Phase 22 added: Refactor architecture and getting-started documentation for SOF1A 2.0 AI Governance Platform
-- Phases 23-29 added: v2.0 Enterprise Data Foundation (2026-04-27)
-- Phase 25 removed: dbt Medallion Architecture — renumbered phases 26-29 → 25-28
-
-### Pending Todos
-
-None — all v2.0 phases complete.
-
-### Blockers/Concerns
-
-None.
-
-## Session Continuity
-
-Last session: 2026-04-28T07:38:45.621Z
-Stopped at: Completed 28-01 plan (Navigation & Integration)
-Resume file: None
+**Source document:** `.planning/PRESENTATION.md` — Complete design specification for animated HTML presentation
+**Target output:** `./presentation/` root folder with slide generation prompts
+**Slide count:** 22 slides across 6 sections + opening/closing
+**Design system:** Dark mode (#1A1A24), Yellow primary (#FFE600), Inter font family
+**Animation libraries:** GSAP, CSS animations, SVG.js
+**Audience:** C-Suite, Enterprise Architects, Platform Engineers
 
 ## Milestone Status
 
@@ -172,13 +59,21 @@ Resume file: None
 **Milestone v1.1: AI Agent Factory Integration — ARCHIVED** — Git tag: `v1.1`
 **Milestone v1.2: Open Platform Agent Factory — ARCHIVED**
 **Milestone v1.3: EY Framework Alignment — ARCHIVED** — 7 phases, complete
+**Milestone v2.0: Enterprise Data Foundation — COMPLETED** — 6 phases (23-28), 6 plans
 
-**Milestone v2.0: Enterprise Data Foundation — COMPLETED**
-- 6 phases (Phases 23-28), 6 plans
-- Requirements: 16 defined, 16 mapped, 16 complete
-- Phase 23: Complete (1/1 plan done)
-- Phase 24: Complete (1/1 plan done)
-- Phase 25: Complete (1/1 plan done)
-- Phase 26: Complete (1/1 plan done)
-- Phase 27: Complete (1/1 plan done)
-- Phase 28: Complete (1/1 plan done)
+**Milestone v3.0: AI+ HUB Factory Presentation — IN PROGRESS**
+- 7 phases (Phases 29-35), 7 plans
+- Requirements: 7 defined
+- Phase 29: Not started
+- Phase 30: Not started
+- Phase 31: Not started
+- Phase 32: Not started
+- Phase 33: Not started
+- Phase 34: Not started
+- Phase 35: Not started
+
+## Session Continuity
+
+Last session: 2026-05-03T12:00:00.000Z
+Stopped at: Milestone v3.0 created — ready to plan Phase 29
+Resume file: None

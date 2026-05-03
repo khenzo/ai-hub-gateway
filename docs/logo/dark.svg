@@ -1,12 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 64" fill="none">
-  <!-- Shield icon -->
-  <path d="M16 8 L32 4 L48 8 L48 28 C48 40 32 50 32 50 C32 50 16 40 16 28 Z" fill="#3AA0FF"/>
-  <!-- Inner shield highlight -->
-  <path d="M20 12 L32 8.5 L44 12 L44 28 C44 37 32 45 32 45 C32 45 20 37 20 28 Z" fill="#60B8FF" opacity="0.45"/>
-  <!-- Checkmark / AI spark inside shield -->
-  <path d="M25 27 L30 33 L40 20" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-
-  <!-- Wordmark -->
-  <text x="58" y="28" font-family="Inter, Segoe UI, sans-serif" font-size="22" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">AI<tspan fill="#3AA0FF">+</tspan></text>
-  <text x="58" y="46" font-family="Inter, Segoe UI, sans-serif" font-size="12" font-weight="400" fill="#9CA3AF" letter-spacing="0.5">AI Governance Platform</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 224 48" fill="none">
+  <!-- Brand mark: EY Yellow square -->
+  <rect x="0" y="2" width="44" height="44" fill="#FFE600"/>
+  <!-- AI+ in navy 900 -->
+  <text x="4" y="35" font-family="Inter,Arial,sans-serif" font-size="23" font-weight="900" fill="#1A1A24" letter-spacing="-1.5">AI+</text>
+  <!-- Wordmark on dark -->
+  <text x="56" y="25" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" letter-spacing="-0.5">Factory</text>
+  <text x="57" y="41" font-family="Inter,Arial,sans-serif" font-size="9.5" font-weight="400" fill="rgba(255,255,255,0.45)" letter-spacing="1.8">EY AI PLATFORM</text>
 </svg>

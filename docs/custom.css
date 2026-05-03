@@ -1,8 +1,276 @@
-/* Increase navbar logo display size */
-#navbar img,
-header img,
-nav img {
-  height: 44px !important;
-  width: auto !important;
-  max-width: 260px !important;
+/* ═══════════════════════════════════════════════════
+   AI+ Brand System — EY
+   Source: design/design-system.html
+   ═══════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
+
+/* ── Brand tokens ── */
+:root {
+  --ey-yellow:   #FFE600;
+  --ey-navy:     #1A1A24;
+  --ey-surface:  #2E2E38;
+  --ey-surface2: #3A3A4A;
+  --ey-green:    #2DB757;
+  --ey-teal:     #27ACAA;
+  --ey-blue:     #188CE5;
+  --ey-purple:   #750E5C;
+  --ey-red:      #FF4136;
+  --ey-orange:   #FF6D00;
+
+  /* Force light mode to use the same dark background as dark mode */
+  --background-light: 14 13 11;
 }
+
+/* ═══════════════════════════════════════════════════
+   TYPOGRAPHY
+   ═══════════════════════════════════════════════════ */
+
+body, p, li, td, th, label, input, textarea, select,
+.prose, [class*="content"], [class*="navbar"] {
+  font-family: 'Inter', 'EYInterstate Regular', Arial, sans-serif !important;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', 'EYInterstate Regular', Arial, sans-serif !important;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+h1 { letter-spacing: -0.04em; }
+h2 {
+  letter-spacing: -0.03em;
+  border-bottom: 1px solid rgba(255, 230, 0, 0.15) !important;
+  padding-bottom: 0.4em !important;
+}
+h3 { font-weight: 600; letter-spacing: -0.02em; }
+
+code, pre, kbd {
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace !important;
+}
+
+/* ── Body / prose text: override Tailwind gray utility classes on dark bg ── */
+/* Mintlify applies text-gray-700/600/500 directly on divs; those beat body inheritance */
+.text-gray-950, .text-gray-900, .text-gray-800,
+.text-gray-700, .text-gray-600, .text-gray-500,
+.prose-gray, .prose-gray p, .prose-gray li,
+.prose-gray strong, .prose-gray em,
+.prose { color: rgba(230, 229, 222, 0.88) !important; }
+
+/* ═══════════════════════════════════════════════════
+   LOGO
+   ═══════════════════════════════════════════════════ */
+
+header img, nav img {
+  height: 120px !important;
+  width: auto !important;
+  max-width: 240px !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   LINKS — branded yellow
+   ═══════════════════════════════════════════════════ */
+
+a {
+  color: var(--ey-yellow) !important;
+}
+a:hover {
+  color: rgba(255, 230, 0, 0.75) !important;
+  text-decoration-color: var(--ey-yellow) !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   HEADER / NAV CHROME
+   ═══════════════════════════════════════════════════ */
+
+header {
+  border-bottom: 3px solid var(--ey-yellow) !important;
+}
+
+[aria-current="page"],
+[class*="active"][class*="nav"],
+[class*="active"][class*="sidebar"] {
+  color: var(--ey-yellow) !important;
+  background-color: rgba(255, 230, 0, 0.08) !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   CODE BLOCKS
+   ═══════════════════════════════════════════════════ */
+
+pre {
+  background-color: #12121A !important;
+  border-radius: 4px !important;
+}
+pre code { color: rgba(255, 255, 255, 0.85) !important; }
+
+code:not(pre > code) {
+  background-color: rgba(255, 230, 0, 0.1) !important;
+  color: var(--ey-yellow) !important;
+  border-radius: 2px !important;
+  padding: 1px 5px !important;
+  font-size: 0.875em !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   TABLES
+   ═══════════════════════════════════════════════════ */
+
+table thead tr { background-color: rgba(255, 230, 0, 0.08) !important; }
+table thead th {
+  color: var(--ey-yellow) !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+}
+table tbody tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   CALLOUTS — saturated brand colors on dark bg
+   ═══════════════════════════════════════════════════ */
+
+/* Mintlify callout types use bg-blue-*, bg-amber-*, bg-green-*, bg-red-* */
+.callout[class*="blue"],
+.callout[class*="sky"],
+.callout[class*="indigo"] {
+  background-color: rgba(24, 140, 229, 0.18) !important;
+  border-color: rgba(24, 140, 229, 0.6) !important;
+  color: rgba(230, 229, 222, 0.9) !important;
+}
+
+.callout[class*="green"],
+.callout[class*="emerald"],
+.callout[class*="teal"] {
+  background-color: rgba(45, 183, 87, 0.18) !important;
+  border-color: rgba(45, 183, 87, 0.6) !important;
+  color: rgba(230, 229, 222, 0.9) !important;
+}
+
+.callout[class*="amber"],
+.callout[class*="yellow"],
+.callout[class*="orange"] {
+  background-color: rgba(255, 109, 0, 0.18) !important;
+  border-color: rgba(255, 109, 0, 0.6) !important;
+  color: rgba(230, 229, 222, 0.9) !important;
+}
+
+.callout[class*="red"],
+.callout[class*="rose"],
+.callout[class*="pink"] {
+  background-color: rgba(255, 65, 54, 0.18) !important;
+  border-color: rgba(255, 65, 54, 0.6) !important;
+  color: rgba(230, 229, 222, 0.9) !important;
+}
+
+/* Callout icons keep their accent color */
+.callout svg { opacity: 1 !important; }
+
+/* ═══════════════════════════════════════════════════
+   MERMAID DIAGRAMS — white surface so #333 text is readable
+   ═══════════════════════════════════════════════════ */
+
+.mermaid {
+  background-color: #FFFFFF !important;
+  border-radius: 8px !important;
+  padding: 24px !important;
+  border: 1px solid rgba(255, 230, 0, 0.2) !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   ACCORDION
+   ═══════════════════════════════════════════════════ */
+
+/* Kill the near-white hover, replace with yellow tint */
+.accordion summary:hover,
+.accordion summary:focus-visible {
+  background-color: rgba(255, 230, 0, 0.1) !important;
+}
+
+/* Title always light on dark bg */
+[data-component-part="accordion-title"] {
+  color: rgba(230, 229, 222, 0.92) !important;
+}
+
+/* Caret icon — yellow on hover */
+.accordion summary:hover [data-component-part="accordion-caret-right"] svg,
+.accordion summary:hover [data-component-part="accordion-caret-down"] svg {
+  background-color: var(--ey-yellow) !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   CARDS — white bg, dark text/links
+   ═══════════════════════════════════════════════════ */
+
+.card {
+  background-color: #FFFFFF !important;
+}
+
+/* Icon + title on same row */
+[data-component-part="card-content-container"] {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+}
+
+[data-component-part="card-icon"] {
+  flex-shrink: 0 !important;
+  margin-top: 2px !important;
+}
+
+/* Remove the top margin Mintlify puts between icon and title */
+[data-component-part="card-title"] {
+  margin-top: 0 !important;
+}
+
+/* All text inside white cards → navy */
+.card, .card p, .card span, .card div,
+.card .text-gray-950, .card .text-gray-900, .card .text-gray-800,
+.card .text-gray-700, .card .text-gray-600, .card .text-gray-500 {
+  color: var(--ey-navy) !important;
+}
+
+.card a, .card a * {
+  color: var(--ey-navy) !important;
+}
+.card a:hover, .card a:hover * {
+  color: var(--ey-surface) !important;
+  text-decoration: underline;
+  text-decoration-color: var(--ey-yellow) !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   MISC
+   ═══════════════════════════════════════════════════ */
+
+[class*="topbar-cta"], a[class*="cta"] {
+  background-color: var(--ey-yellow) !important;
+  color: var(--ey-navy) !important;
+  font-weight: 700 !important;
+  border-radius: 2px !important;
+}
+
+/* Step number circle — target the actual inner circle div */
+[data-component-part="step-number"] > div {
+  background-color: var(--ey-yellow) !important;
+  color: var(--ey-navy) !important;
+  font-weight: 900 !important;
+  border: none !important;
+}
+/* Number digit inside the circle */
+[data-component-part="step-number"] > div > div:first-child {
+  color: var(--ey-navy) !important;
+  font-weight: 900 !important;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0E0D0B; }
+::-webkit-scrollbar-thumb { background: rgba(255, 230, 0, 0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 230, 0, 0.4); }

@@ -556,3 +556,52 @@
 | 16:18 | Edited docs/logo/light.svg | 2→2 lines | ~90 |
 | 16:18 | Edited docs/logo/dark.svg | 2→2 lines | ~90 |
 | 16:18 | Session end: 25 writes across 9 files (apim-semantic-endpoint.mdx, semantic-layer.mdx, security-identity-patterns.mdx, onelake-architecture.mdx, unity-catalog-governance.mdx) | 11 reads | ~20629 tok |
+
+## Session: 2026-04-30 11:45
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-04-30 11:52
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-04-30 12:01
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 12:17 | Created design/design-system.html | — | ~7776 |
+| 12:18 | Created design/brand-book-a4.html | — | ~4197 |
+| 15:30 | Created AI+ brand book from PPTX | design/design-system.html, design/brand-book-a4.html, design/brand-book-a4.pdf | Design system + A4 PDF generated from AI+ Organisation and Skills v4.pptx | ~8000 |
+| 12:19 | Session end: 2 writes across 2 files (design-system.html, brand-book-a4.html) | 0 reads | ~12828 tok |
+| 12:28 | Edited docs/docs.json | expanded (+14 lines) | ~128 |
+| 12:29 | Created docs/custom.css | — | ~3096 |
+| 15:45 | Applied AI+ brand system to Mintlify docs | docs/docs.json, docs/custom.css | Theme→prism, colors→EY yellow/navy, font→Inter, full CSS brand overrides | ~600 |
+| 12:29 | Session end: 4 writes across 4 files (design-system.html, brand-book-a4.html, docs.json, custom.css) | 3 reads | ~17670 tok |
+
+## Session: 2026-04-30 12:31
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 12:32 | Edited docs/docs.json | inline fix | ~6 |
+| 12:33 | Edited docs/docs.json | 9→5 lines | ~26 |
+| 12:34 | Session end: 2 writes across 1 files (docs.json) | 2 reads | ~1765 tok |
+| 12:38 | Created docs/logo/dark.svg | — | ~183 |
+| 12:39 | Created docs/logo/light.svg | — | ~205 |
+| 12:40 | Created docs/custom.css | — | ~3986 |
+| 12:40 | Session end: 5 writes across 4 files (docs.json, dark.svg, light.svg, custom.css) | 5 reads | ~9724 tok |
+| 12:49 | Created docs/custom.css | — | ~1516 |
+| 12:50 | Session end: 6 writes across 4 files (docs.json, dark.svg, light.svg, custom.css) | 6 reads | ~11240 tok |
+| 12:52 | Edited docs/custom.css | expanded (+23 lines) | ~214 |
+| 12:53 | Session end: 7 writes across 4 files (docs.json, dark.svg, light.svg, custom.css) | 6 reads | ~9874 tok |
+| 12:57 | Created docs/custom.css | — | ~1971 |
+| 12:57 | Session end: 8 writes across 4 files (docs.json, dark.svg, light.svg, custom.css) | 6 reads | ~12024 tok |
+| 13:04 | Edited docs/custom.css | 4→5 lines | ~66 |
+| 13:04 | Session end: 9 writes across 4 files (docs.json, dark.svg, light.svg, custom.css) | 6 reads | ~12090 tok |
+| 13:07 | Edited docs/custom.css | expanded (+21 lines) | ~216 |
+| 13:07 | Session end: 10 writes across 4 files (docs.json, dark.svg, light.svg, custom.css) | 6 reads | ~12306 tok |
+| 13:11 | Edited docs/custom.css | CSS: border, div | ~120 |
+| 13:11 | Session end: 11 writes across 4 files (docs.json, dark.svg, light.svg, custom.css) | 6 reads | ~12426 tok |
+| 13:15 | Edited docs/custom.css | expanded (+11 lines) | ~135 |
+| 13:16 | Session end: 12 writes across 4 files (docs.json, dark.svg, light.svg, custom.css) | 6 reads | ~12561 tok |

@@ -92,3 +92,25 @@
 
 **Git tag:** `v2.0`
 
+---
+
+## v3.0 AI+ HUB Factory Presentation (In Progress)
+
+**Phases planned:** 7 phases (29-35), 7 plans
+**Timeline:** May 2026
+**Output:** `./presentation/` root folder with Claude prompts for 22 animated HTML slides
+
+**Planned phases:**
+1. Phase 29: Opening & Title Sequence — Title card (0.1) and agenda (0.2)
+2. Phase 30: Landing Zone Foundation — Foundation slides (1.1-1.3)
+3. Phase 31: Citadel Governance Core — 4-layer architecture slides (2.1-2.4)
+4. Phase 32: Data Foundation — Enterprise data slides (3.1-3.4)
+5. Phase 33: Agentic Layer — Agent intelligence slides (4.1-4.4)
+6. Phase 34: Hub-Spoke Topology — Scaling slides (5.1-5.3)
+7. Phase 35: Closing & Call to Action — Business value and CTA slides (6.1-6.2)
+
+**Source:** `.planning/PRESENTATION.md` — Complete design specification
+**Design system:** Dark mode, Yellow primary (#FFE600), Inter font, 1920x1080 canvas
+**Animation libraries:** GSAP, CSS animations, SVG.js
+**Total slides:** 22 slides across 6 sections + opening/closing
+

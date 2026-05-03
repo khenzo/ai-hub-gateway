@@ -1,0 +1,61 @@
+{
+  "name": "daymade/claude-code-skills",
+  "version": "6bb8d7fbb2810a1f21cee4bc3b28d0fb2a870448",
+  "summary": "Auto-generated tile from GitHub (47 skills)",
+  "private": true,
+  "skills": {
+    "ppt-creator": {
+      "path": "ppt-creator/SKILL.md"
+    }
+  },
+  "excludes": {
+    "skills": [
+      "asr-transcribe-to-text",
+      "capture-screen",
+      "claude-code-history-files-finder",
+      "claude-md-progressive-disclosurer",
+      "claude-skills-troubleshooting",
+      "cli-demo-generator",
+      "cloudflare-troubleshooting",
+      "continue-claude-work",
+      "deep-research",
+      "developing-ios-apps",
+      "doc-to-markdown",
+      "docs-cleaner",
+      "douban-skill",
+      "excel-automation",
+      "fact-checker",
+      "financial-data-collector",
+      "fixing-claude-export-conversations",
+      "github-contributor",
+      "github-ops",
+      "i18n-expert",
+      "llm-icon-finder",
+      "macos-cleaner",
+      "marketplace-dev",
+      "meeting-minutes-taker",
+      "mermaid-tools",
+      "pdf-creator",
+      "product-analysis",
+      "prompt-optimizer",
+      "promptfoo-evaluation",
+      "qa-expert",
+      "repomix-safe-mixer",
+      "repomix-unmixer",
+      "scrapling-skill",
+      "skill-creator",
+      "skill-reviewer",
+      "skills-search",
+      "statusline-generator",
+      "teams-channel-post-writer",
+      "terraform-skill",
+      "transcript-fixer",
+      "tunnel-doctor",
+      "twitter-reader",
+      "ui-designer",
+      "video-comparer",
+      "windows-remote-desktop-connection-doctor",
+      "youtube-downloader"
+    ]
+  }
+}
