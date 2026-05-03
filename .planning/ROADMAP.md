@@ -371,5 +371,5 @@ Plans:
 | 31. Citadel Governance Core | v3.0 | 1/1 | Complete | 2026-05-03 |
 | 32. Data Foundation | v3.0 | 1/1 | Complete | 2026-05-03 |
 | 33. Agentic Layer | v3.0 | 1/1 | Complete | 2026-05-03 |
-| 34. Hub-Spoke Topology | v3.0 | 0/1 | Not started | - |
+| 34. Hub-Spoke Topology | 1/1 | Complete   | 2026-05-03 | - |
 | 35. Closing & Call to Action | v3.0 | 0/1 | Not started | - |
