@@ -19,18 +19,18 @@ This architecture implements the [hub-spoke networking model](/architecture/hub-
 ```mermaid
 flowchart TD
     subgraph APL["AZURE PLATFORM LANDING ZONE"]
-        direction LR
-        EID["Entra ID\n(Identity)"]
-        HUB["Hub VNet\n(Network)"]
-        LA1["Log Analytics\n(Monitoring)"]
-        AZP["Azure Policy\n(Governance)"]
+        direction LR  // Ensures left-to-right flow
+        EID["Entra ID\n(Identity)"] --- HUB["Hub VNet\n(Network)"] --- LA1["Log Analytics\n(Monitoring)"] --- AZP["Azure Policy\n(Governance)"]
     end
 
     APL -->|VNet Peering| CGH
 
     subgraph AILZ["AI APPLICATION LANDING ZONE"]
+        direction LR
         subgraph CGH["CENTRAL GOVERNANCE HUB (CGH)"]
+            direction LR
             subgraph APIM["AZURE API MANAGEMENT (Premium)"]
+                direction TD
                 GW["Gateway\nAPI Mgmt · Auth\nRouting · Caching"]
                 POL["Policies\nRate Limit · Transform\nSafety · Logging"]
                 BP["Backend Pools\nAzure OpenAI · AI Foundry\nThird-party LLMs · Custom"]
@@ -193,28 +193,23 @@ graph TD
 ```mermaid
 flowchart TD
     subgraph L1["Layer 1: Perimeter"]
-        AF["Azure Firewall\ntraffic inspection"]
-        DD["DDoS Protection"]
-        NSG["NSGs\nnetwork segmentation"]
+        direction LR
+        AF["Azure Firewall\ntraffic inspection"] --- DD["DDoS Protection"] --- NSG["NSGs\nnetwork segmentation"]
     end
 
     subgraph L2["Layer 2: Gateway"]
-        OA["OAuth 2.0 / JWT validation"]
-        RL["Rate limiting and quotas"]
-        CF["Content filtering"]
-        PII["PII detection"]
+        direction LR
+        OA["OAuth 2.0 / JWT validation"] --- RL["Rate limiting and quotas"] --- CF["Content filtering"] --- PII["PII detection"]
     end
 
     subgraph L3["Layer 3: Backend"]
-        PE["Private endpoints"]
-        MI["Managed identities"]
-        ENC["Encryption at rest/in transit"]
+        direction LR
+        PE["Private endpoints"] --- MI["Managed identities"] --- ENC["Encryption at rest/in transit"]
     end
 
     subgraph L4["Layer 4: Observability"]
-        AL["Audit logging"]
-        SA["Security alerts"]
-        CM["Compliance monitoring"]
+        direction LR
+        AL["Audit logging"] --- SA["Security alerts"] --- CM["Compliance monitoring"]
     end
 
     L1 --> L2 --> L3 --> L4

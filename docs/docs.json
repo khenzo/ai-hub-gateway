@@ -127,6 +127,7 @@
           "agent-factory/agent-observability"
         ]
       },
+      
       {
         "group": "Governance",
         "tab": "Governance",
@@ -137,49 +138,6 @@
           "governance/identity-management",
           "governance/content-safety",
           "governance/pii-protection"
-        ]
-      },
-      {
-        "group": "Data Foundation",
-        "icon": "database",
-        "tab": "Data Foundation",
-        "pages": [
-          "data-foundation/overview",
-          "data-foundation/onelake-architecture",
-          "data-foundation/unity-catalog-governance",
-          "data-foundation/semantic-layer",
-          "data-foundation/apim-semantic-endpoint",
-          "data-foundation/security-identity-patterns"
-        ]
-      },
-      {
-        "group": "EY Framework Alignment",
-        "tab": "EY Alignment",
-        "pages": [
-          "ey-framework-alignment/index",
-          "ey-framework-alignment/alignment-map",
-          "ey-framework-alignment/aks-deployment",
-          "ey-framework-alignment/github-scaffolding",
-          "ey-framework-alignment/cicd-pipeline",
-          {
-            "group": "Security & Governance",
-            "icon": "shield",
-            "pages": [
-              "ey-framework-alignment/governance-tiers",
-              "ey-framework-alignment/guardrails-config",
-              "ey-framework-alignment/compliance-tooling"
-            ]
-          },
-          {
-            "group": "Protocols & Discovery",
-            "icon": "network",
-            "pages": [
-              "ey-framework-alignment/mcp-governance",
-              "ey-framework-alignment/a2a-trust-broker",
-              "ey-framework-alignment/agent-discovery"
-            ]
-          },
-          "ey-framework-alignment/gaps-and-recommendations"
         ]
       },
       {
