@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI+ Brand Book A4 — EY AI Factory</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+    font-family: 'Inter', 'EYInterstate Regular', Arial, sans-serif;
+  }
+
+  .page {
+    width: 210mm;
+    height: 297mm;
+    background: #1A1A24;
+    padding: 14mm 14mm 10mm;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── Accent bar top ── */
+  .page::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: #FFE600;
+  }
+
+  /* ── HEAD ── */
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10mm;
+    padding-bottom: 6mm;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .lockup { display: flex; align-items: center; gap: 12px; }
+  .mark {
+    width: 52px; height: 52px;
+    background: #FFE600;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 900; color: #1A1A24;
+    letter-spacing: -1.5px; flex-shrink: 0;
+  }
+  .brand-name { font-size: 26px; font-weight: 700; color: #fff; letter-spacing: -1px; line-height: 1.1; }
+  .brand-name span { color: #FFE600; }
+  .brand-sub { font-size: 10px; font-weight: 300; color: rgba(255,255,255,0.45); letter-spacing: 2.5px; text-transform: uppercase; margin-top: 3px; }
+  .head-right { text-align: right; }
+  .tagline { font-size: 11px; font-weight: 300; color: rgba(255,255,255,0.65); max-width: 200px; text-align: right; line-height: 1.5; }
+  .version-tag { font-size: 9px; color: rgba(255,255,255,0.3); margin-top: 6px; letter-spacing: 1px; }
+
+  /* ── COLORS ── */
+  .colors-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8mm;
+  }
+  .swatch-block { flex: 1; border-radius: 3px; overflow: hidden; }
+  .swatch-fill { height: 40px; }
+  .swatch-info { padding: 6px 8px; background: #2E2E38; }
+  .swatch-role { font-size: 7px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+  .swatch-name { font-size: 10px; font-weight: 600; color: #fff; margin-top: 1px; }
+  .swatch-hex { font-size: 9px; font-family: monospace; color: rgba(255,255,255,0.45); }
+
+  .accent-row { display: flex; gap: 4px; margin-bottom: 8mm; }
+  .accent-chip { flex: 1; height: 16px; border-radius: 2px; position: relative; }
+  .accent-label { font-size: 7px; color: rgba(255,255,255,0.35); margin-top: 3px; text-align: center; }
+
+  /* ── MIDDLE TWO-COL ── */
+  .middle-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8mm;
+  }
+  .panel { background: #2E2E38; border-radius: 4px; padding: 12px 14px; }
+  .panel-label { font-size: 7.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #FFE600; margin-bottom: 8px; }
+
+  /* Type panel */
+  .type-display { font-size: 26px; font-weight: 700; color: #fff; letter-spacing: -1px; line-height: 1; margin-bottom: 5px; }
+  .type-display span { color: #FFE600; }
+  .type-body { font-size: 10px; font-weight: 300; color: rgba(255,255,255,0.6); margin-bottom: 8px; line-height: 1.5; }
+  .type-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .type-row:last-child { border-bottom: none; }
+  .type-sample-text { font-size: 11px; color: rgba(255,255,255,0.75); }
+  .type-spec-sm { font-size: 8px; color: rgba(255,255,255,0.3); font-family: monospace; }
+
+  /* Principles panel */
+  .principle-item { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .principle-item:last-child { border-bottom: none; }
+  .p-num { font-size: 8px; font-weight: 700; color: #FFE600; min-width: 16px; padding-top: 1px; }
+  .p-title { font-size: 10px; font-weight: 600; color: #fff; }
+  .p-desc { font-size: 9px; font-weight: 300; color: rgba(255,255,255,0.5); line-height: 1.4; }
+
+  /* ── ROLES ROW ── */
+  .roles-row {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 8mm;
+  }
+  .role-tile { flex: 1; background: #2E2E38; border-radius: 3px; padding: 10px 10px; border-top: 2.5px solid; }
+  .role-title-sm { font-size: 9.5px; font-weight: 700; color: #fff; margin-bottom: 4px; line-height: 1.2; }
+  .role-desc-sm { font-size: 8px; font-weight: 300; color: rgba(255,255,255,0.45); line-height: 1.4; }
+  .role-badge { display: inline-block; font-size: 7px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 2px 5px; border-radius: 2px; margin-bottom: 6px; }
+
+  /* ── WORDMARKS ── */
+  .wordmarks-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8mm;
+  }
+  .wm-tile { flex: 1; border-radius: 3px; padding: 14px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+  .wm-label { font-size: 7px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+
+  /* ── FOOTER ── */
+  .foot {
+    margin-top: auto;
+    padding-top: 5mm;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .foot-path { font-size: 8px; font-family: monospace; color: rgba(255,255,255,0.25); }
+  .foot-note { font-size: 8px; color: rgba(255,255,255,0.25); text-align: right; }
+  .foot-mark { font-size: 9px; font-weight: 700; color: rgba(255,230,0,0.5); letter-spacing: -0.5px; }
+
+  /* Section divider labels */
+  .divider-label {
+    font-size: 7.5px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; color: rgba(255,255,255,0.25);
+    margin-bottom: 5px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── HEAD ── -->
+  <div class="head">
+    <div class="lockup">
+      <div class="mark">AI+</div>
+      <div>
+        <div class="brand-name">AI<span>+</span> Factory</div>
+        <div class="brand-sub">EY · Ernst &amp; Young</div>
+      </div>
+    </div>
+    <div class="head-right">
+      <div class="tagline">From information retrieval to Enterprise Intelligence</div>
+      <div class="version-tag">Brand System v1.0 · 2026</div>
+    </div>
+  </div>
+
+  <!-- ── COLOR HIERARCHY ── -->
+  <div class="divider-label">Color Hierarchy</div>
+  <div class="colors-row">
+    <div class="swatch-block">
+      <div class="swatch-fill" style="background:#FFE600;"></div>
+      <div class="swatch-info">
+        <div class="swatch-role">Primary</div>
+        <div class="swatch-name">EY Yellow</div>
+        <div class="swatch-hex">#FFE600</div>
+      </div>
+    </div>
+    <div class="swatch-block">
+      <div class="swatch-fill" style="background:#1A1A24; border: 1px solid rgba(255,255,255,0.1);"></div>
+      <div class="swatch-info">
+        <div class="swatch-role">Background</div>
+        <div class="swatch-name">EY Navy</div>
+        <div class="swatch-hex">#1A1A24</div>
+      </div>
+    </div>
+    <div class="swatch-block">
+      <div class="swatch-fill" style="background:#2E2E38;"></div>
+      <div class="swatch-info">
+        <div class="swatch-role">Surface</div>
+        <div class="swatch-name">EY Dark Gray</div>
+        <div class="swatch-hex">#2E2E38</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accent strip -->
+  <div class="divider-label">Accent Colors</div>
+  <div class="accent-row">
+    <div>
+      <div class="accent-chip" style="background:#2DB757;"></div>
+      <div class="accent-label">Green</div>
+    </div>
+    <div>
+      <div class="accent-chip" style="background:#27ACAA;"></div>
+      <div class="accent-label">Teal</div>
+    </div>
+    <div>
+      <div class="accent-chip" style="background:#188CE5;"></div>
+      <div class="accent-label">Blue</div>
+    </div>
+    <div>
+      <div class="accent-chip" style="background:#750E5C;"></div>
+      <div class="accent-label">Purple</div>
+    </div>
+    <div>
+      <div class="accent-chip" style="background:#FF4136;"></div>
+      <div class="accent-label">Red</div>
+    </div>
+    <div>
+      <div class="accent-chip" style="background:#FF6D00;"></div>
+      <div class="accent-label">Orange</div>
+    </div>
+    <div>
+      <div class="accent-chip" style="background:#FFFFFF; opacity:0.85;"></div>
+      <div class="accent-label">White</div>
+    </div>
+  </div>
+
+  <!-- ── MIDDLE: TYPE + PRINCIPLES ── -->
+  <div class="divider-label">Typography &amp; Principles</div>
+  <div class="middle-row">
+
+    <!-- Typography -->
+    <div class="panel">
+      <div class="panel-label">Typography</div>
+      <div class="type-display">Enterprise<br><span>Intelligence</span></div>
+      <div class="type-body">EYInterstate Regular / Light<br>Web substitute: Inter (Google Fonts)</div>
+      <div class="type-row">
+        <span class="type-sample-text" style="font-weight:900;">Display Black 900</span>
+        <span class="type-spec-sm">Marks only</span>
+      </div>
+      <div class="type-row">
+        <span class="type-sample-text" style="font-weight:700;">Heading Bold 700</span>
+        <span class="type-spec-sm">Titles</span>
+      </div>
+      <div class="type-row">
+        <span class="type-sample-text" style="font-weight:400;">Body Regular 400</span>
+        <span class="type-spec-sm">Content</span>
+      </div>
+      <div class="type-row">
+        <span class="type-sample-text" style="font-weight:300; color: rgba(255,255,255,0.5);">Light 300</span>
+        <span class="type-spec-sm">Captions</span>
+      </div>
+    </div>
+
+    <!-- Principles -->
+    <div class="panel">
+      <div class="panel-label">AI Architecture Layers</div>
+      <div class="principle-item">
+        <div class="p-num">01</div>
+        <div>
+          <div class="p-title">Single Source of Truth</div>
+          <div class="p-desc">All enterprise data unified in one governed platform</div>
+        </div>
+      </div>
+      <div class="principle-item">
+        <div class="p-num">02</div>
+        <div>
+          <div class="p-title">Business Language Interface</div>
+          <div class="p-desc">AI speaks revenue, margin, risk — no SQL required</div>
+        </div>
+      </div>
+      <div class="principle-item">
+        <div class="p-num">03</div>
+        <div>
+          <div class="p-title">Connected Knowledge</div>
+          <div class="p-desc">Entities mapped and queryable — not just raw data</div>
+        </div>
+      </div>
+      <div class="principle-item">
+        <div class="p-num">04</div>
+        <div>
+          <div class="p-title">Autonomous AI Agents</div>
+          <div class="p-desc">Research, reason, validate — full audit trail</div>
+        </div>
+      </div>
+      <div class="principle-item">
+        <div class="p-num">05</div>
+        <div>
+          <div class="p-title">Role-Based Access</div>
+          <div class="p-desc">Enterprise-grade security for every stakeholder tier</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── ROLES ── -->
+  <div class="divider-label">AI+ Factory — Role Families</div>
+  <div class="roles-row">
+    <div class="role-tile" style="border-color: #FFE600;">
+      <div class="role-badge" style="background: rgba(255,230,0,0.12); color:#FFE600;">Office</div>
+      <div class="role-title-sm">AI+ Office<br>DTEs &amp; ITEs</div>
+      <div class="role-desc-sm">Originate, shape &amp; sell large AI transformation deals</div>
+    </div>
+    <div class="role-tile" style="border-color: #188CE5;">
+      <div class="role-badge" style="background: rgba(24,140,229,0.12); color:#188CE5;">Engineering</div>
+      <div class="role-title-sm">AI Engineers<br>&amp; Architects</div>
+      <div class="role-desc-sm">Build scalable AI products, pipelines &amp; cloud infra</div>
+    </div>
+    <div class="role-tile" style="border-color: #2DB757;">
+      <div class="role-badge" style="background: rgba(45,183,87,0.12); color:#2DB757;">Data</div>
+      <div class="role-title-sm">Data &amp; Semantic<br>Layer Team</div>
+      <div class="role-desc-sm">Ontologies, knowledge graphs, governance &amp; lineage</div>
+    </div>
+    <div class="role-tile" style="border-color: #27ACAA;">
+      <div class="role-badge" style="background: rgba(39,172,170,0.12); color:#27ACAA;">Demand</div>
+      <div class="role-title-sm">Demand<br>Management</div>
+      <div class="role-desc-sm">Centralize, validate &amp; route all AI demand from business</div>
+    </div>
+    <div class="role-tile" style="border-color: #750E5C;">
+      <div class="role-badge" style="background: rgba(117,14,92,0.15); color:#C855A8;">Transform</div>
+      <div class="role-title-sm">Transformation<br>SMEs</div>
+      <div class="role-desc-sm">Strategy, governance, adoption &amp; operating model change</div>
+    </div>
+  </div>
+
+  <!-- ── WORDMARKS ── -->
+  <div class="divider-label">Wordmarks &amp; Lockups</div>
+  <div class="wordmarks-row">
+
+    <!-- Dark lockup -->
+    <div class="wm-tile" style="background: #2E2E38;">
+      <svg width="160" height="44" viewBox="0 0 160 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="40" height="40" y="2" fill="#FFE600"/>
+        <text x="7" y="30" font-family="Inter,Arial" font-size="20" font-weight="900" fill="#1A1A24" letter-spacing="-1">AI+</text>
+        <text x="50" y="22" font-family="Inter,Arial" font-size="16" font-weight="700" fill="#FFFFFF" letter-spacing="-0.5">Factory</text>
+        <text x="50" y="36" font-family="Inter,Arial" font-size="9" font-weight="300" fill="rgba(255,255,255,0.4)" letter-spacing="1.5">EY AI Platform</text>
+      </svg>
+      <div class="wm-label">Primary · Dark</div>
+    </div>
+
+    <!-- Light lockup -->
+    <div class="wm-tile" style="background: #FFFFFF;">
+      <svg width="160" height="44" viewBox="0 0 160 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="40" height="40" y="2" fill="#1A1A24"/>
+        <text x="7" y="30" font-family="Inter,Arial" font-size="20" font-weight="900" fill="#FFE600" letter-spacing="-1">AI+</text>
+        <text x="50" y="22" font-family="Inter,Arial" font-size="16" font-weight="700" fill="#1A1A24" letter-spacing="-0.5">Factory</text>
+        <text x="50" y="36" font-family="Inter,Arial" font-size="9" font-weight="300" fill="rgba(26,26,36,0.4)" letter-spacing="1.5">EY AI Platform</text>
+      </svg>
+      <div class="wm-label" style="color:rgba(26,26,36,0.35);">Reversed · Light</div>
+    </div>
+
+    <!-- Yellow accent lockup -->
+    <div class="wm-tile" style="background: #FFE600;">
+      <svg width="160" height="44" viewBox="0 0 160 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <text x="0" y="38" font-family="Inter,Arial" font-size="38" font-weight="900" fill="#1A1A24" letter-spacing="-2">AI</text>
+        <text x="56" y="38" font-family="Inter,Arial" font-size="38" font-weight="300" fill="rgba(26,26,36,0.6)" letter-spacing="-2">+</text>
+        <text x="84" y="38" font-family="Inter,Arial" font-size="16" font-weight="600" fill="rgba(26,26,36,0.65)" letter-spacing="-0.5"> Office</text>
+      </svg>
+      <div class="wm-label" style="color:rgba(26,26,36,0.4);">Yellow · Sub-brand</div>
+    </div>
+
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <div class="foot">
+    <div>
+      <div class="foot-mark">AI+</div>
+      <div class="foot-path">design/brand-book-a4.html · v1.0 · 2026</div>
+    </div>
+    <div class="foot-note">Source: AI+ Organisation and Skills v4.pptx<br>See design-system.html for full reference</div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "ai-hub-gateway",
+  "mode": "vendored",
+  "dependencies": {
+    "daymade/claude-code-skills": {
+      "version": "6bb8d7fbb2810a1f21cee4bc3b28d0fb2a870448",
+      "source": "https://github.com/daymade/claude-code-skills",
+      "include": {
+        "skills": [
+          "ppt-creator"
+        ]
+      }
+    }
+  }
+}

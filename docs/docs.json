@@ -9,9 +9,19 @@
   },
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#0078D4",
-    "light": "#0078D4",
-    "dark": "#005A9E"
+    "primary": "#FFE600",
+    "light": "#FFE600",
+    "dark": "#1A1A24"
+  },
+  "font": {
+    "headings": {
+      "family": "Inter",
+      "weight": 700
+    },
+    "body": {
+      "family": "Inter",
+      "weight": 400
+    }
   },
   "topbarLinks": [
     {

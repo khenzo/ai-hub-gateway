@@ -7,6 +7,7 @@
 - ✅ **v1.2 Open Platform Agent Factory** — Phases 13-15 (shipped 2026-04-13)
 - ✅ **v1.3 EY Framework Alignment** — Phases 16-22 (shipped 2026-04-15)
 - ✅ **v2.0 Enterprise Data Foundation** — Phases 23-28 (shipped 2026-04-28)
+- 🚧 **v3.0 AI+ HUB Factory Presentation** — Phases 29-35 (in progress)
 
 ## Phases
 
@@ -238,7 +239,100 @@ Plans:
   4. No previously working internal links are broken by the docs.json changes
 **Plans**: 1 plan
 Plans:
-- [ ] 28-01-PLAN.md — Wire Data Foundation tab in docs.json and add cross-links to Layer 2 and Layer 4 (DNAV-01)
+- [x] 28-01-PLAN.md — Wire Data Foundation tab in docs.json and add cross-links to Layer 2 and Layer 4 (DNAV-01)
+
+### 🚧 v3.0 AI+ HUB Factory Presentation (In Progress)
+
+**Milestone Goal:** Create an animated HTML presentation (20-22 slides) that visually narrates the AI+ HUB Factory — from Azure Landing Zone foundation through Citadel governance, enterprise data, agentic intelligence, and hub-spoke scaling.
+
+#### Phase 29: Opening & Title Sequence
+**Goal**: Generate Claude prompts to create the title card and agenda slides with particle animations and progressive card reveals
+**Depends on**: v2.0 completion
+**Requirements**: PRES-01
+**Success Criteria** (what must be TRUE):
+  1. Claude prompt captures all design system specs (colors, typography, layout) from PRESENTATION.md Section 2
+  2. Prompt includes exact animation specifications (timings, easing, stagger) for Slide 0.1 title sequence
+  3. Prompt includes 5-chapter agenda layout with accent colors and staggered card animations for Slide 0.2
+  4. Output specifies HTML/CSS/JS structure using GSAP or CSS animations
+**Plans**: 1 plan
+Plans:
+- [ ] 29-01-PLAN.md — Create Claude prompt for Opening & Title Sequence slides (0.1-0.2)
+
+#### Phase 30: Azure Landing Zone Foundation
+**Goal**: Generate Claude prompts to create Landing Zone foundation slides with isometric diagrams and nested container visuals
+**Depends on**: Phase 29
+**Requirements**: PRES-02
+**Success Criteria** (what must be TRUE):
+  1. Prompt includes 3D isometric foundation blocks animation for Slide 1.1
+  2. Prompt includes nested container diagram with concentric rectangles for Slide 1.2
+  3. Prompt includes side-by-side ALZ integration bridge diagram for Slide 1.3
+  4. All prompts specify the Blue (#188CE5), Purple (#750E5C), and Yellow (#FFE600) color applications
+**Plans**: 1 plan
+Plans:
+- [ ] 30-01-PLAN.md — Create Claude prompt for Landing Zone slides (1.1-1.3)
+
+#### Phase 31: Citadel Governance Core
+**Goal**: Generate Claude prompts to create Citadel 4-layer architecture and APIM gateway slides with animated diagrams
+**Depends on**: Phase 30
+**Requirements**: PRES-03
+**Success Criteria** (what must be TRUE):
+  1. Prompt includes vertical layer stack animation with bounce effects for Slide 2.1
+  2. Prompt includes central gateway with orbiting hexagons for Slide 2.2
+  3. Prompt includes animated downward flow diagram for Slide 2.3
+  4. Prompt includes horizontal audit trail timeline with traveling checkpoint dot for Slide 2.4
+**Plans**: 1 plan
+Plans:
+- [ ] 31-01-PLAN.md — Create Claude prompt for Citadel Governance slides (2.1-2.4)
+
+#### Phase 32: Data Foundation
+**Goal**: Generate Claude prompts to create Enterprise Data Foundation slides with shield icons, query path flows, and semantic layer diagrams
+**Depends on**: Phase 31
+**Requirements**: PRES-04
+**Success Criteria** (what must be TRUE):
+  1. Prompt includes three shield icons with SVG stroke animation for Slide 3.1
+  2. Prompt includes vertical flow diagram with data packet animation for Slide 3.2
+  3. Prompt includes hub-and-spoke metric definition with radiating consumers for Slide 3.3
+  4. Prompt includes split-screen Core vs Edge comparison with promotion path arrow for Slide 3.4
+**Plans**: 1 plan
+Plans:
+- [ ] 32-01-PLAN.md — Create Claude prompt for Data Foundation slides (3.1-3.4)
+
+#### Phase 33: Agentic Layer
+**Goal**: Generate Claude prompts to create Agentic Layer slides with three-layer architecture, intelligence pillars, and honeycomb capability grid
+**Depends on**: Phase 32
+**Requirements**: PRES-05
+**Success Criteria** (what must be TRUE):
+  1. Prompt includes three horizontal bands with animated icons for Slide 4.1
+  2. Prompt includes three rising pillars with converging arrows for Slide 4.2
+  3. Prompt includes Citadel stack with builder tool connections for Slide 4.3
+  4. Prompt includes 8-hexagon honeycomb with ripple animation for Slide 4.4
+**Plans**: 1 plan
+Plans:
+- [ ] 33-01-PLAN.md — Create Claude prompt for Agentic Layer slides (4.1-4.4)
+
+#### Phase 34: Hub-Spoke Topology
+**Goal**: Generate Claude prompts to create Hub-Spoke scaling slides with network topology, spoke autonomy diagrams, and complete architecture stack
+**Depends on**: Phase 33
+**Requirements**: PRES-06
+**Success Criteria** (what must be TRUE):
+  1. Prompt includes central hub with radiating spokes and data packet animation for Slide 5.1
+  2. Prompt includes split spoke/hub diagram with contract boundary for Slide 5.2
+  3. Prompt includes comprehensive layered architecture with bottom-to-top assembly animation for Slide 5.3
+**Plans**: 1 plan
+Plans:
+- [ ] 34-01-PLAN.md — Create Claude prompt for Hub-Spoke Topology slides (5.1-5.3)
+
+#### Phase 35: Closing & Call to Action
+**Goal**: Generate Claude prompts to create business value and CTA slides with metric cards and action buttons
+**Depends on**: Phase 34
+**Requirements**: PRES-07
+**Success Criteria** (what must be TRUE):
+  1. Prompt includes 4 metric cards with 3D flip animation and ROI timeline for Slide 6.1
+  2. Prompt includes large AI+ mark with 3 CTA buttons and staggered slide-up animation for Slide 6.2
+  3. All prompts include speaker notes summary from PRESENTATION.md Section 7
+**Plans**: 1 plan
+Plans:
+- [ ] 35-01-PLAN.md — Create Claude prompt for Closing slides (6.1-6.2)
 
 ## Progress
 
@@ -272,3 +366,10 @@ Plans:
 | 26. APIM Governed Data Access | v2.0 | 1/1 | Complete | 2026-04-28 |
 | 27. Security & Identity Patterns | v2.0 | 1/1 | Complete | 2026-04-28 |
 | 28. Navigation & Integration | v2.0 | 1/1 | Complete | 2026-04-28 |
+| 29. Opening & Title Sequence | v3.0 | 0/1 | Not started | - |
+| 30. Landing Zone Foundation | v3.0 | 0/1 | Not started | - |
+| 31. Citadel Governance Core | v3.0 | 0/1 | Not started | - |
+| 32. Data Foundation | v3.0 | 0/1 | Not started | - |
+| 33. Agentic Layer | v3.0 | 0/1 | Not started | - |
+| 34. Hub-Spoke Topology | v3.0 | 0/1 | Not started | - |
+| 35. Closing & Call to Action | v3.0 | 0/1 | Not started | - |

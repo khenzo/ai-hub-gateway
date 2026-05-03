@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI+ Design System — EY AI Factory</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow: #FFE600;
+    --navy: #1A1A24;
+    --surface: #2E2E38;
+    --surface-light: #3A3A4A;
+    --white: #FFFFFF;
+    --green: #2DB757;
+    --teal: #27ACAA;
+    --blue: #188CE5;
+    --purple: #750E5C;
+    --red: #FF4136;
+    --orange: #FF6D00;
+    --text-muted: rgba(255,255,255,0.5);
+    --text-secondary: rgba(255,255,255,0.75);
+    --radius: 4px;
+    --radius-lg: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'Inter', 'EYInterstate Regular', Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ── */
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 40px; }
+  section { padding: 64px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  section:last-child { border-bottom: none; }
+
+  /* ── Header ── */
+  .header {
+    background: var(--navy);
+    border-bottom: 3px solid var(--yellow);
+    padding: 48px 0 40px;
+  }
+  .header-inner { display: flex; align-items: flex-end; justify-content: space-between; }
+  .brand-lockup { display: flex; align-items: center; gap: 20px; }
+  .brand-mark {
+    width: 72px; height: 72px;
+    background: var(--yellow);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; font-weight: 900; color: var(--navy);
+    letter-spacing: -2px;
+    flex-shrink: 0;
+  }
+  .brand-name { font-size: 36px; font-weight: 700; letter-spacing: -1px; }
+  .brand-name span { color: var(--yellow); }
+  .brand-parent { font-size: 13px; font-weight: 300; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+  .header-meta { text-align: right; }
+  .tagline { font-size: 14px; font-weight: 300; color: var(--text-secondary); max-width: 320px; text-align: right; line-height: 1.5; }
+  .version { font-size: 11px; color: var(--text-muted); margin-top: 8px; letter-spacing: 1px; }
+
+  /* ── Section headers ── */
+  .section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--yellow);
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px;
+  }
+  .section-desc { color: var(--text-secondary); font-weight: 300; margin-bottom: 40px; }
+
+  /* ── Color Hierarchy ── */
+  .color-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+  .color-card {
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .color-swatch { height: 120px; }
+  .color-info { background: var(--surface); padding: 16px; }
+  .color-role { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+  .color-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .color-hex { font-size: 13px; font-family: 'SF Mono', 'Fira Code', monospace; color: var(--text-secondary); }
+  .color-usage { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
+  /* ── Extended Palette ── */
+  .palette-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .palette-chip { display: flex; align-items: center; gap: 12px; background: var(--surface); padding: 10px 16px; border-radius: var(--radius); min-width: 200px; }
+  .chip-dot { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
+  .chip-label { }
+  .chip-name { font-size: 13px; font-weight: 500; }
+  .chip-hex { font-size: 11px; font-family: monospace; color: var(--text-muted); }
+
+  /* ── Typography ── */
+  .type-sample { background: var(--surface); border-radius: var(--radius-lg); padding: 32px; margin-bottom: 16px; }
+  .type-meta { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .type-spec { font-size: 11px; font-family: monospace; color: var(--text-muted); }
+  .weight-ladder { display: grid; grid-template-columns: 80px 1fr; gap: 0; background: var(--surface); border-radius: var(--radius-lg); overflow: hidden; }
+  .weight-row { display: contents; }
+  .weight-row > * { padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .weight-label { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; }
+  .weight-row:last-child > * { border-bottom: none; }
+
+  /* ── Principles ── */
+  .principles-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .principle-card { background: var(--surface); border-radius: var(--radius-lg); padding: 28px; border-left: 3px solid var(--yellow); }
+  .principle-num { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--yellow); margin-bottom: 12px; }
+  .principle-title { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+  .principle-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+  /* ── Components ── */
+  .components-section { display: flex; flex-direction: column; gap: 32px; }
+  .component-group { background: var(--surface); border-radius: var(--radius-lg); padding: 28px; }
+  .component-label { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 20px; }
+  .component-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; border-radius: 2px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; font-family: inherit; letter-spacing: 0.3px; }
+  .btn-primary { background: var(--yellow); color: var(--navy); }
+  .btn-secondary { background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,0.3); }
+  .btn-ghost { background: transparent; color: var(--yellow); border: 1px solid var(--yellow); }
+  .btn-danger { background: var(--red); color: var(--white); }
+  .btn-sm { padding: 6px 16px; font-size: 12px; }
+
+  /* Badges */
+  .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 2px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+  .badge-yellow { background: rgba(255,230,0,0.15); color: var(--yellow); }
+  .badge-green { background: rgba(45,183,87,0.15); color: var(--green); }
+  .badge-blue { background: rgba(24,140,229,0.15); color: var(--blue); }
+  .badge-purple { background: rgba(117,14,92,0.2); color: #C855A8; }
+  .badge-orange { background: rgba(255,109,0,0.15); color: var(--orange); }
+
+  /* Cards */
+  .card { background: var(--navy); border-radius: var(--radius-lg); padding: 24px; border: 1px solid rgba(255,255,255,0.08); }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .card-title { font-size: 16px; font-weight: 600; }
+  .card-body { font-size: 13px; color: var(--text-secondary); }
+  .cards-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  /* Tags */
+  .tag { display: inline-block; padding: 3px 10px; border-radius: 2px; font-size: 11px; background: var(--surface-light); color: var(--text-secondary); }
+
+  /* ── Team Roles ── */
+  .roles-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .role-tile { background: var(--surface); border-radius: var(--radius); padding: 20px 16px; border-top: 3px solid; }
+  .role-tile-office { border-color: var(--yellow); }
+  .role-tile-factory { border-color: var(--blue); }
+  .role-tile-data { border-color: var(--green); }
+  .role-tile-transform { border-color: var(--purple); }
+  .role-icon { width: 36px; height: 36px; border-radius: 50%; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; }
+  .role-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .role-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+  /* ── Wordmarks ── */
+  .wordmarks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .wordmark-tile { background: var(--surface); border-radius: var(--radius-lg); padding: 40px 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+  .wordmark-tile.light-bg { background: var(--white); }
+  .wordmark-tile.yellow-bg { background: var(--yellow); }
+  .wordmark-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
+  .wordmark-tile.light-bg .wordmark-label { color: rgba(26,26,36,0.5); }
+  .wordmark-tile.yellow-bg .wordmark-label { color: rgba(26,26,36,0.6); }
+
+  /* ── Footer ── */
+  .footer { padding: 32px 0; }
+  .footer-inner { display: flex; justify-content: space-between; align-items: center; color: var(--text-muted); font-size: 12px; }
+
+  /* SVG Wordmarks */
+  svg { display: block; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════════════ -->
+<div class="header">
+  <div class="container">
+    <div class="header-inner">
+      <div class="brand-lockup">
+        <div class="brand-mark">AI+</div>
+        <div>
+          <div class="brand-name">AI<span>+</span> Factory</div>
+          <div class="brand-parent">EY — Ernst &amp; Young</div>
+        </div>
+      </div>
+      <div class="header-meta">
+        <div class="tagline">From information retrieval to Enterprise Intelligence</div>
+        <div class="version">Design System v1.0 &nbsp;·&nbsp; 2026</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     COLOR HIERARCHY
+════════════════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">01 — Color Hierarchy</div>
+    <div class="section-title">Brand Colors</div>
+    <div class="section-desc">Three primary brand surfaces that define the AI+ visual language.</div>
+
+    <div class="color-grid">
+      <div class="color-card">
+        <div class="color-swatch" style="background:#FFE600;"></div>
+        <div class="color-info">
+          <div class="color-role">Primary</div>
+          <div class="color-name">EY Yellow</div>
+          <div class="color-hex">#FFE600</div>
+          <div class="color-usage">CTAs, brand marks, active states, highlights</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#1A1A24;"></div>
+        <div class="color-info">
+          <div class="color-role">Background</div>
+          <div class="color-name">EY Navy</div>
+          <div class="color-hex">#1A1A24</div>
+          <div class="color-usage">Page background, deep surface, base layer</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#2E2E38;"></div>
+        <div class="color-info">
+          <div class="color-role">Surface</div>
+          <div class="color-name">EY Dark Gray</div>
+          <div class="color-hex">#2E2E38</div>
+          <div class="color-usage">Cards, panels, elevated surfaces</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     EXTENDED PALETTE
+════════════════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">02 — Extended Palette</div>
+    <div class="section-title">Accent Colors</div>
+    <div class="section-desc">Six accents mapped to AI+ product families, status, and category coding.</div>
+
+    <div class="palette-row">
+      <div class="palette-chip">
+        <div class="chip-dot" style="background:#2DB757;"></div>
+        <div class="chip-label">
+          <div class="chip-name">Growth Green</div>
+          <div class="chip-hex">#2DB757 · AI Factory</div>
+        </div>
+      </div>
+      <div class="palette-chip">
+        <div class="chip-dot" style="background:#27ACAA;"></div>
+        <div class="chip-label">
+          <div class="chip-name">Intelligence Teal</div>
+          <div class="chip-hex">#27ACAA · Data Foundation</div>
+        </div>
+      </div>
+      <div class="palette-chip">
+        <div class="chip-dot" style="background:#188CE5;"></div>
+        <div class="chip-label">
+          <div class="chip-name">Platform Blue</div>
+          <div class="chip-hex">#188CE5 · AI+ Office</div>
+        </div>
+      </div>
+      <div class="palette-chip">
+        <div class="chip-dot" style="background:#750E5C;"></div>
+        <div class="chip-label">
+          <div class="chip-name">Governance Purple</div>
+          <div class="chip-hex">#750E5C · Compliance</div>
+        </div>
+      </div>
+      <div class="palette-chip">
+        <div class="chip-dot" style="background:#FF4136;"></div>
+        <div class="chip-label">
+          <div class="chip-name">Alert Red</div>
+          <div class="chip-hex">#FF4136 · Status / Risk</div>
+        </div>
+      </div>
+      <div class="palette-chip">
+        <div class="chip-dot" style="background:#FF6D00;"></div>
+        <div class="chip-label">
+          <div class="chip-name">Energy Orange</div>
+          <div class="chip-hex">#FF6D00 · Demand / Action</div>
+        </div>
+      </div>
+      <div class="palette-chip">
+        <div class="chip-dot" style="background:#FFFFFF; border: 1px solid rgba(255,255,255,0.2);"></div>
+        <div class="chip-label">
+          <div class="chip-name">White</div>
+          <div class="chip-hex">#FFFFFF · Text on dark</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     TYPOGRAPHY
+════════════════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">03 — Typography</div>
+    <div class="section-title">Type System</div>
+    <div class="section-desc">EYInterstate is the brand typeface. Inter serves as the digital substitute on web platforms where EYInterstate is unavailable.</div>
+
+    <!-- Display -->
+    <div class="type-sample">
+      <div style="font-size: 56px; font-weight: 700; letter-spacing: -2px; line-height: 1.1;">Enterprise<br><span style="color: var(--yellow);">Intelligence</span></div>
+      <div class="type-meta">
+        <div class="type-spec">Display · 56px / 700 · −2px tracking</div>
+        <div class="type-spec">EYInterstate Regular → Inter 700</div>
+      </div>
+    </div>
+
+    <!-- Heading -->
+    <div class="type-sample">
+      <div style="font-size: 32px; font-weight: 600; letter-spacing: -0.5px;">AI+ Operating Model: Organisation and Skills</div>
+      <div class="type-meta">
+        <div class="type-spec">Heading 1 · 32px / 600 · −0.5px tracking</div>
+        <div class="type-spec">EYInterstate Regular → Inter 600</div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="type-sample">
+      <div style="font-size: 15px; font-weight: 300; color: rgba(255,255,255,0.8); max-width: 640px; line-height: 1.7;">Five layers that transform raw enterprise data into governed, explainable AI solutions. Every data point holds a domain meaning: "client" is unique across the ecosystem. AI agents reason over business concepts, not raw database schemas.</div>
+      <div class="type-meta">
+        <div class="type-spec">Body · 15px / 300 · 1.7 line-height</div>
+        <div class="type-spec">EYInterstate Light → Inter 300</div>
+      </div>
+    </div>
+
+    <!-- Caption -->
+    <div class="type-sample">
+      <div style="font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow);">AI+ Factory · EY Global Intelligence Platform</div>
+      <div class="type-meta">
+        <div class="type-spec">Label · 11px / 500 · 2px tracking · uppercase</div>
+        <div class="type-spec">Used for section labels, tags, metadata</div>
+      </div>
+    </div>
+
+    <!-- Weight ladder -->
+    <div style="margin-top: 32px;">
+      <div class="section-label" style="margin-bottom: 16px;">Weight Ladder</div>
+      <div class="weight-ladder">
+        <div class="weight-row">
+          <div class="weight-label">300</div>
+          <div style="font-weight: 300; font-size: 22px;">AI+ Factory Light — EYInterstate Light</div>
+        </div>
+        <div class="weight-row">
+          <div class="weight-label">400</div>
+          <div style="font-weight: 400; font-size: 22px;">AI+ Factory Regular — EYInterstate Regular</div>
+        </div>
+        <div class="weight-row">
+          <div class="weight-label">600</div>
+          <div style="font-weight: 600; font-size: 22px;">AI+ Factory Semibold — Headlines</div>
+        </div>
+        <div class="weight-row">
+          <div class="weight-label">700</div>
+          <div style="font-weight: 700; font-size: 22px;">AI+ Factory Bold — Display</div>
+        </div>
+        <div class="weight-row">
+          <div class="weight-label">900</div>
+          <div style="font-weight: 900; font-size: 22px; color: var(--yellow);">AI+ Factory Black — Mark only</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     PRINCIPLES
+════════════════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">04 — Principles</div>
+    <div class="section-title">AI-Ready Architecture</div>
+    <div class="section-desc">Five layers that transform raw enterprise data into governed, explainable AI solutions.</div>
+
+    <div class="principles-grid">
+      <div class="principle-card">
+        <div class="principle-num">LAYER 01</div>
+        <div class="principle-title">Single Source of Truth</div>
+        <div class="principle-desc">All enterprise data unified in one governed, always-current platform — from operations to customer records.</div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-num">LAYER 02</div>
+        <div class="principle-title">Business Language Interface</div>
+        <div class="principle-desc">AI speaks your language: revenue, margin, risk. No SQL, no technical translation required for any team.</div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-num">LAYER 03</div>
+        <div class="principle-title">Connected Knowledge</div>
+        <div class="principle-desc">Relationships between entities — products, customers, regulations — are mapped and queryable, not just raw data.</div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-num">LAYER 04</div>
+        <div class="principle-title">Autonomous AI Agents</div>
+        <div class="principle-desc">AI that acts: researches, reasons, validates, and delivers answers with full audit trail and governance controls.</div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-num">LAYER 05</div>
+        <div class="principle-title">Role-Based Access</div>
+        <div class="principle-desc">Every stakeholder sees exactly what they need — executives, analysts, engineers — with enterprise-grade security.</div>
+      </div>
+      <div class="principle-card" style="border-left-color: var(--teal);">
+        <div class="principle-num" style="color: var(--teal);">MANDATE</div>
+        <div class="principle-title">Competitive Advantage</div>
+        <div class="principle-desc">Proprietary data assets + deep process knowledge + regulatory governance — unavailable to any public AI model.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     COMPONENTS
+════════════════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">05 — Components</div>
+    <div class="section-title">UI Components</div>
+    <div class="section-desc">All components inherit the brand's dark surface, square radius, and yellow primary.</div>
+
+    <div class="components-section">
+
+      <!-- Buttons -->
+      <div class="component-group">
+        <div class="component-label">Buttons</div>
+        <div class="component-row">
+          <button class="btn btn-primary">Get Started</button>
+          <button class="btn btn-secondary">Learn More</button>
+          <button class="btn btn-ghost">View Docs</button>
+          <button class="btn btn-danger">Remove Access</button>
+          <button class="btn btn-primary btn-sm">Deploy</button>
+          <button class="btn btn-secondary btn-sm">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Badges -->
+      <div class="component-group">
+        <div class="component-label">Badges</div>
+        <div class="component-row">
+          <span class="badge badge-yellow">AI+ Office</span>
+          <span class="badge badge-green">Factory</span>
+          <span class="badge badge-blue">Platform</span>
+          <span class="badge badge-purple">Governance</span>
+          <span class="badge badge-orange">Demand</span>
+        </div>
+      </div>
+
+      <!-- Cards -->
+      <div class="component-group">
+        <div class="component-label">Cards</div>
+        <div class="cards-row">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">AI Architect</div>
+              <span class="badge badge-blue">Factory</span>
+            </div>
+            <div class="card-body">Designs compliant, scalable AI architectures and integrations.</div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Demand Manager</div>
+              <span class="badge badge-yellow">Office</span>
+            </div>
+            <div class="card-body">Collects, aggregates, and standardises AI requests from the business.</div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Data Architect</div>
+              <span class="badge badge-green">Data</span>
+            </div>
+            <div class="card-body">Designs data architecture, schemas, pipelines and storage models.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div class="component-group">
+        <div class="component-label">Tags</div>
+        <div class="component-row">
+          <span class="tag">AI Engineering</span>
+          <span class="tag">Cloud Architecture</span>
+          <span class="tag">MLOps</span>
+          <span class="tag">Data Science</span>
+          <span class="tag">Semantic Layer</span>
+          <span class="tag">Governance</span>
+          <span class="tag">Full-Stack Dev</span>
+          <span class="tag">Product Management</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     TEAM ROLES
+════════════════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">06 — Roles</div>
+    <div class="section-title">AI+ Factory Roles</div>
+    <div class="section-desc">Four role families composing the AI+ Factory operating model.</div>
+
+    <div class="roles-grid">
+      <div class="role-tile role-tile-office">
+        <div class="role-icon" style="background: rgba(255,230,0,0.15);">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <circle cx="9" cy="6" r="3" fill="#FFE600"/>
+            <path d="M2 16c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="#FFE600" stroke-width="1.5" fill="none"/>
+          </svg>
+        </div>
+        <div class="role-title">AI+ Office</div>
+        <div class="role-desc">DTEs &amp; ITEs — sell, shape, and originate large AI transformation deals</div>
+      </div>
+      <div class="role-tile role-tile-factory">
+        <div class="role-icon" style="background: rgba(24,140,229,0.15);">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <rect x="2" y="8" width="3" height="8" rx="1" fill="#188CE5"/>
+            <rect x="7.5" y="4" width="3" height="12" rx="1" fill="#188CE5"/>
+            <rect x="13" y="1" width="3" height="15" rx="1" fill="#188CE5"/>
+          </svg>
+        </div>
+        <div class="role-title">Engineering</div>
+        <div class="role-desc">AI Architects, Engineers, Data Scientists, Cloud &amp; DevOps specialists</div>
+      </div>
+      <div class="role-tile role-tile-data">
+        <div class="role-icon" style="background: rgba(45,183,87,0.15);">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <ellipse cx="9" cy="5" rx="6" ry="2.5" stroke="#2DB757" stroke-width="1.5" fill="none"/>
+            <path d="M3 5v4c0 1.381 2.686 2.5 6 2.5S15 10.381 15 9V5" stroke="#2DB757" stroke-width="1.5" fill="none"/>
+            <path d="M3 9v4c0 1.381 2.686 2.5 6 2.5S15 14.381 15 13V9" stroke="#2DB757" stroke-width="1.5" fill="none"/>
+          </svg>
+        </div>
+        <div class="role-title">Data Management</div>
+        <div class="role-desc">Data Architects, Engineers, Governance, Semantic Layer &amp; Knowledge Graph</div>
+      </div>
+      <div class="role-tile role-tile-transform">
+        <div class="role-icon" style="background: rgba(117,14,92,0.2);">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M9 2L11.5 7H16L12.5 10.5L14 15.5L9 12.5L4 15.5L5.5 10.5L2 7H6.5L9 2Z" stroke="#C855A8" stroke-width="1.5" fill="none"/>
+          </svg>
+        </div>
+        <div class="role-title">Transformation SME</div>
+        <div class="role-desc">Strategy, governance, adoption, process redesign, and AI operating model change</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     WORDMARKS / LOCKUPS
+════════════════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">07 — Wordmarks &amp; Lockups</div>
+    <div class="section-title">Name Treatments</div>
+    <div class="section-desc">Three lockup variants for the AI+ brand family across dark, light, and primary surfaces.</div>
+
+    <div class="wordmarks-grid">
+
+      <!-- Lockup 1: Dark surface — mark + wordmark -->
+      <div class="wordmark-tile">
+        <svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="52" height="52" y="4" fill="#FFE600"/>
+          <text x="10" y="40" font-family="Inter,Arial" font-size="28" font-weight="900" fill="#1A1A24" letter-spacing="-2">AI+</text>
+          <text x="64" y="30" font-family="Inter,Arial" font-size="22" font-weight="700" fill="#FFFFFF" letter-spacing="-0.5">Factory</text>
+          <text x="64" y="48" font-family="Inter,Arial" font-size="11" font-weight="300" fill="rgba(255,255,255,0.5)" letter-spacing="2">EY AI Platform</text>
+        </svg>
+        <div class="wordmark-label">Dark Surface · Primary</div>
+      </div>
+
+      <!-- Lockup 2: Light surface -->
+      <div class="wordmark-tile light-bg">
+        <svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="52" height="52" y="4" fill="#1A1A24"/>
+          <text x="10" y="40" font-family="Inter,Arial" font-size="28" font-weight="900" fill="#FFE600" letter-spacing="-2">AI+</text>
+          <text x="64" y="30" font-family="Inter,Arial" font-size="22" font-weight="700" fill="#1A1A24" letter-spacing="-0.5">Factory</text>
+          <text x="64" y="48" font-family="Inter,Arial" font-size="11" font-weight="300" fill="rgba(26,26,36,0.5)" letter-spacing="2">EY AI Platform</text>
+        </svg>
+        <div class="wordmark-label" style="color: rgba(26,26,36,0.4);">Light Surface · Reversed</div>
+      </div>
+
+      <!-- Lockup 3: Yellow surface — accent lockup -->
+      <div class="wordmark-tile yellow-bg">
+        <svg width="200" height="56" viewBox="0 0 200 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <text x="0" y="44" font-family="Inter,Arial" font-size="48" font-weight="900" fill="#1A1A24" letter-spacing="-3">AI</text>
+          <text x="72" y="44" font-family="Inter,Arial" font-size="48" font-weight="300" fill="#1A1A24" letter-spacing="-3">+</text>
+          <text x="108" y="44" font-family="Inter,Arial" font-size="18" font-weight="600" fill="rgba(26,26,36,0.7)" letter-spacing="-0.5"> Office</text>
+        </svg>
+        <div class="wordmark-label">Yellow Surface · Office Variant</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════ -->
+<div class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div>design/design-system.html · AI+ Brand System v1.0</div>
+      <div>Generated 2026 · Source: AI+ Organisation and Skills v4.pptx · See also: brand-book-a4.pdf</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
