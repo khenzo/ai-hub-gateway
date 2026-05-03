@@ -113,12 +113,8 @@
         "pages": [
           "agent-factory/overview",
           "agent-factory/intelligence-layers",
-          "agent-factory/builder-personas",
           "agent-factory/citadel-mapping",
           "agent-factory/agentic-web-stack",
-          "agent-factory/agentic-stack-diagrams",
-          "agent-factory/design-patterns",
-          "agent-factory/orchestration-patterns",
           "agent-factory/context-engineering",
           "agent-factory/agent-harness",
           "agent-factory/mcp-integration",
@@ -127,7 +123,18 @@
           "agent-factory/agent-observability"
         ]
       },
-      
+      {
+        "group": "Data Foundation",
+        "tab": "Data Foundation",
+        "pages": [
+          "data-foundation/overview",
+          "data-foundation/onelake-architecture",
+          "data-foundation/unity-catalog-governance",
+          "data-foundation/semantic-layer",
+          "data-foundation/apim-semantic-endpoint",
+          "data-foundation/security-identity-patterns"
+        ]
+      },
       {
         "group": "Governance",
         "tab": "Governance",

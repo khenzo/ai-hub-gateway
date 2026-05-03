@@ -1,7 +1,7 @@
 ---
 title: "Agentic Web Stack"
 description: "The 8 essential components of the agentic web stack and their placement within Citadel"
-icon: layers
+icon: astroid
 ---
 
 # Agentic Web Stack
@@ -139,6 +139,73 @@ Enterprise agents are not isolated applications. They are part of an interconnec
 | Memory | Layer 2/4 | Foundry / AI Search | Knowledge retrieval and state |
 | Governance | All Layers | Policy / Defender / Purview | Compliance and security |
 
+## Architecture Diagrams
+
+### Stack View
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    AGENTS & APPLICATIONS                      │
+│         Copilot Studio  │  Azure AI Foundry  │  Custom       │
+├──────────────────────────────────────────────────────────────┤
+│              AGENTIC WEB STACK COMPONENTS                     │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐  │
+│  │Communication│ │  Tools   │ │ Discovery│ │    Identity    │  │
+│  │  (A2A/MCP)  │ │(MCP/API) │ │(Registry)│ │   (Agent 365)  │  │
+│  ├──────────┤ ├──────────┤ ├──────────┤ ├────────────────┤  │
+│  │Orchestration│ │Observability│ │  Memory  │ │  Governance    │  │
+│  │ (Workflows) │ │  (Traces)   │ │(Knowledge│ │                │  │
+│  └──────────┘ └──────────┘ └──────────┘ └────────────────┘  │
+├──────────────────────────────────────────────────────────────┤
+│              CITADEL 4-LAYER ARCHITECTURE                     │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌────────┐  │
+│  │ Layer 1     │ │ Layer 2     │ │ Layer 3     │ │ Layer 4│  │
+│  │ Governance  │ │ AI Control  │ │ Agent       │ │Security│  │
+│  │ Hub (APIM)  │ │ Plane       │ │ Identity    │ │ Fabric │  │
+│  └─────────────┘ └─────────────┘ └─────────────┘ └────────┘  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+The 8 components sit between agent applications and the Citadel governance foundation. Every agent interaction passes through one or more stack components, each enforced by a corresponding Citadel layer.
+
+### Traffic Flow
+
+```
+     Agent Request
+          │
+          ▼
+   ┌──────────────┐
+   │ Communication│
+   │   (A2A/MCP)  │
+   └──────┬───────┘
+          │
+          ▼
+   ┌──────────────────────────────┐
+   │ Layer 1: Governance Hub      │◄── Tools (MCP Server Gateway)
+   │ (APIM) Runtime enforcement   │
+   └─────────────┬────────────────┘
+                 │
+                 ▼
+   ┌──────────────────────────────┐
+   │ Layer 3: Agent Identity      │◄── Identity Validation
+   │ (Entra) Agent 365 lifecycle  │
+   └─────────────┬────────────────┘
+                 │
+                 ▼
+   ┌──────────────────────────────┐
+   │ Layer 2: AI Control Plane    │◄── Orchestration + Observability
+   │ (Foundry) Traces + Evals     │    Memory / Knowledge Retrieval
+   └─────────────┬────────────────┘
+                 │
+                 ▼
+   ┌──────────────────────────────┐
+   │ Layer 4: Security Fabric     │◄── Governance + Security Monitoring
+   │ (Defender) Purview + Entra   │
+   └──────────────────────────────┘
+```
+
+A single agent request descends through the stack: Communication initiates, Layer 1 filters via runtime policies, Layer 3 validates identity, Layer 2 orchestrates execution and captures observability, and Layer 4 provides continuous governance and security monitoring.
+
 ## Integration with Intelligence Layers
 
 The agentic web stack components consume the three intelligence layers to deliver contextual, grounded agent experiences. **Communication** and **Tools** route workspace and business data requests through the governance hub. **Memory** and **Orchestration** leverage enterprise knowledge intelligence to retrieve institutional knowledge and coordinate multi-step workflows. **Observability** captures how agents consume all three intelligence layers, while **Governance** ensures that all access is policy-compliant and auditable.
@@ -146,9 +213,6 @@ The agentic web stack components consume the three intelligence layers to delive
 ## Next Steps
 
 <CardGroup>
-  <Card title="Agentic Stack Diagrams" icon="sitemap" href="/agent-factory/agentic-stack-diagrams">
-    Visual architecture diagrams showing the agentic web stack on Citadel
-  </Card>
   <Card title="Citadel Mapping" icon="castle" href="/agent-factory/citadel-mapping">
     How Agent Factory maps to the Citadel 4-layer governance model
   </Card>

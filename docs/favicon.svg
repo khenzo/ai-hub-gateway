@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 224 48" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none">
   <!-- Brand mark: EY Yellow square (works on both white and dark nav) -->
-  <rect x="0" y="2" width="44" height="44" fill="#FFE600"/>
+  <rect x="0" y="2" width="240" height="240" fill="#FFE600"/>
   <!-- AI+ in navy 900 -->
   <text x="4" y="35" font-family="Inter,Arial,sans-serif" font-size="23" font-weight="900" fill="#1A1A24" letter-spacing="-1.5">AI+</text>
 </svg>

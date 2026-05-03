@@ -1,0 +1,2682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI+ FACTORY Hub — Enterprise AI Infrastructure & Governance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,500&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   AI+ FACTORY HUB — PRESENTATION (v3, prompt-driven rewrite)
+   Brand: EY · Dark mode · #FFE600 primary · text-forward narrative
+   46 slides · 6 chapters · zero dependencies · SVG-rich
+   ========================================================================== */
+
+/* === VIEWPORT FITTING BASE (mandatory from frontend-slides skill) === */
+html, body { height: 100%; overflow-x: hidden; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+.slide {
+  width: 100vw; height: 100vh; height: 100dvh;
+  overflow: hidden; scroll-snap-align: start;
+  display: flex; flex-direction: column; position: relative;
+}
+.slide-content {
+  flex: 1; display: flex; flex-direction: column; justify-content: center;
+  max-height: 100%; overflow: hidden; padding: var(--slide-padding);
+}
+:root {
+  --title-size: clamp(1.5rem, 5vw, 4rem);
+  --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+  --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+  --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+  --small-size: clamp(0.65rem, 1vw, 0.875rem);
+  --slide-padding: clamp(1rem, 4vw, 4rem);
+  --content-gap: clamp(0.5rem, 2vw, 2rem);
+  --element-gap: clamp(0.25rem, 1vw, 1rem);
+}
+.card, .container, .content-box { max-width: min(94vw, 1400px); max-height: min(80vh, 700px); }
+img, .image-container { max-width: 100%; max-height: min(50vh, 400px); object-fit: contain; }
+@media (max-height: 700px) {
+  :root { --slide-padding: clamp(0.75rem, 3vw, 2rem); --title-size: clamp(1.25rem, 4.5vw, 2.5rem); --h2-size: clamp(1rem, 3vw, 1.75rem); }
+}
+@media (max-height: 600px) {
+  :root { --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem); --title-size: clamp(1.1rem, 4vw, 2rem); --body-size: clamp(0.7rem, 1.2vw, 0.95rem); }
+  .nav-dots, .keyboard-hint, .decorative { display: none; }
+}
+@media (max-height: 500px) {
+  :root { --slide-padding: clamp(0.4rem, 2vw, 1rem); --title-size: clamp(1rem, 3.5vw, 1.5rem); --body-size: clamp(0.65rem, 1vw, 0.85rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1 !important; transform: none !important; }
+}
+
+/* === THEME TOKENS === */
+:root {
+  --primary: #FFE600;
+  --primary-dim: rgba(255, 230, 0, 0.6);
+  --primary-soft: rgba(255, 230, 0, 0.12);
+  --bg: #1A1A24;
+  --bg-2: #14141C;
+  --surface: #2E2E38;
+  --surface-2: #3A3A48;
+  --surface-3: rgba(255,255,255,0.05);
+
+  --blue: #188CE5;
+  --purple: #750E5C;
+  --teal: #27ACAA;
+  --green: #2DB757;
+  --orange: #FF6D00;
+  --red: #FF4136;
+
+  --text: #FFFFFF;
+  --text-2: rgba(255,255,255,0.72);
+  --text-3: rgba(255,255,255,0.50);
+  --text-4: rgba(255,255,255,0.32);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.16);
+
+  --display: clamp(2.4rem, 5.6vw, 5rem);
+  --h1: clamp(1.6rem, 3.2vw, 2.8rem);
+  --h2: clamp(1.15rem, 2.2vw, 1.75rem);
+  --h3: clamp(0.9rem, 1.4vw, 1.15rem);
+  --body: clamp(0.78rem, 1.05vw, 1rem);
+  --caption: clamp(0.62rem, 0.78vw, 0.78rem);
+  --mono: clamp(0.7rem, 0.9vw, 0.86rem);
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --serif: 'Fraunces', 'Times New Roman', serif;
+  --mono-font: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === SLIDE BASE === */
+.slide {
+  background: var(--bg);
+  padding: var(--slide-padding);
+  isolation: isolate;
+}
+.slide-content { padding: 0; }
+
+/* Yellow accent bar on every slide */
+.slide::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: var(--primary); transform-origin: left; transform: scaleX(0);
+  transition: transform 800ms var(--ease) 100ms; z-index: 5;
+}
+.slide.visible::before { transform: scaleX(1); }
+
+/* Slide number marker */
+.slide-marker {
+  position: absolute; bottom: clamp(0.6rem, 1.4vw, 1.4rem); right: clamp(0.8rem, 2vw, 2rem);
+  font-family: var(--mono-font); font-size: var(--caption); color: var(--text-4);
+  letter-spacing: 0.05em; z-index: 4;
+}
+.slide-eyebrow {
+  position: absolute; top: clamp(0.8rem, 1.8vw, 1.6rem); left: var(--slide-padding);
+  font-family: var(--mono-font); font-size: var(--caption); color: var(--primary);
+  letter-spacing: 0.18em; text-transform: uppercase; z-index: 4;
+  display: flex; align-items: center; gap: 0.6em;
+}
+.slide-eyebrow::before {
+  content: ''; width: 22px; height: 1px; background: var(--primary);
+}
+
+/* === REVEAL ANIMATIONS === */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out); }
+.slide.visible .reveal { opacity: 1; transform: translateY(0); }
+.reveal-x { opacity: 0; transform: translateX(-32px); transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out); }
+.slide.visible .reveal-x { opacity: 1; transform: translateX(0); }
+.reveal-r { opacity: 0; transform: translateX(32px); transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out); }
+.slide.visible .reveal-r { opacity: 1; transform: translateX(0); }
+.reveal-scale { opacity: 0; transform: scale(0.92); transition: opacity 700ms var(--ease-bounce), transform 700ms var(--ease-bounce); }
+.slide.visible .reveal-scale { opacity: 1; transform: scale(1); }
+
+.d1 { transition-delay: 100ms; }
+.d2 { transition-delay: 200ms; }
+.d3 { transition-delay: 300ms; }
+.d4 { transition-delay: 400ms; }
+.d5 { transition-delay: 500ms; }
+.d6 { transition-delay: 600ms; }
+.d7 { transition-delay: 700ms; }
+.d8 { transition-delay: 800ms; }
+.d9 { transition-delay: 900ms; }
+.d10 { transition-delay: 1000ms; }
+.d11 { transition-delay: 1100ms; }
+.d12 { transition-delay: 1200ms; }
+
+/* === AMBIENT BACKGROUNDS === */
+.ambient-orb {
+  position: absolute; border-radius: 50%; filter: blur(80px);
+  pointer-events: none; opacity: 0.35; z-index: 0;
+}
+.grid-bg::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+}
+
+/* === TYPOGRAPHY === */
+.eyebrow {
+  font-family: var(--mono-font); font-size: var(--caption); color: var(--primary);
+  letter-spacing: 0.18em; text-transform: uppercase;
+}
+.title-display {
+  font-size: var(--display); font-weight: 900; line-height: 0.95;
+  letter-spacing: -0.025em; color: var(--text);
+}
+.title-1 {
+  font-size: var(--h1); font-weight: 800; line-height: 1.05;
+  letter-spacing: -0.02em; color: var(--text);
+}
+.title-2 { font-size: var(--h2); font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; }
+.lede {
+  font-size: clamp(0.95rem, 1.4vw, 1.35rem); color: var(--text-2);
+  line-height: 1.55; max-width: 70ch; font-weight: 400;
+}
+.body { font-size: var(--body); color: var(--text-2); line-height: 1.6; }
+.body-strong { font-size: var(--body); color: var(--text); line-height: 1.6; font-weight: 500; }
+.caption { font-size: var(--caption); color: var(--text-3); line-height: 1.5; letter-spacing: 0.02em; }
+.mono { font-family: var(--mono-font); font-size: var(--mono); }
+.serif { font-family: var(--serif); font-style: italic; font-weight: 500; }
+
+.text-yellow { color: var(--primary); }
+.text-blue { color: var(--blue); }
+.text-purple { color: var(--purple); }
+.text-teal { color: var(--teal); }
+.text-green { color: var(--green); }
+.text-orange { color: var(--orange); }
+.text-red { color: var(--red); }
+.text-2 { color: var(--text-2); }
+.text-3 { color: var(--text-3); }
+
+/* === LAYOUT HELPERS === */
+.stack { display: flex; flex-direction: column; gap: var(--content-gap); }
+.stack-tight { display: flex; flex-direction: column; gap: var(--element-gap); }
+.row { display: flex; gap: var(--content-gap); }
+.row-tight { display: flex; gap: var(--element-gap); }
+.between { justify-content: space-between; }
+.center { align-items: center; justify-content: center; text-align: center; }
+.middle { align-items: center; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--content-gap); }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--content-gap); }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--element-gap); }
+@media (max-width: 800px) {
+  .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+
+/* === UI COMPONENTS === */
+.chip {
+  display: inline-flex; align-items: center; gap: 0.5em;
+  padding: 0.4em 0.85em; border-radius: 999px;
+  font-family: var(--mono-font); font-size: var(--caption);
+  background: rgba(255,255,255,0.06); color: var(--text-2);
+  border: 1px solid var(--border); letter-spacing: 0.04em;
+}
+.chip-yellow { background: var(--primary-soft); color: var(--primary); border-color: var(--primary-dim); }
+.chip-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.card-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: clamp(1rem, 1.6vw, 1.75rem);
+  position: relative;
+}
+.card-panel.accent::before {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 3px;
+  background: var(--accent, var(--primary)); border-radius: 8px 0 0 8px;
+}
+.card-panel-glass {
+  background: rgba(255,255,255,0.03); backdrop-filter: blur(12px);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: clamp(0.9rem, 1.4vw, 1.5rem);
+}
+
+.kicker {
+  display: inline-flex; align-items: center; gap: 0.6em;
+  font-family: var(--mono-font); font-size: var(--caption);
+  color: var(--text-3); letter-spacing: 0.16em; text-transform: uppercase;
+}
+.kicker::before { content: ''; width: 18px; height: 1px; background: var(--text-3); }
+
+.bullet-list { list-style: none; display: flex; flex-direction: column; gap: clamp(0.5rem, 1.1vh, 1rem); }
+.bullet-list li {
+  position: relative; padding-left: 1.4em;
+  font-size: var(--body); color: var(--text-2); line-height: 1.55;
+}
+.bullet-list li::before {
+  content: ''; position: absolute; left: 0; top: 0.55em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent, var(--primary));
+}
+.bullet-list strong { color: var(--text); font-weight: 600; }
+
+.divider { height: 1px; background: var(--border); width: 100%; }
+.divider-dashed { height: 1px; background-image: linear-gradient(90deg, var(--border) 50%, transparent 50%); background-size: 8px 1px; width: 100%; }
+
+/* === KEYFRAME LIBRARY === */
+@keyframes drift { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-20px, 12px); } }
+@keyframes pulse-soft { 0%,100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 0.85; transform: scale(1.04); } }
+@keyframes pulse-glow {
+  0%,100% { box-shadow: 0 0 22px var(--accent, rgba(255,230,0,0.25)); }
+  50% { box-shadow: 0 0 60px var(--accent, rgba(255,230,0,0.55)); }
+}
+@keyframes orbit-rotate { to { transform: rotate(360deg); } }
+@keyframes flow-dash { to { stroke-dashoffset: -200; } }
+@keyframes flow-dash-rev { to { stroke-dashoffset: 200; } }
+@keyframes scan { 0% { transform: translateY(-100%); opacity: 0; } 30% { opacity: 1; } 70% { opacity: 1; } 100% { transform: translateY(100%); opacity: 0; } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+/* === NAV === */
+.nav-dots {
+  position: fixed; right: clamp(0.6rem, 1.5vw, 1.4rem); top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 8px; z-index: 100;
+}
+.nav-dots button {
+  width: 7px; height: 7px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
+  background: rgba(255,255,255,0.18); transition: all 240ms var(--ease);
+}
+.nav-dots button:hover { background: rgba(255,255,255,0.45); transform: scale(1.4); }
+.nav-dots button.active { background: var(--primary); transform: scale(1.5); box-shadow: 0 0 10px rgba(255,230,0,0.6); }
+
+.progress-rail {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 2px;
+  background: rgba(255,255,255,0.05); z-index: 99;
+}
+.progress-fill {
+  height: 100%; background: var(--primary); width: 0%;
+  transition: width 200ms linear; box-shadow: 0 0 10px var(--primary);
+}
+
+.kbd-hint {
+  position: fixed; left: clamp(0.6rem, 1.5vw, 1.4rem); bottom: clamp(0.8rem, 1.8vw, 1.6rem);
+  display: flex; gap: 0.6em; z-index: 99; align-items: center;
+  font-family: var(--mono-font); font-size: var(--caption); color: var(--text-4);
+}
+.kbd { padding: 0.2em 0.5em; border: 1px solid var(--border-strong); border-radius: 4px; font-size: 0.85em; background: rgba(0,0,0,0.3); }
+
+/* ==========================================================================
+   SLIDE-SPECIFIC STYLES
+   ========================================================================== */
+
+/* === SLIDE 1: TITLE === */
+.s-title { justify-content: center; align-items: flex-start; position: relative; overflow: hidden; }
+.s-title .mesh {
+  position: absolute; inset: -10%;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(117,14,92,0.22), transparent 45%),
+    radial-gradient(circle at 80% 60%, rgba(24,140,229,0.18), transparent 50%),
+    radial-gradient(circle at 50% 90%, rgba(255,230,0,0.08), transparent 55%);
+  filter: blur(40px); animation: drift 14s ease-in-out infinite;
+}
+.s-title .wordmark {
+  font-size: clamp(4rem, 14vw, 12rem); font-weight: 900; line-height: 0.85;
+  letter-spacing: -0.06em; color: var(--primary);
+  text-shadow: 0 0 60px rgba(255,230,0,0.35), 0 0 120px rgba(255,230,0,0.15);
+  font-feature-settings: 'ss01';
+}
+.s-title .product {
+  font-size: clamp(2rem, 6vw, 4.4rem); font-weight: 800;
+  letter-spacing: -0.03em; color: var(--text); line-height: 1;
+}
+.s-title .yellow-line {
+  height: 4px; background: var(--primary); width: 0; max-width: 280px;
+  transition: width 900ms var(--ease) 800ms;
+}
+.slide.visible .s-title .yellow-line { width: 280px; }
+.s-title .meta-row {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  position: absolute; bottom: var(--slide-padding); left: var(--slide-padding); right: var(--slide-padding);
+}
+
+/* === AGENDA === */
+.agenda-card {
+  display: grid; grid-template-columns: auto 1fr auto; gap: clamp(1rem, 2vw, 2rem); align-items: center;
+  padding: clamp(0.9rem, 1.6vw, 1.6rem) clamp(1.2rem, 2vw, 2rem);
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 6px; position: relative;
+  transition: all 300ms var(--ease);
+}
+.agenda-card .num {
+  font-family: var(--serif); font-size: clamp(1.8rem, 3.6vw, 3rem);
+  font-weight: 700; color: var(--accent); line-height: 1; font-style: italic;
+}
+.agenda-card .title { font-size: clamp(1rem, 1.6vw, 1.4rem); font-weight: 700; color: var(--text); margin-bottom: 0.25em; }
+.agenda-card .desc { font-size: var(--body); color: var(--text-2); line-height: 1.5; }
+.agenda-card .duration { font-family: var(--mono-font); font-size: var(--caption); color: var(--text-3); }
+
+/* === CHAPTER DIVIDER === */
+.chapter-divider { justify-content: center; align-items: stretch; position: relative; overflow: hidden; }
+.chapter-grid {
+  position: absolute; inset: 0; opacity: 0.3;
+  background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse at center, black 10%, transparent 70%);
+}
+.chapter-num {
+  font-family: var(--serif); font-style: italic;
+  font-size: clamp(3rem, 8vw, 6rem); font-weight: 300;
+  line-height: 0.9; color: var(--accent); opacity: 0.95;
+  letter-spacing: -0.04em;
+}
+.chapter-label {
+  font-family: var(--mono-font); font-size: var(--caption);
+  color: var(--text-3); letter-spacing: 0.4em; text-transform: uppercase;
+}
+.chapter-title {
+  font-size: clamp(2rem, 5vw, 4rem); font-weight: 800;
+  letter-spacing: -0.025em; line-height: 1; color: var(--text);
+}
+.chapter-blurb {
+  font-size: clamp(0.95rem, 1.4vw, 1.25rem); color: var(--text-2);
+  max-width: 50ch; line-height: 1.55; font-weight: 400;
+}
+
+/* === ISOMETRIC FOUNDATION SLABS === */
+.iso-stage {
+  position: relative; width: clamp(280px, 36vw, 460px); aspect-ratio: 1 / 0.9;
+  perspective: 1400px; transform-style: preserve-3d;
+}
+.iso-slab {
+  position: absolute; left: 0; right: 0; height: clamp(56px, 8vw, 90px);
+  border-radius: 6px;
+  transform-style: preserve-3d;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.2em;
+  box-shadow: -16px 18px 36px rgba(0,0,0,0.45), -6px 8px 14px rgba(0,0,0,0.25);
+  transition: transform 700ms var(--ease-out), opacity 700ms var(--ease-out);
+}
+.iso-slab .slab-label { font-weight: 700; font-size: clamp(0.85rem, 1.1vw, 1.05rem); color: #fff; mix-blend-mode: normal; }
+.iso-slab .slab-icons { display: flex; gap: 0.6em; }
+.iso-slab .slab-icons span {
+  width: 22px; height: 22px; border-radius: 4px;
+  background: rgba(255,255,255,0.2); display: inline-flex;
+}
+.iso-slab.bottom { bottom: 0; background: var(--blue); }
+.iso-slab.middle { bottom: clamp(72px, 11vw, 110px); background: var(--purple); }
+.iso-slab.top { bottom: clamp(144px, 22vw, 220px); background: rgba(255,230,0,0.55); }
+.iso-stage { transform: rotateX(48deg) rotateZ(-32deg); }
+
+/* === HERO STAT === */
+.hero-stat .num {
+  font-family: 'Inter', sans-serif; font-size: clamp(4rem, 11vw, 9rem);
+  font-weight: 900; color: var(--primary); line-height: 0.9; letter-spacing: -0.04em;
+  font-feature-settings: 'tnum';
+}
+.hero-stat .num small { font-size: 0.4em; font-weight: 600; color: var(--text-2); margin-left: 0.3em; }
+.hero-stat .label { font-size: clamp(0.95rem, 1.3vw, 1.2rem); color: var(--text-2); max-width: 28ch; line-height: 1.45; }
+
+/* === LAYER CAKE === */
+.layer-cake { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 720px; margin: 0 auto; }
+.layer-cake .layer {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 1.2em; align-items: center;
+  padding: clamp(0.7rem, 1.2vw, 1.1rem) clamp(1rem, 1.6vw, 1.6rem);
+  border-radius: 6px; color: #fff;
+  box-shadow: 0 4px 22px rgba(0,0,0,0.35);
+  position: relative; overflow: hidden;
+}
+.layer-cake .layer::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.1));
+}
+.layer-cake .layer .glyph {
+  width: clamp(28px, 3vw, 38px); height: clamp(28px, 3vw, 38px);
+  background: rgba(255,255,255,0.18); border-radius: 6px;
+  display: grid; place-items: center; font-weight: 700;
+  font-family: var(--mono-font); font-size: 0.9em;
+}
+.layer-cake .layer .l-title { font-size: clamp(0.95rem, 1.4vw, 1.2rem); font-weight: 700; }
+.layer-cake .layer .l-sub { font-size: var(--caption); opacity: 0.85; margin-top: 2px; }
+.layer-cake .layer .l-tag { font-family: var(--mono-font); font-size: var(--caption); opacity: 0.7; letter-spacing: 0.1em; }
+.layer-cake .layer.l1 { background: var(--blue); }
+.layer-cake .layer.l2 { background: var(--orange); }
+.layer-cake .layer.l3 { background: var(--teal); }
+.layer-cake .layer.l4 { background: var(--purple); }
+
+/* === HEXAGON HONEYCOMB === */
+.honeycomb {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  grid-auto-rows: clamp(80px, 11vw, 130px);
+  gap: clamp(0.4rem, 0.9vw, 0.8rem);
+  width: 100%; max-width: 820px; margin: 0 auto;
+}
+.hex {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--accent, var(--border));
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 0.4em; position: relative;
+  transition: transform 320ms var(--ease), background 320ms var(--ease);
+}
+.hex::before {
+  content: ''; position: absolute; inset: 1px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(160deg, rgba(255,255,255,0.04), transparent 60%);
+}
+.hex .hex-icon { font-family: var(--mono-font); font-weight: 700; font-size: clamp(0.85rem, 1.4vw, 1.1rem); color: var(--accent, var(--text)); }
+.hex .hex-label { font-size: clamp(0.7rem, 0.9vw, 0.88rem); font-weight: 600; color: var(--text); text-align: center; line-height: 1.1; }
+.hex .hex-tag { font-family: var(--mono-font); font-size: clamp(0.55rem, 0.7vw, 0.7rem); color: var(--text-3); letter-spacing: 0.06em; }
+.hex.center {
+  background: rgba(255,230,0,0.12);
+  border: 2px solid var(--primary);
+  box-shadow: 0 0 36px rgba(255,230,0,0.25);
+  animation: pulse-soft 3.6s ease-in-out infinite;
+}
+.hex:hover { background: rgba(255,255,255,0.08); transform: scale(1.04); }
+
+/* === HUB-SPOKE RADIAL === */
+.radial-stage {
+  position: relative; width: 100%; aspect-ratio: 1.6 / 1;
+  max-width: clamp(420px, 60vw, 880px); max-height: 60vh;
+  margin: 0 auto;
+}
+.radial-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hub-circle {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: clamp(120px, 18vw, 220px); aspect-ratio: 1; border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 40px rgba(255,230,0,0.25), inset 0 0 0 4px rgba(255,230,0,0.6);
+  display: grid; grid-template: auto auto / auto auto;
+  gap: 4px; place-content: center; place-items: center;
+  color: #1A1A24; font-weight: 700; padding: 1em;
+}
+.hub-circle .hub-title {
+  grid-column: 1 / -1; font-size: clamp(0.7rem, 1vw, 0.95rem); text-align: center; line-height: 1.1;
+}
+.hub-circle .hub-icon {
+  width: clamp(20px, 2.5vw, 32px); height: clamp(20px, 2.5vw, 32px);
+  display: grid; place-items: center; font-family: var(--mono-font); font-size: 0.7em;
+  background: rgba(26,26,36,0.15); border-radius: 4px;
+}
+.spoke {
+  position: absolute; transform: translate(-50%, -50%);
+  width: clamp(72px, 10vw, 120px); aspect-ratio: 1; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 3px; color: #fff; font-weight: 700;
+  font-size: clamp(0.7rem, 1vw, 0.95rem);
+  border: 2px solid rgba(255,255,255,0.5);
+  box-shadow: 0 0 20px var(--accent);
+}
+.spoke .spoke-tag { font-family: var(--mono-font); font-weight: 400; font-size: 0.7em; opacity: 0.85; }
+.spoke.s-finance { background: var(--teal); --accent: rgba(39,172,170,0.4); top: 22%; left: 22%; }
+.spoke.s-hr { background: var(--green); --accent: rgba(45,183,87,0.4); top: 22%; left: 78%; }
+.spoke.s-legal { background: var(--purple); --accent: rgba(117,14,92,0.4); top: 50%; left: 10%; }
+.spoke.s-rd { background: var(--teal); --accent: rgba(39,172,170,0.4); top: 50%; left: 90%; }
+.spoke.s-ops { background: var(--orange); --accent: rgba(255,109,0,0.4); top: 80%; left: 28%; }
+.spoke.s-it { background: var(--blue); --accent: rgba(24,140,229,0.4); top: 80%; left: 72%; }
+
+/* === PILLARS (3 INTELLIGENCES) === */
+.pillar {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--accent, var(--border)); border-radius: 8px;
+  background: rgba(255,255,255,0.02); overflow: hidden; min-height: 100%;
+}
+.pillar .capital {
+  background: var(--accent); padding: clamp(0.7rem, 1.2vw, 1.1rem); color: #fff;
+  display: flex; align-items: center; gap: 0.6em; font-weight: 700;
+  font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+  clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+}
+.pillar .body {
+  padding: clamp(0.9rem, 1.4vw, 1.4rem); display: flex; flex-direction: column; gap: 0.7em; flex: 1;
+}
+.pillar .lead { font-size: var(--body); color: var(--text-2); line-height: 1.5; }
+.pillar .examples { font-family: var(--mono-font); font-size: var(--caption); color: var(--text-3); border-top: 1px dashed var(--border); padding-top: 0.7em; }
+
+/* === TWO-COLUMN COMPARE === */
+.compare-col {
+  border-radius: 8px; overflow: hidden;
+  background: rgba(255,255,255,0.025); border: 2px solid var(--accent);
+  display: flex; flex-direction: column;
+}
+.compare-col .head {
+  padding: clamp(0.7rem, 1.2vw, 1.1rem) clamp(1rem, 1.6vw, 1.5rem);
+  background: var(--accent); color: #fff; font-weight: 700;
+  font-size: clamp(0.95rem, 1.3vw, 1.2rem);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.compare-col .body { padding: clamp(0.9rem, 1.4vw, 1.4rem); display: flex; flex-direction: column; gap: 0.8em; flex: 1; }
+.compare-col .row {
+  display: grid; grid-template-columns: auto 1fr; gap: 0.8em; align-items: start;
+  padding: 0.6em 0; border-bottom: 1px solid var(--border);
+}
+.compare-col .row:last-child { border-bottom: 0; }
+.compare-col .row .ico {
+  width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.05);
+  display: grid; place-items: center; color: var(--accent); font-family: var(--mono-font); font-weight: 700; font-size: 0.85em;
+  border: 1px solid var(--accent);
+}
+.compare-col .row strong { display: block; font-weight: 600; color: var(--text); margin-bottom: 0.2em; }
+.compare-col .row span.desc { color: var(--text-2); font-size: var(--caption); }
+
+/* === TABLE === */
+.data-table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  font-size: var(--body); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  background: var(--surface);
+}
+.data-table thead { background: rgba(255,230,0,0.08); }
+.data-table th {
+  text-align: left; padding: 0.85em 1em;
+  font-family: var(--mono-font); font-size: var(--caption); color: var(--primary);
+  letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+.data-table td {
+  padding: 0.75em 1em; color: var(--text-2); border-bottom: 1px solid var(--border); vertical-align: top;
+}
+.data-table tr:last-child td { border-bottom: 0; }
+.data-table td strong { color: var(--text); font-weight: 600; }
+
+/* === FLOW VERTICAL === */
+.flow-v { display: flex; flex-direction: column; align-items: stretch; gap: 8px; max-width: 480px; margin: 0 auto; width: 100%; }
+.flow-v .step {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 0.9em; align-items: center;
+  padding: clamp(0.55rem, 1vw, 0.85rem) clamp(0.8rem, 1.2vw, 1.1rem);
+  background: rgba(255,255,255,0.04); border: 2px solid var(--accent); border-radius: 8px;
+  transition: all 400ms var(--ease);
+}
+.flow-v .step .badge {
+  width: 36px; height: 36px; border-radius: 6px; display: grid; place-items: center;
+  background: var(--accent); color: #fff; font-family: var(--mono-font); font-weight: 700; font-size: 0.9em;
+}
+.flow-v .step .label { font-weight: 700; color: var(--text); font-size: var(--body); }
+.flow-v .step .sub { font-size: var(--caption); color: var(--text-3); margin-top: 2px; line-height: 1.4; }
+.flow-v .step .arrow { font-family: var(--mono-font); color: var(--accent); }
+.flow-v .arrow-down {
+  width: 0; align-self: center; height: 14px; border-left: 2px dashed var(--text-4);
+  position: relative;
+}
+
+/* === CONNECTION DIAGRAM (Citadel Stack + Tools) === */
+.stack-side { display: flex; flex-direction: column; gap: 6px; }
+.stack-side .layer-row {
+  display: grid; grid-template-columns: 28px 1fr; gap: 0.8em; align-items: center;
+  padding: 0.7em 1em; background: var(--accent); border-radius: 4px; color: #fff;
+  font-weight: 700; font-size: var(--body);
+}
+.stack-side .layer-row .glyph {
+  width: 24px; height: 24px; background: rgba(255,255,255,0.22); border-radius: 4px;
+  display: grid; place-items: center; font-family: var(--mono-font); font-size: 0.8em;
+}
+
+.tools-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  gap: 0.6em;
+}
+.tool-card {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 0.7em 0.4em; aspect-ratio: 1;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px;
+  text-align: center; transition: all 250ms var(--ease);
+}
+.tool-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.tool-card .ico {
+  width: 32px; height: 32px; display: grid; place-items: center;
+  font-family: var(--mono-font); font-size: 0.85em; color: var(--accent);
+  background: rgba(255,255,255,0.05); border-radius: 6px;
+}
+.tool-card .nm { font-size: 0.65rem; color: var(--text-2); font-weight: 500; line-height: 1.2; }
+
+/* === SHIELD CARD === */
+.shield-card { display: flex; flex-direction: column; align-items: center; gap: 0.7em; text-align: center; padding: 1em; }
+.shield-card svg { width: clamp(64px, 8vw, 110px); height: auto; color: var(--accent); }
+.shield-card .check { stroke-dasharray: 80; stroke-dashoffset: 80; transition: stroke-dashoffset 1000ms var(--ease) 800ms; }
+.slide.visible .shield-card .check { stroke-dashoffset: 0; }
+.shield-card .nm { font-weight: 700; font-size: clamp(0.95rem, 1.3vw, 1.15rem); color: var(--text); }
+.shield-card .desc { font-size: var(--caption); color: var(--text-2); max-width: 22ch; line-height: 1.5; }
+
+/* === METRIC CARD === */
+.metric-card {
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+  border-left: 3px solid var(--primary); border-radius: 6px;
+  padding: clamp(0.9rem, 1.4vw, 1.3rem);
+}
+.metric-card .num {
+  font-size: clamp(1.5rem, 2.6vw, 2.3rem); font-weight: 900; color: var(--primary);
+  line-height: 1; letter-spacing: -0.02em; font-feature-settings: 'tnum';
+}
+.metric-card .lbl { font-size: var(--caption); color: var(--text-2); margin-top: 0.5em; line-height: 1.4; }
+
+/* === CODE BLOCK === */
+.code-block {
+  background: #0F0F18; border: 1px solid var(--border); border-radius: 8px;
+  padding: clamp(0.9rem, 1.4vw, 1.3rem);
+  font-family: var(--mono-font); font-size: var(--mono); color: var(--text-2);
+  line-height: 1.7; white-space: pre; overflow: hidden;
+  position: relative;
+}
+.code-block::before {
+  content: '●●●'; position: absolute; top: 0.7em; right: 1em;
+  color: var(--text-4); letter-spacing: 0.2em; font-size: 0.7em;
+}
+.code-block .ck { color: var(--primary); font-weight: 600; }
+.code-block .cv { color: var(--green); }
+.code-block .ct { color: var(--blue); }
+.code-block .cc { color: var(--text-4); font-style: italic; }
+
+/* === BIG QUOTE === */
+.quote-block {
+  font-family: var(--serif); font-style: italic; font-weight: 500;
+  font-size: clamp(1.4rem, 3vw, 2.6rem); line-height: 1.25;
+  color: var(--text); max-width: 26ch;
+}
+.quote-block::before { content: '“'; color: var(--primary); font-size: 1.4em; line-height: 0; vertical-align: -0.2em; margin-right: 0.1em; }
+.quote-attr { font-family: var(--mono-font); font-size: var(--caption); color: var(--text-3); letter-spacing: 0.12em; text-transform: uppercase; }
+
+/* === ARCHITECTURE STACK (final slide) === */
+.arch-stack { display: flex; flex-direction: column; gap: 8px; max-width: 920px; margin: 0 auto; width: 100%; }
+.arch-row {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 1em; align-items: center;
+  padding: clamp(0.6rem, 1vw, 0.95rem) clamp(0.9rem, 1.4vw, 1.4rem);
+  border: 1px solid var(--accent); background: rgba(255,255,255,0.025);
+  border-left-width: 4px; border-radius: 6px;
+}
+.arch-row .ico {
+  width: 28px; height: 28px; background: var(--accent); border-radius: 5px; display: grid; place-items: center;
+  font-family: var(--mono-font); font-weight: 700; color: #fff; font-size: 0.8em;
+}
+.arch-row .ttl { font-weight: 700; color: var(--text); font-size: var(--body); }
+.arch-row .sub { font-size: var(--caption); color: var(--text-3); margin-top: 2px; }
+.arch-row .tag { font-family: var(--mono-font); font-size: var(--caption); color: var(--accent); letter-spacing: 0.08em; }
+.arch-citadel {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+  border: 1px solid var(--border); border-radius: 6px; padding: 4px;
+  background: rgba(255,255,255,0.02);
+}
+.arch-citadel .sub-layer {
+  padding: 0.55em 0.7em; border-radius: 4px; color: #fff; font-weight: 700;
+  font-size: clamp(0.65rem, 0.9vw, 0.85rem); display: flex; align-items: center; gap: 0.4em;
+}
+.arch-citadel .sub-layer .glyph { width: 16px; height: 16px; background: rgba(255,255,255,0.25); border-radius: 3px; }
+
+/* === MICRO ICONS (CSS-drawn, no deps) === */
+.mi { width: 1em; height: 1em; display: inline-grid; place-items: center; font-family: var(--mono-font); font-size: 0.85em; opacity: 0.95; }
+
+/* === DASHED FLOW LINE (data path animation) === */
+.dash-flow line, .dash-flow path { stroke-dasharray: 8 6; stroke-dashoffset: 0; animation: flow-dash 3s linear infinite; }
+
+/* === DETAIL LIST (text-heavy two-col content) === */
+.detail-list { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(0.9rem, 1.6vw, 1.5rem); }
+@media (max-width: 880px) { .detail-list { grid-template-columns: 1fr; } }
+.detail {
+  display: grid; grid-template-columns: clamp(36px, 4vw, 48px) 1fr; gap: 1em;
+  padding: clamp(0.7rem, 1.2vw, 1.1rem); background: rgba(255,255,255,0.025);
+  border: 1px solid var(--border); border-radius: 6px;
+}
+.detail .glyph {
+  width: clamp(36px, 4vw, 48px); aspect-ratio: 1; background: var(--accent-soft, rgba(255,230,0,0.12));
+  border: 1px solid var(--accent); border-radius: 6px;
+  display: grid; place-items: center; color: var(--accent);
+  font-family: var(--mono-font); font-weight: 700;
+}
+.detail .nm { font-weight: 700; color: var(--text); margin-bottom: 0.3em; font-size: var(--body); }
+.detail .dx { color: var(--text-2); font-size: var(--caption); line-height: 1.55; }
+
+/* === SCROLLABLE COLUMN GUARD === */
+.col-scroll { overflow: auto; }
+
+/* === TIMELINE === */
+.timeline {
+  position: relative; display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 1.5em 0;
+}
+.timeline::before {
+  content: ''; position: absolute; top: calc(clamp(38px, 4.8vw, 60px) / 2); left: 4%; right: 4%;
+  height: 2px; background: var(--border); transform: translateY(-1px);
+}
+.timeline::after {
+  content: ''; position: absolute; top: calc(clamp(38px, 4.8vw, 60px) / 2); left: 4%;
+  width: 0; height: 2px; background: var(--primary);
+  transition: width 1400ms var(--ease) 600ms;
+  box-shadow: 0 0 8px var(--primary); transform: translateY(-1px);
+}
+.slide.visible .timeline::after { width: 92%; }
+.timeline .node {
+  display: flex; flex-direction: column; align-items: center; gap: 0.6em;
+  flex: 1; position: relative; z-index: 2; max-width: 14%;
+}
+.timeline .node .dot {
+  width: clamp(38px, 4.8vw, 60px); aspect-ratio: 1; border-radius: 50%;
+  background: var(--accent, var(--surface));
+  border: 2px solid var(--accent, var(--primary));
+  display: grid; place-items: center; color: #fff;
+  font-family: var(--mono-font); font-weight: 700;
+  box-shadow: 0 0 20px var(--accent);
+}
+.timeline .node .nm { font-size: clamp(0.7rem, 0.95vw, 0.9rem); font-weight: 700; text-align: center; color: var(--text); }
+.timeline .node .ic { font-size: clamp(0.62rem, 0.8vw, 0.78rem); color: var(--text-3); text-align: center; line-height: 1.3; }
+
+/* === Print === */
+@media print {
+  html, body { background: var(--bg); height: auto; overflow: visible; }
+  .slide { height: auto; min-height: 100vh; page-break-after: always; }
+  .nav-dots, .progress-rail, .kbd-hint { display: none !important; }
+  .reveal, .reveal-x, .reveal-r, .reveal-scale { opacity: 1 !important; transform: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation chrome -->
+<div class="nav-dots" id="navDots"></div>
+<div class="progress-rail"><div class="progress-fill" id="progressFill"></div></div>
+<div class="kbd-hint"><span class="kbd">←</span><span class="kbd">→</span><span>navigate</span></div>
+
+<!-- ============================================================
+     SLIDE 01 — TITLE CARD
+     ============================================================ -->
+<section class="slide s-title grid-bg" data-title="Title">
+  <div class="mesh"></div>
+  <div class="slide-content" style="justify-content: center; gap: clamp(0.8rem, 2vh, 2rem);">
+    <div class="reveal d1 eyebrow">EY · Ernst &amp; Young · v1.0 / 2026</div>
+    <div class="reveal d2 wordmark">AI+</div>
+    <div class="reveal d3 product">FACTORY Hub</div>
+    <div class="yellow-line"></div>
+    <div class="reveal d6 lede" style="max-width: 60ch;">
+      Enterprise AI Infrastructure &amp; Governance — the architecture that takes
+      generative AI from <span class="text-yellow">information retrieval</span> to
+      <em class="serif" style="color:#fff;">enterprise intelligence</em>.
+    </div>
+    <div class="reveal d8 caption" style="max-width: 60ch;">
+      A platform that pairs Microsoft&rsquo;s Azure
+      Landing Zone with the Citadel Governance Hub, a governed semantic data layer,
+      a framework-agnostic agentic stack, and a hub-spoke topology built to scale.
+    </div>
+  </div>
+  <div class="meta-row">
+    <span class="caption mono">EY · Confidential</span>
+    <span class="caption mono">Press → to begin</span>
+  </div>
+  <div class="slide-marker">01 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 02 — POSITIONING STATEMENT
+     ============================================================ -->
+<section class="slide grid-bg" data-title="Positioning">
+  <div class="slide-eyebrow">Positioning</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <div class="reveal d1 eyebrow">The paradigm has shifted</div>
+    <h1 class="reveal d2 title-1">Coding is no longer the primary bottleneck. <div class="text-yellow block">Architecture provisioning and product management are.</span></h1>
+    <div class="reveal d4 grid-2" style="margin-top: clamp(0.8rem, 2vh, 1.4rem);">
+      <div class="card-panel" style="--accent: var(--red);">
+        <div class="kicker" style="color: var(--red);">The old bottleneck</div>
+        <h3 class="title-2" style="margin-top: 0.5em;">Engineering throughput</h3>
+        <p class="body" style="margin-top: 0.5em;">
+          Traditionally, software delivery was constrained by how fast teams could write,
+          test, and deploy code. With AI-assisted development, that constraint has dissolved.
+        </p>
+      </div>
+      <div class="card-panel" style="--accent: var(--green);">
+        <div class="kicker" style="color: var(--green);">The new bottleneck</div>
+        <h3 class="title-2" style="margin-top: 0.5em;">Platform &amp; product velocity</h3>
+        <p class="body" style="margin-top: 0.5em;">
+          Today, speed is gated by how quickly infrastructure is provisioned, governed, and
+          how product teams can iterate on requirements without waiting for platform approval.
+        </p>
+      </div>
+    </div>
+    <div class="reveal d6 lede" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); max-width: 86ch;">
+      The AI+ FACTORY Hub exists to eliminate these new bottlenecks. It provides a
+      <strong style="color:#fff;">pre-engineered, governed platform</strong> that lets product teams move at the speed of AI
+      while enterprise architecture maintains control over identity, data, cost, and compliance.
+    </div>
+    <div class="reveal d8 row" style="gap: clamp(0.5rem, 1.4vw, 1.4rem); flex-wrap: wrap; margin-top: clamp(0.6rem, 1.6vh, 1rem);">
+      <span class="chip chip-yellow"><span class="chip-dot"></span>Platform-as-a-service</span>
+      <span class="chip"><span class="chip-dot"></span>Self-service provisioning</span>
+      <span class="chip"><span class="chip-dot"></span>Governance-by-construction</span>
+      <span class="chip"><span class="chip-dot"></span>Product-team velocity</span>
+    </div>
+  </div>
+  <div class="slide-marker">02 / 46</div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 03 — PLATFORM VISION: PRODUCT-ORIENTED DELIVERY
+     ============================================================ -->
+<section class="slide" data-title="Platform Vision">
+  <div class="ambient-orb" style="width: 520px; height: 520px; background: var(--blue); top: -200px; right: -160px; opacity: 0.12;"></div>
+  <div class="slide-eyebrow">Platform Vision</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <div class="reveal d1 eyebrow">Product-oriented delivery · Multi-vendor · Framework-agnostic</div>
+    <h1 class="reveal d2 title-display" style="font-size: clamp(1.6rem, 4vw, 3.2rem);">Build AI products with<br><span class="text-yellow">any model</span> — no lock-in.</h1>
+    <div class="reveal d4 grid-2" style="margin-top: clamp(0.8rem, 2vh, 1.4rem);">
+      <div class="stack-tight">
+        <p class="lede">
+          The AI+ FACTORY Hub is a <strong style="color:#fff;">product delivery platform</strong>.
+          Each team picks the best framework and the best model for their use case —
+          without asking permission, without rebuilding governance, and without
+          vendor lock-in.
+        </p>
+        <p class="body">
+          The Hub provides the <strong>governance substrate</strong>: identity, audit,
+          cost control, content safety, and data access policies. Teams provide the
+          use case, the prompt engineering, and the business logic. The platform
+          handles everything else.
+        </p>
+      </div>
+      <div class="stack-tight">
+        <div class="code-block" style="font-size: clamp(0.65rem, 0.9vw, 0.8rem);">
+<span class="cc"># Agent registry: framework + model, no lock-in</span>
+<span class="ck">agent:</span> <span class="cv">finance-risk-assistant</span>
+<span class="ck">framework:</span> <span class="cv">LangGraph</span>   <span class="cc"># or Claude SDK, OpenAI SDK, MS Agent FW</span>
+<span class="ck">model:</span>
+  <span class="ck">primary:</span> <span class="cv">gpt-4o</span>      <span class="cc"># OpenAI via Azure</span>
+  <span class="ck">fallback:</span> <span class="cv">claude-3-5-sonnet</span>  <span class="cc"># Anthropic via Bedrock</span>
+  <span class="ck">cost_opt:</span> <span class="cv">mistral-large</span>    <span class="cc"># Mistral via Azure</span>
+<span class="ck">tools:</span> [ <span class="cv">resolve_metric</span>, <span class="cv">send_alert</span>, <span class="cv">draft_email</span> ]
+<span class="ck">data_scope:</span> <span class="ct">unity://finance.risk_metrics/*</span>
+<span class="ck">cost_ceiling:</span> <span class="ct">2500</span>  <span class="cc"># USD/month, kill-switch at 110%</span></div>
+      </div>
+    </div>
+    <div class="reveal d6" style="margin-top: clamp(0.8rem, 2vh, 1.2rem);">
+      <div class="kicker" style="margin-bottom: 0.6rem;">Supported model providers</div>
+      <div class="row-tight" style="gap: 0.6rem; flex-wrap: wrap;">
+        <span class="chip" style="background: rgba(0,120,212,0.15); border-color: rgba(0,120,212,0.4); color: #4fc3f7;"><span class="chip-dot"></span>Microsoft Azure OpenAI</span>
+        <span class="chip" style="background: rgba(16,163,127,0.15); border-color: rgba(16,163,127,0.4); color: #19c37d;"><span class="chip-dot"></span>OpenAI</span>
+        <span class="chip" style="background: rgba(234,67,53,0.15); border-color: rgba(234,67,53,0.4); color: #f28b82;"><span class="chip-dot"></span>Google Gemini</span>
+        <span class="chip" style="background: rgba(255,153,0,0.15); border-color: rgba(255,153,0,0.4); color: #ffca28;"><span class="chip-dot"></span>AWS Bedrock</span>
+        <span class="chip" style="background: rgba(118,185,0,0.15); border-color: rgba(118,185,0,0.4); color: #aed581;"><span class="chip-dot"></span>NVIDIA</span>
+        <span class="chip" style="background: rgba(250,62,62,0.15); border-color: rgba(250,62,62,0.4); color: #ef9a9a;"><span class="chip-dot"></span>Mistral AI</span>
+      </div>
+    </div>
+    <p class="reveal d8 caption center" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); max-width: 80ch;">
+      Teams choose the model and framework that fits their use case. The Hub enforces
+      governance, security, and audit — regardless of which provider sits behind the API.
+    </p>
+  </div>
+  <div class="slide-marker">03 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 04 — AGENDA
+     ============================================================ -->
+<section class="slide" data-title="Agenda">
+  <div class="slide-eyebrow">Agenda · 5 chapters · ~25 minutes</div>
+  <div class="slide-content stack" style="justify-content: center; gap: clamp(0.4rem, 1vh, 0.8rem);">
+    <h1 class="reveal d1 title-display" style="font-size: clamp(1.5rem, 4vw, 3rem);">The Architecture<br>of <em class="serif text-yellow">Intelligence</em></h1>
+    <div class="stack-tight" style="margin-top: clamp(0.3rem, 0.8vh, 0.6rem); gap: clamp(0.3rem, 0.8vh, 0.6rem);">
+      <div class="reveal-x d2 agenda-card" style="--accent: var(--blue); padding: clamp(0.5rem, 1.2vw, 0.9rem) clamp(0.8rem, 1.6vw, 1.4rem);">
+        <span class="num" style="font-size: clamp(1.4rem, 2.8vw, 2.2rem);">01</span>
+        <div><div class="title" style="font-size: clamp(0.9rem, 1.4vw, 1.2rem);">Foundation &mdash; Azure Landing Zone</div><div class="desc" style="font-size: clamp(0.7rem, 1.1vw, 0.9rem);">A secure, opinionated infrastructure substrate that hosts everything else. Identity, network, operations &mdash; on day one.</div></div>
+        <span class="duration">~4 min</span>
+      </div>
+      <div class="reveal-x d3 agenda-card" style="--accent: var(--purple); padding: clamp(0.5rem, 1.2vw, 0.9rem) clamp(0.8rem, 1.6vw, 1.4rem);">
+        <span class="num" style="font-size: clamp(1.4rem, 2.8vw, 2.2rem);">02</span>
+        <div><div class="title" style="font-size: clamp(0.9rem, 1.4vw, 1.2rem);">Governance &mdash; Citadel &amp; APIM Gateway</div><div class="desc" style="font-size: clamp(0.7rem, 1.1vw, 0.9rem);">Four interlocking layers that turn AI into a governed enterprise capability. Every request authenticated, masked, routed, and logged.</div></div>
+        <span class="duration">~5 min</span>
+      </div>
+      <div class="reveal-x d4 agenda-card" style="--accent: var(--green); padding: clamp(0.5rem, 1.2vw, 0.9rem) clamp(0.8rem, 1.6vw, 1.4rem);">
+        <span class="num" style="font-size: clamp(1.4rem, 2.8vw, 2.2rem);">03</span>
+        <div><div class="title" style="font-size: clamp(0.9rem, 1.4vw, 1.2rem);">Data &mdash; Semantic Layer &amp; OneLake</div><div class="desc" style="font-size: clamp(0.7rem, 1.1vw, 0.9rem);">Author a metric once, reuse it everywhere. Identity-aware row filters and column masks travel with the query, not the consumer.</div></div>
+        <span class="duration">~5 min</span>
+      </div>
+      <div class="reveal-x d5 agenda-card" style="--accent: var(--teal); padding: clamp(0.5rem, 1.2vw, 0.9rem) clamp(0.8rem, 1.6vw, 1.4rem);">
+        <span class="num" style="font-size: clamp(1.4rem, 2.8vw, 2.2rem);">04</span>
+        <div><div class="title" style="font-size: clamp(0.9rem, 1.4vw, 1.2rem);">Intelligence &mdash; Agentic Layer</div><div class="desc" style="font-size: clamp(0.7rem, 1.1vw, 0.9rem);">Reasoning, context, and execution &mdash; separated by design. The model never executes anything; every action passes through a validated tool interface.</div></div>
+        <span class="duration">~6 min</span>
+      </div>
+      <div class="reveal-x d6 agenda-card" style="--accent: var(--orange); padding: clamp(0.5rem, 1.2vw, 0.9rem) clamp(0.8rem, 1.6vw, 1.4rem);">
+        <span class="num" style="font-size: clamp(1.4rem, 2.8vw, 2.2rem);">05</span>
+        <div><div class="title" style="font-size: clamp(0.9rem, 1.4vw, 1.2rem);">Scale &mdash; Hub-Spoke Topology</div><div class="desc" style="font-size: clamp(0.7rem, 1.1vw, 0.9rem);">Govern central, innovate local. One contract, many spokes. The factory grows by addition, not rewrite.</div></div>
+        <span class="duration">~5 min</span>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">04 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 05 — CHAPTER DIVIDER 01
+     ============================================================ -->
+<section class="slide chapter-divider" data-title="Chapter 01" style="--accent: var(--blue);">
+  <div class="chapter-grid"></div>
+  <div class="slide-content row middle" style="justify-content: space-between; gap: clamp(1rem, 3vw, 3rem);">
+    <div class="reveal-scale d1 chapter-num text-blue">01</div>
+    <div class="stack" style="flex: 1; max-width: 56ch;">
+      <div class="reveal d2 chapter-label text-blue">Chapter One · Foundation</div>
+      <h2 class="reveal d3 chapter-title">The Azure<br>Landing Zone.</h2>
+      <p class="reveal d5 chapter-blurb">
+        Before there are agents, before there is data, before there is governance,
+        there is a substrate &mdash; a coherent, opinionated, enterprise-scale piece
+        of Azure that has already answered the boring questions about networks,
+        identity, and operations. The Landing Zone is that substrate.
+      </p>
+      <div class="reveal d7 row" style="gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem;">
+        <span class="chip"><span class="chip-dot text-blue"></span>3 slabs &mdash; network, identity, ops</span>
+        <span class="chip"><span class="chip-dot text-blue"></span>2&ndash;4 weeks to production</span>
+        <span class="chip"><span class="chip-dot text-blue"></span>Extends ALZ &mdash; doesn&rsquo;t replace it</span>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">05 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 06 — WHAT IS THE LANDING ZONE
+     ============================================================ -->
+<section class="slide" data-title="What is the Landing Zone">
+  <div class="slide-eyebrow">1.1 · Foundation</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">The Foundation: <span class="text-yellow">Azure Landing Zone</span></h1>
+    <p class="reveal d2 lede">Enterprise-scale infrastructure substrate for AI workloads &mdash; before a single agent is built.</p>
+    <div class="reveal d4 grid-2" style="align-items: center; margin-top: clamp(0.6rem, 1.6vh, 1rem);">
+      <div class="stack-tight">
+        <p class="body">
+          A Landing Zone is not a server, not a subscription, and not a template.
+          It is a <strong>pre-engineered piece of Azure</strong> &mdash; a vetted
+          composition of identity, networking, security, monitoring, and policy
+          that an organisation can drop a workload into and have it inherit
+          enterprise standards by default.
+        </p>
+        <p class="body">
+          Think of it as the difference between buying a plot of land and buying
+          a serviced industrial estate. Both let you build a factory. Only one
+          gives you power, water, sewerage, fibre, fencing, fire suppression
+          and a postal code on day one.
+        </p>
+        <p class="body">
+          For AI, that distinction is decisive. Without a Landing Zone, every
+          team building an agent must <em>also</em> build the network controls,
+          the identity model, the secrets management, and the audit pipeline.
+          With one, they inherit those things and focus on the agent.
+        </p>
+      </div>
+      <div class="card-panel-glass" style="background: rgba(24,140,229,0.06); border-color: rgba(24,140,229,0.3);">
+        <div class="kicker text-blue">What you get on day one</div>
+        <ul class="bullet-list" style="--accent: var(--blue); margin-top: 0.8em;">
+          <li><strong>Network isolation</strong> &mdash; hub-spoke VNets, private endpoints, Azure Firewall, NSGs.</li>
+          <li><strong>Identity backbone</strong> &mdash; Microsoft Entra ID, RBAC, managed identities, conditional access.</li>
+          <li><strong>Operational baseline</strong> &mdash; central monitoring, logging, backup, policy enforcement.</li>
+          <li><strong>Compliance posture</strong> &mdash; Azure Policy, Defender for Cloud, Purview wired in.</li>
+          <li><strong>Cost discipline</strong> &mdash; tagging, budgets, chargeback ready to use.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">06 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 07 — THE THREE SLABS (ISOMETRIC)
+     ============================================================ -->
+<section class="slide" data-title="Three Slabs">
+  <div class="slide-eyebrow">1.2 · Three slabs of the substrate</div>
+  <div class="slide-content grid-2 middle" style="gap: clamp(1.4rem, 3vw, 3rem); align-items: center;">
+    <div class="stack" style="max-width: 60ch;">
+      <h1 class="reveal d1 title-1" style="font-size: clamp(1.3rem, 3vw, 2.4rem);">Three slabs, stacked.<br>One <span class="text-yellow">substrate</span>.</h1>
+      <p class="reveal d2 lede" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">
+        The Landing Zone is conceptually three horizontal slabs that an AI
+        workload sits on. Each slab has its own owners, its own controls,
+        and its own day-2 operating model.
+      </p>
+      <div class="reveal d4 stack-tight" style="margin-top: 0.6rem; gap: clamp(0.4rem, 0.8vh, 0.6rem);">
+        <div class="detail" style="--accent: var(--blue); --accent-soft: rgba(24,140,229,0.14); padding: clamp(0.5rem, 1vw, 0.8rem);">
+          <div class="glyph" style="width: clamp(28px, 3vw, 36px); height: clamp(28px, 3vw, 36px);">N</div>
+          <div>
+            <div class="nm text-blue" style="font-size: clamp(0.8rem, 1.2vw, 1rem);">Network &amp; Security</div>
+            <div class="dx" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Hub-spoke VNets, private endpoints, Azure Firewall, DDoS, WAF, NSGs. The bottom slab decides what can talk to what.</div>
+          </div>
+        </div>
+        <div class="detail" style="--accent: var(--purple); --accent-soft: rgba(117,14,92,0.14); padding: clamp(0.5rem, 1vw, 0.8rem);">
+          <div class="glyph" style="width: clamp(28px, 3vw, 36px); height: clamp(28px, 3vw, 36px);">I</div>
+          <div>
+            <div class="nm" style="color:#B266A8; font-size: clamp(0.8rem, 1.2vw, 1rem);">Identity &amp; Access</div>
+            <div class="dx" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Entra ID, managed identities, RBAC, Privileged Identity Management. The middle slab decides who can do what.</div>
+          </div>
+        </div>
+        <div class="detail" style="--accent: var(--primary); --accent-soft: rgba(255,230,0,0.12); padding: clamp(0.5rem, 1vw, 0.8rem);">
+          <div class="glyph" style="width: clamp(28px, 3vw, 36px); height: clamp(28px, 3vw, 36px);">O</div>
+          <div>
+            <div class="nm text-yellow" style="font-size: clamp(0.8rem, 1.2vw, 1rem);">Operations &amp; Monitoring</div>
+            <div class="dx" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Log Analytics, Azure Monitor, Defender for Cloud, alerting, backup. The top slab decides how the platform is observed and recovered.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="reveal-scale d4" style="position: relative; width: 100%; max-width: 420px; aspect-ratio: 1 / 1.15; display: grid; place-items: center;">
+      <svg viewBox="0 0 400 460" style="width: 100%; height: 100%; overflow: visible;">
+        <defs>
+          <filter id="glow-blue" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="glow-purple" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="glow-yellow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <linearGradient id="grad-blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(24,140,229,0.9)"/><stop offset="100%" stop-color="rgba(24,140,229,0.5)"/></linearGradient>
+          <linearGradient id="grad-purple" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(117,14,92,0.9)"/><stop offset="100%" stop-color="rgba(117,14,92,0.5)"/></linearGradient>
+          <linearGradient id="grad-yellow" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(255,230,0,0.9)"/><stop offset="100%" stop-color="rgba(255,230,0,0.5)"/></linearGradient>
+        </defs>
+        <!-- Base platform -->
+        <ellipse cx="200" cy="400" rx="160" ry="40" fill="rgba(255,255,255,0.03)" stroke="var(--border)" stroke-width="1"/>
+        <!-- Animated connection lines -->
+        <g opacity="0.4">
+          <line x1="60" y1="320" x2="60" y2="400" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="0" to="-16" dur="1.5s" repeatCount="indefinite"/></line>
+          <line x1="200" y1="320" x2="200" y2="400" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="0" to="-16" dur="1.5s" repeatCount="indefinite"/></line>
+          <line x1="340" y1="320" x2="340" y2="400" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="0" to="-16" dur="1.5s" repeatCount="indefinite"/></line>
+          <line x1="60" y1="200" x2="60" y2="280" stroke="var(--purple)" stroke-width="1.5" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="0" to="-16" dur="1.5s" begin="0.3s" repeatCount="indefinite"/></line>
+          <line x1="200" y1="200" x2="200" y2="280" stroke="var(--purple)" stroke-width="1.5" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="0" to="-16" dur="1.5s" begin="0.3s" repeatCount="indefinite"/></line>
+          <line x1="340" y1="200" x2="340" y2="280" stroke="var(--purple)" stroke-width="1.5" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="0" to="-16" dur="1.5s" begin="0.3s" repeatCount="indefinite"/></line>
+          <line x1="60" y1="80" x2="60" y2="160" stroke="var(--primary)" stroke-width="1.5" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="0" to="-16" dur="1.5s" begin="0.6s" repeatCount="indefinite"/></line>
+          <line x1="200" y1="80" x2="200" y2="160" stroke="var(--primary)" stroke-width="1.5" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="0" to="-16" dur="1.5s" begin="0.6s" repeatCount="indefinite"/></line>
+          <line x1="340" y1="80" x2="340" y2="160" stroke="var(--primary)" stroke-width="1.5" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="0" to="-16" dur="1.5s" begin="0.6s" repeatCount="indefinite"/></line>
+        </g>
+        <!-- Layer 1: Network -->
+        <g class="reveal d5">
+          <rect x="50" y="320" width="300" height="80" rx="8" fill="url(#grad-blue)" filter="url(#glow-blue)" opacity="0.9"/>
+          <rect x="50" y="320" width="300" height="80" rx="8" fill="none" stroke="rgba(24,140,229,0.6)" stroke-width="2"/>
+          <text x="200" y="352" text-anchor="middle" fill="#fff" font-size="16" font-weight="700" font-family="Inter, sans-serif">Network &amp; Security</text>
+          <text x="200" y="372" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="11" font-family="JetBrains Mono, monospace">VNets · Firewall · NSG</text>
+          <!-- Animated particles -->
+          <circle cx="80" cy="360" r="3" fill="var(--blue)" opacity="0.8"><animate attributeName="cy" values="360;340;360" dur="2s" repeatCount="indefinite"/></circle>
+          <circle cx="200" cy="360" r="3" fill="var(--blue)" opacity="0.8"><animate attributeName="cy" values="360;340;360" dur="2s" begin="0.5s" repeatCount="indefinite"/></circle>
+          <circle cx="320" cy="360" r="3" fill="var(--blue)" opacity="0.8"><animate attributeName="cy" values="360;340;360" dur="2s" begin="1s" repeatCount="indefinite"/></circle>
+        </g>
+        <!-- Layer 2: Identity -->
+        <g class="reveal d6">
+          <rect x="50" y="200" width="300" height="80" rx="8" fill="url(#grad-purple)" filter="url(#glow-purple)" opacity="0.9"/>
+          <rect x="50" y="200" width="300" height="80" rx="8" fill="none" stroke="rgba(177,102,184,0.6)" stroke-width="2"/>
+          <text x="200" y="232" text-anchor="middle" fill="#fff" font-size="16" font-weight="700" font-family="Inter, sans-serif">Identity &amp; Access</text>
+          <text x="200" y="252" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="11" font-family="JetBrains Mono, monospace">Entra ID · RBAC · PIM</text>
+          <!-- Lock icons -->
+          <text x="80" y="245" fill="rgba(255,255,255,0.5)" font-size="18">🔒</text>
+          <text x="320" y="245" fill="rgba(255,255,255,0.5)" font-size="18">🔐</text>
+          <!-- Pulse ring -->
+          <ellipse cx="200" cy="240" rx="120" ry="30" fill="none" stroke="rgba(177,102,184,0.3)" stroke-width="1">
+            <animate attributeName="rx" values="120;140;120" dur="3s" repeatCount="indefinite"/>
+            <animate attributeName="ry" values="30;35;30" dur="3s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.3;0;0.3" dur="3s" repeatCount="indefinite"/>
+          </ellipse>
+        </g>
+        <!-- Layer 3: Operations -->
+        <g class="reveal d7">
+          <rect x="50" y="80" width="300" height="80" rx="8" fill="url(#grad-yellow)" filter="url(#glow-yellow)" opacity="0.9"/>
+          <rect x="50" y="80" width="300" height="80" rx="8" fill="none" stroke="rgba(255,230,0,0.6)" stroke-width="2"/>
+          <text x="200" y="112" text-anchor="middle" fill="#1A1A24" font-size="16" font-weight="700" font-family="Inter, sans-serif">Operations</text>
+          <text x="200" y="132" text-anchor="middle" fill="rgba(26,26,36,0.7)" font-size="11" font-family="JetBrains Mono, monospace">Monitor · Defender · Backup</text>
+          <!-- Scan line effect -->
+          <rect x="52" y="82" width="296" height="2" fill="rgba(255,255,255,0.8)">
+            <animate attributeName="y" values="82;158;82" dur="2.5s" repeatCount="indefinite"/>
+          </rect>
+          <!-- Status dots -->
+          <circle cx="80" cy="145" r="4" fill="#2DB757"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>
+          <circle cx="95" cy="145" r="4" fill="#2DB757"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" begin="0.3s" repeatCount="indefinite"/></circle>
+          <circle cx="110" cy="145" r="4" fill="#2DB757"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" begin="0.6s" repeatCount="indefinite"/></circle>
+        </g>
+        <!-- Floating labels -->
+        <g opacity="0.6">
+          <text x="370" y="360" fill="var(--blue)" font-size="10" font-family="JetBrains Mono, monospace">L1</text>
+          <text x="370" y="240" fill="#C57BBC" font-size="10" font-family="JetBrains Mono, monospace">L2</text>
+          <text x="370" y="120" fill="var(--primary)" font-size="10" font-family="JetBrains Mono, monospace">L3</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <div class="slide-marker">07 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 09 — LANDING ZONE AS CONTAINER
+     ============================================================ -->
+<section class="slide" data-title="LZ as Container">
+  <div class="slide-eyebrow">1.4 · The Landing Zone hosts everything</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">A single secure container <span class="text-yellow">for the entire AI factory</span>.</h1>
+    <p class="reveal d2 lede">
+      Citadel, the data services, the agent spokes &mdash; everything that follows in this deck
+      lives <em>inside</em> the Landing Zone. The substrate is not parallel to the AI platform;
+      it surrounds it.
+    </p>
+    <div class="reveal d3" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); display: grid; place-items: center;">
+      <div style="position: relative; width: 100%; max-width: 760px; aspect-ratio: 2.4 / 1; border: 2px solid var(--blue); border-radius: 12px; padding: clamp(2rem, 5vh, 3rem) clamp(1rem, 2vw, 2rem) clamp(1rem, 2vw, 2rem); background: rgba(24,140,229,0.04);">
+        <div class="caption text-blue" style="position: absolute; top: 0.6rem; left: 1rem; font-family: var(--mono-font); letter-spacing: 0.18em;">AZURE LANDING ZONE · platform subscriptions</div>
+        <div class="grid-3" style="height: 100%; gap: 0.8rem;">
+          <div style="background: rgba(117,14,92,0.25); border: 1px solid var(--purple); border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; gap: 0.4rem;">
+            <div class="caption" style="color: #C57BBC; letter-spacing: 0.1em;">CITADEL HUB</div>
+            <div class="title-2" style="font-size: clamp(0.9rem, 1.3vw, 1.2rem);">Governance core</div>
+            <div class="caption text-3">Gateway · Policy · Identity · Security</div>
+          </div>
+          <div style="background: rgba(39,172,170,0.25); border: 1px solid var(--teal); border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; gap: 0.4rem;">
+            <div class="caption text-teal" style="letter-spacing: 0.1em;">AGENT SPOKES</div>
+            <div class="title-2" style="font-size: clamp(0.9rem, 1.3vw, 1.2rem);">Workload tenancy</div>
+            <div class="caption text-3">Finance · HR · Legal · Ops · IT</div>
+          </div>
+          <div style="background: rgba(45,183,87,0.25); border: 1px solid var(--green); border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; gap: 0.4rem;">
+            <div class="caption text-green" style="letter-spacing: 0.1em;">DATA SERVICES</div>
+            <div class="title-2" style="font-size: clamp(0.9rem, 1.3vw, 1.2rem);">Governed access</div>
+            <div class="caption text-3">OneLake · Unity · MetricFlow</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="reveal d6 caption center" style="margin: 0.6rem auto 0; max-width: 70ch;">
+      VNet peering connects the hub and spokes. Every cross-subscription path is private,
+      every identity is Entra-issued, and every policy is inherited from the management group above.
+    </p>
+  </div>
+  <div class="slide-marker">09 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 10 — INTEGRATION WITH EXISTING ALZ
+     ============================================================ -->
+<section class="slide" data-title="Integration">
+  <div class="slide-eyebrow">1.5 · Seamless enterprise integration</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Extends existing investments &mdash; <span class="text-yellow">no rip-and-replace</span>.</h1>
+    <p class="reveal d2 lede">
+      If your enterprise has already adopted Microsoft&rsquo;s Cloud Adoption Framework Landing Zones,
+      the AI+ FACTORY Hub snaps into them. It is a <strong>supplemental design area</strong> &mdash;
+      one that extends each of the eight ALZ design areas with AI-specific concerns rather than
+      replacing them.
+    </p>
+    <div class="reveal d4" style="margin-top: clamp(0.6rem, 1.6vh, 1rem);">
+      <table class="data-table">
+        <thead>
+          <tr><th>ALZ design area</th><th>Citadel / AI+ extension</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Network topology &amp; connectivity</strong></td><td>Hub-spoke VNet peering, private endpoints for Azure OpenAI, Foundry, Databricks, OneLake.</td></tr>
+          <tr><td><strong>Identity &amp; access management</strong></td><td>Entra ID extended to AI agents and tools via managed identities and OBO flows.</td></tr>
+          <tr><td><strong>Security</strong></td><td>Defender for Cloud and Purview applied to AI workloads, prompt &amp; PII inspection at APIM.</td></tr>
+          <tr><td><strong>Governance &amp; compliance</strong></td><td>Azure Policy inheritance + Citadel policy plane for AI-specific rules (model allow-list, content safety, residency).</td></tr>
+          <tr><td><strong>Management &amp; operations</strong></td><td>Unified monitoring &mdash; APIM, agents, models, data, and tools share one Log Analytics workspace.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="reveal d6 caption" style="margin-top: 0.6rem;">
+      Supplemental design &mdash; <em>extends</em>, does not replace. CAF&rsquo;s ALZ remains the source of truth for shared services.
+    </p>
+  </div>
+  <div class="slide-marker">10 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 11 — CHAPTER DIVIDER 02 (Governance)
+     ============================================================ -->
+<section class="slide chapter-divider" data-title="Chapter 02" style="--accent: var(--purple);">
+  <div class="chapter-grid"></div>
+  <div class="slide-content row middle" style="justify-content: space-between; gap: clamp(1rem, 3vw, 3rem);">
+    <div class="reveal-scale d1 chapter-num" style="color: #B266A8;">02</div>
+    <div class="stack" style="flex: 1; max-width: 56ch;">
+      <div class="reveal d2 chapter-label" style="color: #B266A8;">Chapter Two · Governance</div>
+      <h2 class="reveal d3 chapter-title">The Citadel<br>Governance Hub.</h2>
+      <p class="reveal d5 chapter-blurb">
+        Governance is not a policy document. It is an architecture. Citadel is
+        four interlocking layers &mdash; gateway, control plane, identity, and security
+        fabric &mdash; that together turn AI from an unmanaged risk surface into a
+        governed, auditable, costed enterprise capability.
+      </p>
+      <div class="reveal d7 row" style="gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem;">
+        <span class="chip"><span class="chip-dot" style="color:#B266A8;"></span>4 layers · 1 contract</span>
+        <span class="chip"><span class="chip-dot" style="color:#B266A8;"></span>~80% reduction in shadow-AI risk</span>
+        <span class="chip"><span class="chip-dot" style="color:#B266A8;"></span>7-year audit trail</span>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">11 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 12 — INTRODUCING CITADEL (LAYER CAKE)
+     ============================================================ -->
+<section class="slide" data-title="Citadel Hub">
+  <div class="slide-eyebrow">2.1 · The heart of the platform</div>
+  <div class="slide-content grid-2 middle" style="gap: clamp(1.4rem, 3vw, 3rem); align-items: center;">
+    <div class="stack" style="max-width: 58ch;">
+      <h1 class="reveal d1 title-1" style="font-size: clamp(1.3rem, 3vw, 2.4rem);">The Citadel:<br><span class="text-yellow">a four-layer architecture for trust</span>.</h1>
+      <p class="reveal d2 lede" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">
+        The four layers are not optional and not interchangeable.
+        Each one is responsible for a single, well-defined concern, and each one
+        is enforced at runtime &mdash; not just documented in a wiki.
+      </p>
+      <p class="reveal d4 body" style="font-size: clamp(0.75rem, 1.1vw, 0.9rem);">
+        Read bottom-to-top: <strong>Layer&nbsp;1</strong> is the door &mdash; everything
+        enters here. <strong>Layer&nbsp;2</strong> watches what passes through.
+        <strong>Layer&nbsp;3</strong> assigns and verifies who is doing it.
+        <strong>Layer&nbsp;4</strong> wraps the whole thing in security primitives that
+        protect the data, the secrets, and the network paths.
+      </p>
+      <div class="reveal d6 hero-stat" style="margin-top: 0.4rem;">
+        <div class="num" style="font-size: clamp(2rem, 4vw, 3.5rem);">~80<small>%</small></div>
+        <div class="label" style="font-size: clamp(0.8rem, 1.2vw, 1rem);">reduction in shadow-AI data-breach exposure once Citadel is the only authorised path to LLM endpoints.</div>
+      </div>
+    </div>
+    <div class="reveal-scale d3" style="min-width: 280px;">
+      <div class="layer-cake">
+        <div class="layer l4"><span class="glyph">L4</span><div><div class="l-title">Security Fabric</div><div class="l-sub">Network, data, secrets, identity hardening</div></div><span class="l-tag">Purple</span></div>
+        <div class="layer l3"><span class="glyph">L3</span><div><div class="l-title">Agent Identity</div><div class="l-sub">Entra-issued identities for every agent and tool</div></div><span class="l-tag">Teal</span></div>
+        <div class="layer l2"><span class="glyph">L2</span><div><div class="l-title">AI Control Plane</div><div class="l-sub">Policy, observability, lineage, cost</div></div><span class="l-tag">Orange</span></div>
+        <div class="layer l1"><span class="glyph">L1</span><div><div class="l-title">Governance Hub · APIM Gateway</div><div class="l-sub">Single entry point for all AI traffic</div></div><span class="l-tag">Blue</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">12 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 13 — WHY GOVERNANCE MATTERS
+     ============================================================ -->
+<section class="slide" data-title="Why governance">
+  <div class="slide-eyebrow">2.2 · Why a hub at all?</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Without a hub, every team rebuilds the same five things <em class="serif text-yellow">badly</em>.</h1>
+    <div class="reveal d3 grid-2" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: stretch;">
+      <div class="card-panel" style="--accent: var(--red);">
+        <div class="kicker" style="color: var(--red);">Without Citadel</div>
+        <ul class="bullet-list" style="--accent: var(--red); margin-top: 0.6em;">
+          <li><strong>Bring-your-own auth.</strong> Every team integrates Entra differently &mdash; or worse, ships with API keys.</li>
+          <li><strong>No rate limit.</strong> A runaway notebook can burn six figures of token budget overnight.</li>
+          <li><strong>No content safety.</strong> Prompt-injection and jailbreak vectors hit the model directly.</li>
+          <li><strong>No PII masking.</strong> Customer data leaves the perimeter the moment a prompt is sent.</li>
+          <li><strong>No audit.</strong> When legal asks &ldquo;what did the model see?&rdquo;, no one can answer.</li>
+        </ul>
+      </div>
+      <div class="card-panel" style="--accent: var(--green);">
+        <div class="kicker" style="color: var(--green);">With Citadel</div>
+        <ul class="bullet-list" style="--accent: var(--green); margin-top: 0.6em;">
+          <li><strong>One auth model.</strong> Every caller is an Entra principal with a managed identity, end-to-end.</li>
+          <li><strong>Token &amp; cost limits.</strong> APIM enforces per-team, per-app, per-model quotas, with chargeback.</li>
+          <li><strong>Content safety inline.</strong> Azure AI Content Safety + jailbreak detection on the request path.</li>
+          <li><strong>PII masking on-ramp / off-ramp.</strong> Sensitive entities are redacted and re-hydrated server-side.</li>
+          <li><strong>Complete audit.</strong> Who, what, when, where, why, how &mdash; for seven years.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="reveal d6 caption center" style="margin-top: 0.6rem; max-width: 80ch;">
+      The hub is the place where these five concerns are <em>solved once</em>, then inherited by every spoke, every framework, every agent.
+    </p>
+  </div>
+  <div class="slide-marker">13 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 14 — APIM GATEWAY (concept)
+     ============================================================ -->
+<section class="slide" data-title="APIM Gateway">
+  <div class="slide-eyebrow">2.3 · Layer 1 · The Gateway</div>
+  <div class="slide-content grid-2 middle" style="gap: clamp(1.4rem, 3vw, 3rem); align-items: center;">
+    <div class="stack" style="max-width: 60ch;">
+      <h1 class="reveal d1 title-1" style="font-size: clamp(1.3rem, 3vw, 2.4rem);">The unified <span class="text-yellow">AI gateway</span>.</h1>
+      <p class="reveal d2 lede" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">
+        A single Azure API Management front door that every AI request &mdash; from
+        every framework, every agent, every notebook, every Power Platform flow &mdash;
+        is required to traverse.
+      </p>
+      <p class="reveal d4 body" style="font-size: clamp(0.75rem, 1.1vw, 0.9rem);">
+        The gateway is not a proxy that adds a header. It is a <strong>policy-rich
+        request fabric</strong>. Each call enters with a JWT, leaves with a redacted
+        response, and along the way is rate-limited, content-checked, PII-masked,
+        smartly routed to the cheapest acceptable model, and written to an immutable log.
+      </p>
+      <p class="reveal d5 body" style="font-size: clamp(0.75rem, 1.1vw, 0.9rem);">
+        Crucially, it is <em>unbypassable</em>. Network policy on the spokes
+        denies egress to Azure OpenAI, Foundry, OpenAI public endpoints, and Anthropic
+        APIs &mdash; the only route out of the platform is through APIM.
+      </p>
+      <div class="reveal d7 row" style="gap: 0.6rem; flex-wrap: wrap; margin-top: 0.6rem;">
+        <span class="chip chip-yellow" style="font-size: clamp(0.6rem, 0.9vw, 0.75rem);">Single front door</span>
+        <span class="chip" style="font-size: clamp(0.6rem, 0.9vw, 0.75rem);">Unbypassable by network policy</span>
+        <span class="chip" style="font-size: clamp(0.6rem, 0.9vw, 0.75rem);">Framework-agnostic</span>
+      </div>
+    </div>
+    <div class="stack" style="min-width: 260px;">
+      <div class="reveal d3 card-panel" style="--accent: var(--primary);">
+        <div class="kicker text-yellow">Request lifecycle</div>
+        <div class="flow-v" style="--accent: var(--primary); margin-top: 0.8em;">
+          <div class="step"><span class="badge">1</span><div><div class="label">Authenticate</div><div class="sub">Entra JWT verified, tenant + scope checked</div></div><span class="arrow">→</span></div>
+          <div class="step"><span class="badge">2</span><div><div class="label">Rate-limit / quota</div><div class="sub">Per-app, per-model, per-tenant token budget</div></div><span class="arrow">→</span></div>
+          <div class="step"><span class="badge">3</span><div><div class="label">Content safety</div><div class="sub">Jailbreak, hate, self-harm, PII detection</div></div><span class="arrow">→</span></div>
+          <div class="step"><span class="badge">4</span><div><div class="label">Smart routing</div><div class="sub">Pool selection, fallback, cheapest-acceptable</div></div><span class="arrow">→</span></div>
+          <div class="step"><span class="badge">5</span><div><div class="label">Audit log</div><div class="sub">Immutable, hash-chained, 7-year retention</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">14 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 15 — APIM CAPABILITIES (HEXAGONS)
+     ============================================================ -->
+<section class="slide" data-title="APIM Capabilities">
+  <div class="slide-eyebrow">2.4 · Six policies · one gateway</div>
+  <div class="slide-content stack center" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Six policies, applied to <span class="text-yellow">every</span> request.</h1>
+    <p class="reveal d2 lede">
+      Each hexagon below is an APIM policy. Together they are the contract between
+      the enterprise and any team that wants to talk to a model.
+    </p>
+    <div class="reveal d4" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); display: flex; justify-content: center;">
+      <div class="honeycomb" style="grid-template-columns: repeat(3, 1fr); max-width: 620px;">
+        <div class="hex" style="--accent: var(--blue);"><div class="hex-icon">🔑</div><div class="hex-label">Authentication</div><div class="hex-tag">Entra · OBO</div></div>
+        <div class="hex" style="--accent: var(--orange);"><div class="hex-icon">⏱</div><div class="hex-label">Rate limiting</div><div class="hex-tag">tokens · RPS</div></div>
+        <div class="hex" style="--accent: var(--green);"><div class="hex-icon">✓</div><div class="hex-label">Content safety</div><div class="hex-tag">jailbreak · hate</div></div>
+        <div class="hex" style="--accent: var(--purple);"><div class="hex-icon">⊘</div><div class="hex-label">PII masking</div><div class="hex-tag">redact · rehydrate</div></div>
+        <div class="hex" style="--accent: var(--teal);"><div class="hex-icon">⇆</div><div class="hex-label">Smart routing</div><div class="hex-tag">pool · fallback</div></div>
+        <div class="hex" style="--accent: var(--primary);"><div class="hex-icon">📋</div><div class="hex-label">Audit logging</div><div class="hex-tag">immutable · 7y</div></div>
+      </div>
+    </div>
+    <p class="reveal d8 caption" style="max-width: 76ch; margin: 0.6rem auto 0;">
+      A request that fails any one of these is rejected before it ever reaches a model.
+      A request that passes all six carries a verifiable provenance into the log &mdash; the basis of every audit answer that follows.
+    </p>
+  </div>
+  <div class="slide-marker">15 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 16 — 4-LAYER INTERLOCK
+     ============================================================ -->
+<section class="slide" data-title="4-Layer Interlock">
+  <div class="slide-eyebrow">2.5 · Separation of concerns, unified at runtime</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Layers in <span class="text-yellow">motion</span>.</h1>
+    <p class="reveal d2 lede">
+      Each layer owns a single concern. None of them can do the others&rsquo; jobs.
+      That separation is what makes the architecture auditable: every property of
+      the platform can be traced to exactly one layer.
+    </p>
+    <div class="reveal d4 grid-2" style="margin-top: clamp(0.6rem, 1.6vh, 1rem);">
+      <div class="card-panel accent" style="--accent: var(--blue);">
+        <div class="kicker text-blue">Layer 1 · Gateway</div>
+        <h3 class="title-2" style="margin-top: 0.4em;">The only door.</h3>
+        <p class="body" style="margin-top: 0.5em;">
+          APIM, the policies above, smart routing, fallback, exit points to model
+          providers. If a request is on the platform, it is on this door &mdash;
+          there is no other way in or out.
+        </p>
+      </div>
+      <div class="card-panel accent" style="--accent: var(--orange);">
+        <div class="kicker" style="color: #FFAA66;">Layer 2 · AI Control Plane</div>
+        <h3 class="title-2" style="margin-top: 0.4em;">Policy &amp; observability.</h3>
+        <p class="body" style="margin-top: 0.5em;">
+          Model allow-lists, residency rules, evaluation gates, prompt registries,
+          lineage capture, cost attribution. The control plane is where governance
+          lives as <em>code</em> &mdash; versioned, reviewed, deployed.
+        </p>
+      </div>
+      <div class="card-panel accent" style="--accent: var(--teal);">
+        <div class="kicker text-teal">Layer 3 · Agent Identity</div>
+        <h3 class="title-2" style="margin-top: 0.4em;">Every agent is a principal.</h3>
+        <p class="body" style="margin-top: 0.5em;">
+          No service principals with secrets. No PATs. No shared API keys. Each
+          agent and each tool is registered in Entra and acts under its own managed
+          identity, with on-behalf-of flows for user impersonation.
+        </p>
+      </div>
+      <div class="card-panel accent" style="--accent: var(--purple);">
+        <div class="kicker" style="color: #C57BBC;">Layer 4 · Security Fabric</div>
+        <h3 class="title-2" style="margin-top: 0.4em;">Wraps everything else.</h3>
+        <p class="body" style="margin-top: 0.5em;">
+          Private endpoints, network isolation, Key Vault, customer-managed keys,
+          Defender for Cloud, Purview classification. The fabric is invisible
+          from the request path but present at every boundary.
+        </p>
+      </div>
+    </div>
+    <p class="reveal d8 caption center" style="margin: 0.6rem auto 0; max-width: 84ch;">
+      The flow runs <span class="text-yellow">L4 &rarr; L3 &rarr; L2 &rarr; L1 &rarr; agent</span>.
+      A change in any layer cannot weaken the layer below it &mdash; that is the platform-enforced boundary.
+    </p>
+  </div>
+  <div class="slide-marker">16 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 17 — AUDIT TRAIL (TIMELINE)
+     ============================================================ -->
+<section class="slide" data-title="Audit Trail">
+  <div class="slide-eyebrow">2.6 · Governance in action</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Every interaction is <span class="text-yellow">traceable</span>.</h1>
+    <p class="reveal d2 lede">
+      A complete audit answer to six questions, captured for every request,
+      retrievable for seven years. This is what regulators, internal audit,
+      and incident response actually need.
+    </p>
+    <div class="reveal d4 timeline" style="margin-top: clamp(0.6rem, 1.6vh, 1rem);">
+      <div class="node" style="--accent: var(--blue);"><div class="dot">W</div><div class="nm">Who</div><div class="ic">Entra principal · OBO chain</div></div>
+      <div class="node" style="--accent: var(--orange);"><div class="dot">⚙</div><div class="nm">What</div><div class="ic">Tool · model · prompt hash</div></div>
+      <div class="node" style="--accent: var(--green);"><div class="dot">⏱</div><div class="nm">When</div><div class="ic">UTC · request &amp; response time</div></div>
+      <div class="node" style="--accent: var(--teal);"><div class="dot">⌖</div><div class="nm">Where</div><div class="ic">Region · spoke · IP · device</div></div>
+      <div class="node" style="--accent: var(--purple);"><div class="dot">?</div><div class="nm">Why</div><div class="ic">App · use case · policy decision</div></div>
+      <div class="node" style="--accent: var(--primary);"><div class="dot">⏃</div><div class="nm">How</div><div class="ic">Tools called · tokens · cost</div></div>
+      <div class="node" style="--accent: var(--green);"><div class="dot">✓</div><div class="nm">Response</div><div class="ic">Certified · masked · governed</div></div>
+    </div>
+    <p class="reveal d8 caption center" style="margin: 0.8rem auto 0; max-width: 76ch;">
+      Every node above produces a structured event. The events are hash-chained
+      so that tampering with any past entry breaks the chain &mdash; the same
+      property that makes a blockchain&rsquo;s history credible.
+    </p>
+  </div>
+  <div class="slide-marker">17 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 18 — RETENTION & COMPLIANCE
+     ============================================================ -->
+<section class="slide" data-title="Retention">
+  <div class="slide-eyebrow">2.7 · Retention &amp; compliance posture</div>
+  <div class="slide-content grid-2 middle" style="gap: clamp(1.4rem, 3vw, 3rem); align-items: center;">
+    <div class="stack" style="max-width: 56ch;">
+      <h1 class="reveal d1 title-1" style="font-size: clamp(1.3rem, 3vw, 2.4rem);">Logs the auditor will <span class="text-yellow">accept</span>.</h1>
+      <p class="reveal d2 lede" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">
+        Different log types serve different stakeholders. Citadel separates
+        them by purpose, retention class, and access path so that legal can
+        get what they need without giving operations privileged access to
+        every prompt the platform has ever seen.
+      </p>
+      <p class="reveal d4 body" style="font-size: clamp(0.75rem, 1.1vw, 0.9rem);">
+        Access logs answer day-to-day operational questions and live for ninety
+        days. Policy logs survive a year, long enough for an external audit cycle.
+        Audit and security logs are retained for seven years on immutable storage,
+        with legal hold support &mdash; the regulator&rsquo;s evidence file.
+      </p>
+      <div class="reveal d6 row" style="gap: 0.6rem; flex-wrap: wrap; margin-top: 0.4rem;">
+        <span class="chip" style="font-size: clamp(0.6rem, 0.9vw, 0.75rem);">ISO 27001</span>
+        <span class="chip" style="font-size: clamp(0.6rem, 0.9vw, 0.75rem);">SOC 2 Type II</span>
+        <span class="chip" style="font-size: clamp(0.6rem, 0.9vw, 0.75rem);">GDPR · CCPA</span>
+        <span class="chip" style="font-size: clamp(0.6rem, 0.9vw, 0.75rem);">EU AI Act ready</span>
+      </div>
+    </div>
+    <div class="reveal-scale d3" style="min-width: 280px;">
+      <table class="data-table">
+        <thead><tr><th>Log type</th><th>Retention</th><th>Storage</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Access logs</strong><br><span class="caption">Who called what, when</span></td><td>90 days</td><td>Hot · Log Analytics</td></tr>
+          <tr><td><strong>Policy logs</strong><br><span class="caption">Decisions taken by APIM &amp; control plane</span></td><td>1 year</td><td>Cool · Storage</td></tr>
+          <tr><td><strong>Audit trail</strong><br><span class="caption">Hash-chained events for legal</span></td><td>7 years</td><td>Immutable · WORM</td></tr>
+          <tr><td><strong>Security logs</strong><br><span class="caption">Defender / Sentinel / Purview</span></td><td>7 years</td><td>SIEM · WORM</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="slide-marker">18 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 19 — CHAPTER DIVIDER 03 (Data)
+     ============================================================ -->
+<section class="slide chapter-divider" data-title="Chapter 03" style="--accent: var(--green);">
+  <div class="chapter-grid"></div>
+  <div class="slide-content row middle" style="justify-content: space-between; gap: clamp(1rem, 3vw, 3rem);">
+    <div class="reveal-scale d1 chapter-num text-green">03</div>
+    <div class="stack" style="flex: 1; max-width: 56ch;">
+      <div class="reveal d2 chapter-label text-green">Chapter Three · Data</div>
+      <h2 class="reveal d3 chapter-title">The Source<br>of Thought.</h2>
+      <p class="reveal d5 chapter-blurb">
+        Most enterprise AI deployments do not fail at the model. They fail at
+        the data. Citadel&rsquo;s data foundation answers the awkward question:
+        how does an autonomous agent read your enterprise data without
+        impersonating a privileged user, fabricating a metric, or leaking PII?
+      </p>
+      <div class="reveal d7 row" style="gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem;">
+        <span class="chip"><span class="chip-dot text-green"></span>Identity at every hop</span>
+        <span class="chip"><span class="chip-dot text-green"></span>Author once, reuse everywhere</span>
+        <span class="chip"><span class="chip-dot text-green"></span>Core vs Edge</span>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">19 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 20 — THREE DATA GUARANTEES (SHIELDS)
+     ============================================================ -->
+<section class="slide" data-title="Three Guarantees">
+  <div class="slide-eyebrow">3.1 · Three guarantees the data layer must make</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Three <span class="text-yellow">non-negotiable</span> guarantees for governed AI data.</h1>
+    <p class="reveal d2 lede">
+      An AI agent that asks &ldquo;what is ARR by region for Q1?&rdquo; must satisfy three
+      properties before a single byte of data is returned. Without them, you have
+      a chatbot wired to a warehouse &mdash; not a governed enterprise capability.
+    </p>
+    <div class="reveal d4 grid-3" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: stretch;">
+      <div class="card-panel shield-card" style="--accent: var(--blue);">
+        <svg viewBox="0 0 120 140" aria-hidden="true">
+          <path d="M60 10 L110 30 L110 75 Q110 110 60 130 Q10 110 10 75 L10 30 Z" fill="rgba(24,140,229,0.1)" stroke="currentColor" stroke-width="3"/>
+          <path class="check" d="M35 70 L52 88 L88 50" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="nm text-blue">Governed identity at every hop</div>
+        <div class="desc">No service principals with secrets. No PATs in notebooks. The agent acts as the user, on-behalf-of, end-to-end.</div>
+      </div>
+      <div class="card-panel shield-card" style="--accent: var(--green);">
+        <svg viewBox="0 0 120 140" aria-hidden="true">
+          <path d="M60 10 L110 30 L110 75 Q110 110 60 130 Q10 110 10 75 L10 30 Z" fill="rgba(45,183,87,0.1)" stroke="currentColor" stroke-width="3"/>
+          <path class="check" d="M35 70 L52 88 L88 50" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="nm text-green">Governance by construction</div>
+        <div class="desc">Row filters and column masks are part of the metric definition itself &mdash; not a wrapper that a clever query can dodge.</div>
+      </div>
+      <div class="card-panel shield-card" style="--accent: var(--purple);">
+        <svg viewBox="0 0 120 140" aria-hidden="true">
+          <path d="M60 10 L110 30 L110 75 Q110 110 60 130 Q10 110 10 75 L10 30 Z" fill="rgba(117,14,92,0.1)" stroke="currentColor" stroke-width="3"/>
+          <path class="check" d="M35 70 L52 88 L88 50" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="nm" style="color: #C57BBC;">Full observability</div>
+        <div class="desc">Every query &mdash; agent or human &mdash; produces lineage. From prompt to SQL to row, the path is recorded and replayable.</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">20 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 21 — WHY MOST AI FAILS AT DATA
+     ============================================================ -->
+<section class="slide" data-title="Why AI fails at data">
+  <div class="slide-eyebrow">3.2 · Why most AI fails at the data layer</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">The model is rarely the bottleneck.<br><span class="text-yellow">The data plumbing is.</span></h1>
+    <div class="reveal d3 grid-2" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: start;">
+      <div class="stack-tight">
+        <p class="lede">
+          A successful AI demo runs against a curated dataset, a privileged
+          notebook, and a user who happens to have access to everything. None
+          of those conditions hold in production.
+        </p>
+        <p class="body">
+          In production, the same prompt has to work for a junior analyst
+          in EMEA, a privileged finance director in APAC, and an external
+          auditor with read-only scope &mdash; and produce <em>different</em>,
+          governed answers for each. That is not a model problem. It is a
+          plumbing problem.
+        </p>
+      </div>
+      <div class="stack-tight">
+        <div class="card-panel" style="--accent: var(--red);">
+          <div class="kicker" style="color: var(--red);">Common failure modes</div>
+          <ul class="bullet-list" style="--accent: var(--red); margin-top: 0.5em;">
+            <li><strong>Service principal with broad scope.</strong> The agent reads everything because the SP can.</li>
+            <li><strong>Hardcoded SQL.</strong> Two agents asking the same question produce different numbers.</li>
+            <li><strong>RAG over raw PDFs.</strong> No row-level security, no lineage, no recall when a doc is retracted.</li>
+            <li><strong>Prompt leakage.</strong> PII passes to the model because nothing inspected the prompt.</li>
+            <li><strong>No certification path.</strong> Local team-built metrics conflict with enterprise definitions.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <p class="reveal d6 caption center" style="margin: 0.6rem auto 0; max-width: 78ch;">
+      Each of these has a known fix. Putting them together as one architecture &mdash; that is the Data Foundation chapter.
+    </p>
+  </div>
+  <div class="slide-marker">21 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 22 — GOVERNED QUERY PATH
+     ============================================================ -->
+<section class="slide" data-title="Query Path">
+  <div class="slide-eyebrow">3.3 · The governed query path</div>
+  <div class="slide-content grid-2 middle" style="gap: clamp(1.2rem, 3vw, 3rem); align-items: center;">
+    <div class="stack" style="max-width: 56ch;">
+      <h1 class="reveal d1 title-1" style="font-size: clamp(1.3rem, 3vw, 2.4rem);">From agent question<br>to <span class="text-yellow">certified answer</span>.</h1>
+      <p class="reveal d2 body" style="font-size: clamp(0.75rem, 1.1vw, 0.9rem);">
+        The path on the right is the only legal route from a prompt to a number.
+        Each hop performs one job, and each hop adds metadata to the lineage
+        that the audit trail will eventually consume.
+      </p>
+      <p class="reveal d4 body" style="font-size: clamp(0.75rem, 1.1vw, 0.9rem);">
+        Note what is <em>not</em> on this path: there is no service principal,
+        no shared secret, no hard-coded SQL, and no detour through a public
+        endpoint. The identity that arrived at the gateway is the same identity
+        that hits Unity Catalog &mdash; row filters and column masks evaluate
+        against <em>that</em> identity, not against the agent.
+      </p>
+      <p class="reveal d6 caption" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">
+        <em class="serif">No secrets in the data path. No PATs. Every hop is Entra identity.</em>
+      </p>
+    </div>
+    <div class="reveal-scale d3" style="min-width: 240px;">
+      <div class="flow-v">
+        <div class="step" style="--accent: var(--teal);"><span class="badge">A</span><div><div class="label">Agent</div><div class="sub">&ldquo;What is ARR by region for Q1?&rdquo;</div></div><span class="arrow">↓</span></div>
+        <div class="arrow-down"></div>
+        <div class="step" style="--accent: var(--primary);"><span class="badge">G</span><div><div class="label">APIM Gateway</div><div class="sub">Validates identity, enforces rate limit</div></div><span class="arrow">↓</span></div>
+        <div class="arrow-down"></div>
+        <div class="step" style="--accent: var(--green);"><span class="badge">D</span><div><div class="label">Databricks SQL</div><div class="sub">Resolves metric via MetricFlow</div></div><span class="arrow">↓</span></div>
+        <div class="arrow-down"></div>
+        <div class="step" style="--accent: var(--purple);"><span class="badge">U</span><div><div class="label">Unity Catalog</div><div class="sub">Applies row filter + column mask</div></div><span class="arrow">↓</span></div>
+        <div class="arrow-down"></div>
+        <div class="step" style="--accent: var(--blue);"><span class="badge">O</span><div><div class="label">OneLake</div><div class="sub">Returns governed bytes</div></div><span class="arrow">↓</span></div>
+        <div class="arrow-down"></div>
+        <div class="step" style="--accent: var(--green);"><span class="badge">✓</span><div><div class="label">Certified response</div><div class="sub">Masked PII, identity-filtered, lineage attached</div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">22 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 23 — IDENTITY-AWARE DATA ACCESS
+     ============================================================ -->
+<section class="slide" data-title="Identity-aware access">
+  <div class="slide-eyebrow">3.4 · Identity-aware access</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Same prompt. Same agent. <span class="text-yellow">Different data.</span></h1>
+    <p class="reveal d2 lede">
+      The same question, asked by three different users, must return three different
+      governed answers. The agent does not decide who sees what &mdash; the data
+      layer does, on the basis of the original Entra identity.
+    </p>
+    <div class="reveal d4 grid-3" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); gap: clamp(0.5rem, 1vw, 1rem);">
+      <div class="card-panel" style="--accent: var(--blue);">
+        <div class="kicker text-blue">Junior analyst · EMEA</div>
+        <div class="mono" style="margin-top: 0.6em; color: var(--text-2); font-size: var(--mono);">SELECT ...<br>WHERE region = 'EMEA'<br>&nbsp;&nbsp;AND mask(customer_name)</div>
+        <div class="caption" style="margin-top: 0.6em;">Sees aggregated EMEA only. Customer names masked.</div>
+      </div>
+      <div class="card-panel" style="--accent: var(--green);">
+        <div class="kicker text-green">Finance director · APAC</div>
+        <div class="mono" style="margin-top: 0.6em; color: var(--text-2); font-size: var(--mono);">SELECT ...<br>WHERE region IN ('APAC')<br>&nbsp;&nbsp;-- no mask</div>
+        <div class="caption" style="margin-top: 0.6em;">Sees full APAC detail, including PII, with audit.</div>
+      </div>
+      <div class="card-panel" style="--accent: var(--purple);">
+        <div class="kicker" style="color:#C57BBC;">External auditor</div>
+        <div class="mono" style="margin-top: 0.6em; color: var(--text-2); font-size: var(--mono);">SELECT ...<br>WHERE in_audit_scope = 1<br>&nbsp;&nbsp;AND mask(*)</div>
+        <div class="caption" style="margin-top: 0.6em;">Sees in-scope rows only. All PII masked.</div>
+      </div>
+    </div>
+    <p class="reveal d8 caption center" style="margin: 0.6rem auto 0; max-width: 80ch;">
+      The agent did not write any of these <code class="mono" style="color:var(--text-2);">WHERE</code> clauses.
+      Unity Catalog injected them based on the verified Entra principal that arrived at the gateway.
+    </p>
+  </div>
+  <div class="slide-marker">23 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 24 — SEMANTIC LAYER
+     ============================================================ -->
+<section class="slide" data-title="Semantic Layer">
+  <div class="slide-eyebrow">3.5 · The semantic layer</div>
+  <div class="slide-content row middle" style="gap: clamp(1.2rem, 3vw, 3rem);">
+    <div class="stack" style="flex: 1.1; max-width: 56ch;">
+      <h1 class="reveal d1 title-1">Author <em class="serif">once</em>.<br>Reuse <span class="text-yellow">everywhere</span>.</h1>
+      <p class="reveal d2 lede">
+        A metric &mdash; <em>ARR Run-Rate</em>, say &mdash; is defined exactly once,
+        in exactly one place, with exactly one formula, exactly one set of
+        dimensions, and exactly one row-filter rule.
+      </p>
+      <p class="reveal d4 body">
+        Power BI dashboards consume that definition. Jupyter notebooks consume
+        that definition. AI agents consume that definition. They cannot drift
+        from it because there is no other source.
+      </p>
+      <p class="reveal d6 body">
+        This is implemented natively on the Microsoft and Databricks stack:
+        <strong>MetricFlow</strong> (semantic models) plus <strong>Unity Catalog</strong>
+        (governance &amp; access) plus <strong>OneLake</strong> (storage) &mdash;
+        no third-party semantic layer required.
+      </p>
+    </div>
+    <div class="reveal-scale d3" style="flex: 1.1; min-width: 280px;">
+      <div class="code-block">
+<span class="cc"># metric definition · authored once</span>
+<span class="ck">metric:</span> <span class="cv">arr_run_rate</span>
+<span class="ck">label:</span> <span class="cv">"ARR Run-Rate"</span>
+<span class="ck">formula:</span> <span class="ct">SUM</span>(mrr) * <span class="ct">12</span> / active_count
+<span class="ck">dimensions:</span>
+  - region
+  - segment
+  - fiscal_period
+<span class="ck">row_filter:</span> region = <span class="ct">current_user_region</span>()
+<span class="ck">column_mask:</span>
+  customer_name: <span class="ct">mask_pii</span>(role)
+<span class="ck">synonyms:</span>
+  - <span class="cv">"ARR"</span>
+  - <span class="cv">"annual recurring revenue"</span>
+  - <span class="cv">"yearly recurring"</span>
+<span class="ck">owner:</span> <span class="cv">finance.metrics@enterprise.com</span></div>
+    </div>
+  </div>
+  <div class="slide-marker">24 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 25 — ONE METRIC, EVERY CONSUMER
+     ============================================================ -->
+<section class="slide" data-title="One metric every consumer">
+  <div class="slide-eyebrow">3.6 · One definition · every consumer</div>
+  <div class="slide-content stack center" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Three different consumers. <span class="text-yellow">Identical answer.</span></h1>
+    <p class="reveal d2 lede">
+      Identical output. Identical governance. Single lineage source.
+      The semantic layer guarantees that &ldquo;ARR&rdquo; in a quarterly review
+      deck means the same thing as &ldquo;ARR&rdquo; in a notebook and as
+      &ldquo;ARR&rdquo; in an agent&rsquo;s answer.
+    </p>
+    <div class="reveal d4 grid-3" style="margin-top: clamp(0.8rem, 2vh, 1.4rem); align-items: stretch;">
+      <div class="card-panel" style="--accent: var(--blue); display: flex; flex-direction: column; gap: 0.6em; align-items: center; text-align: center;">
+        <div class="caption text-blue mono">POWER BI</div>
+        <div class="title-2">Executive dashboard</div>
+        <div class="mono" style="background: rgba(255,255,255,0.05); padding: 0.4em 0.8em; border-radius: 4px; color: var(--text);">ARR Run-Rate</div>
+        <div class="caption">Refreshed nightly · governed by Unity</div>
+      </div>
+      <div class="card-panel" style="--accent: var(--orange); display: flex; flex-direction: column; gap: 0.6em; align-items: center; text-align: center;">
+        <div class="caption" style="color: #FFAA66;" >JUPYTER</div>
+        <div class="title-2">Analyst notebook</div>
+        <div class="mono" style="background: rgba(255,255,255,0.05); padding: 0.4em 0.8em; border-radius: 4px; color: var(--text);">ARR Run-Rate</div>
+        <div class="caption">Same SQL · same row filter</div>
+      </div>
+      <div class="card-panel" style="--accent: var(--teal); display: flex; flex-direction: column; gap: 0.6em; align-items: center; text-align: center;">
+        <div class="caption text-teal mono">AI AGENT</div>
+        <div class="title-2">Conversational answer</div>
+        <div class="mono" style="background: rgba(255,255,255,0.05); padding: 0.4em 0.8em; border-radius: 4px; color: var(--text);">ARR Run-Rate</div>
+        <div class="caption">Resolved via MetricFlow · cited</div>
+      </div>
+    </div>
+    <p class="reveal d8 body-strong" style="margin-top: 1rem;">
+      <span class="text-yellow">Identical output</span> · Identical governance · Single lineage source.
+    </p>
+  </div>
+  <div class="slide-marker">25 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 26 — CORE VS EDGE
+     ============================================================ -->
+<section class="slide" data-title="Core vs Edge">
+  <div class="slide-eyebrow">3.7 · Core vs Edge governance</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Enterprise stability <em class="serif">and</em> team innovation. <span class="text-yellow">Both.</span></h1>
+    <p class="reveal d2 lede">
+      The semantic layer has two tiers. Core is the slow, authoritative,
+      enterprise-wide layer. Edge is the fast, experimental, team-specific layer.
+      A platform-enforced boundary means Edge cannot override Core.
+    </p>
+    <div class="reveal d4 grid-2" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: stretch;">
+      <div class="compare-col" style="--accent: var(--purple);">
+        <div class="head"><span>Core (Certified)</span><span class="mono caption">slow · authoritative</span></div>
+        <div class="body">
+          <div class="row"><div class="ico">⛨</div><div><strong>Enterprise-wide metrics</strong><span class="desc">ARR, NPS, churn, headcount &mdash; one definition the whole company quotes.</span></div></div>
+          <div class="row"><div class="ico">⌥</div><div><strong>Formal change review</strong><span class="desc">Pull-request workflow, two-person rule, finance + data sign-off.</span></div></div>
+          <div class="row"><div class="ico">∂</div><div><strong>Impact analysis required</strong><span class="desc">Lineage tells you which dashboards, notebooks, and agents will be affected.</span></div></div>
+          <div class="row"><div class="ico">⏱</div><div><strong>Slow-moving</strong><span class="desc">Changed quarterly, never silently. Versioned and announced.</span></div></div>
+        </div>
+      </div>
+      <div class="compare-col" style="--accent: var(--teal);">
+        <div class="head"><span>Edge (Team-specific)</span><span class="mono caption">fast · experimental</span></div>
+        <div class="body">
+          <div class="row"><div class="ico">⚡</div><div><strong>Local extensions &amp; synonyms</strong><span class="desc">Team-specific dimensions, new aliases, ad-hoc derived metrics.</span></div></div>
+          <div class="row"><div class="ico">⚒</div><div><strong>Team-managed</strong><span class="desc">No central review. Owners are the team that uses it.</span></div></div>
+          <div class="row"><div class="ico">⇆</div><div><strong>Fast-moving</strong><span class="desc">Iterated daily. Can break without notice &mdash; only that team feels it.</span></div></div>
+          <div class="row"><div class="ico">↑</div><div><strong>Promotion path to Core</strong><span class="desc">When an Edge metric matures, it&rsquo;s nominated for Core certification.</span></div></div>
+        </div>
+      </div>
+    </div>
+    <p class="reveal d8 caption center" style="margin: 0.6rem auto 0; max-width: 76ch;">
+      <strong>Core cannot be overridden by Edge.</strong> An Edge metric named &ldquo;ARR&rdquo; will be rejected at deploy &mdash; the platform enforces the boundary.
+    </p>
+  </div>
+  <div class="slide-marker">26 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 27 — DATA STACK SUMMARY
+     ============================================================ -->
+<section class="slide" data-title="Data stack">
+  <div class="slide-eyebrow">3.8 · The native Microsoft + Databricks stack</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Built on services your enterprise <span class="text-yellow">already owns</span>.</h1>
+    <p class="reveal d2 lede">
+      The data foundation introduces no third-party semantic layer, no extra
+      governance plane, no parallel catalog. Every component is something an
+      enterprise Microsoft + Databricks customer is already paying for &mdash;
+      configured to work as one platform.
+    </p>
+    <div class="reveal d4 detail-list" style="margin-top: clamp(0.6rem, 1.6vh, 1rem);">
+      <div class="detail" style="--accent: var(--blue);"><div class="glyph">O</div><div><div class="nm text-blue">OneLake</div><div class="dx">Single tenant-scoped data lake. The physical &lsquo;one source of bytes.&rsquo; All structured and unstructured data lives here.</div></div></div>
+      <div class="detail" style="--accent: var(--purple);"><div class="glyph">U</div><div><div class="nm" style="color:#C57BBC;">Unity Catalog</div><div class="dx">Governance plane: tables, views, row filters, column masks, lineage, and access decisions evaluated at query time.</div></div></div>
+      <div class="detail" style="--accent: var(--green);"><div class="glyph">M</div><div><div class="nm text-green">MetricFlow</div><div class="dx">Native semantic model: metric definitions, dimensions, formulas, synonyms. The &lsquo;author once&rsquo; layer.</div></div></div>
+      <div class="detail" style="--accent: var(--orange);"><div class="glyph">D</div><div><div class="nm" style="color:#FFAA66;">Databricks SQL · AI/BI</div><div class="dx">The execution surface that resolves metric requests &mdash; from agents, BI tools, and notebooks alike &mdash; under Unity governance.</div></div></div>
+    </div>
+  </div>
+  <div class="slide-marker">27 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 28 — CHAPTER DIVIDER 04 (Intelligence)
+     ============================================================ -->
+<section class="slide chapter-divider" data-title="Chapter 04" style="--accent: var(--teal);">
+  <div class="chapter-grid"></div>
+  <div class="slide-content row middle" style="justify-content: space-between; gap: clamp(1rem, 3vw, 3rem);">
+    <div class="reveal-scale d1 chapter-num text-teal">04</div>
+    <div class="stack" style="flex: 1; max-width: 56ch;">
+      <div class="reveal d2 chapter-label text-teal">Chapter Four · Intelligence</div>
+      <h2 class="reveal d3 chapter-title">The Agentic<br>Layer.</h2>
+      <p class="reveal d5 chapter-blurb">
+        An agent is not a model with a prompt &mdash; that is a chatbot. An agent is
+        reasoning, plus context, plus a validated set of tools that can act on
+        the world. Citadel separates these three concerns into three layers, so
+        that what the model is allowed to <em>do</em> is decoupled from what it
+        is allowed to <em>know</em>, which is decoupled from how it is allowed
+        to <em>think</em>.
+      </p>
+      <div class="reveal d7 row" style="gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem;">
+        <span class="chip"><span class="chip-dot text-teal"></span>Reasoning · Context · Execution</span>
+        <span class="chip"><span class="chip-dot text-teal"></span>Three intelligences</span>
+        <span class="chip"><span class="chip-dot text-teal"></span>Framework-agnostic</span>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">28 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 29 — THREE LAYERS OF AN AGENT
+     ============================================================ -->
+<section class="slide" data-title="Three Layers">
+  <div class="slide-eyebrow">4.1 · Three layers of an agent</div>
+  <div class="slide-content stack" style="justify-content: center; gap: clamp(0.4rem, 1vh, 0.8rem);">
+    <h1 class="reveal d1 title-1" style="font-size: clamp(1.4rem, 3.5vw, 2.8rem);">Reasoning &middot; <span class="text-yellow">Context</span> &middot; Execution.</h1>
+    <p class="reveal d2 lede" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">
+      The single most important architectural choice in an agent platform is
+      what the model is <em>not</em> allowed to do. Citadel enforces a hard
+      separation between thinking, knowing, and doing.
+    </p>
+    <div class="reveal d4 grid-3" style="margin-top: clamp(0.4rem, 1vh, 0.6rem); gap: clamp(0.5rem, 1vw, 0.8rem);">
+      <div class="card-panel" style="--accent: var(--teal); border-left: 3px solid var(--teal); background: rgba(39,172,170,0.08); padding: clamp(0.6rem, 1.2vw, 1rem);">
+        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem;">
+          <div style="width: 32px; height: 32px; border-radius: 6px; background: var(--teal); display: grid; place-items: center; color:#fff; font-weight: 700; font-size: 0.9em;">&#x2328;</div>
+          <div class="title-2 text-teal" style="font-size: clamp(0.9rem, 1.4vw, 1.2rem);">Reasoning</div>
+        </div>
+        <div class="body" style="font-size: clamp(0.75rem, 1.1vw, 0.9rem); line-height: 1.5;">LLM + orchestration engine. Plans steps, selects tools, composes the response. <strong>Cannot execute anything directly.</strong></div>
+      </div>
+      <div class="card-panel" style="--accent: var(--orange); border-left: 3px solid var(--orange); background: rgba(255,109,0,0.08); padding: clamp(0.6rem, 1.2vw, 1rem);">
+        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem;">
+          <div style="width: 32px; height: 32px; border-radius: 6px; background: var(--orange); display: grid; place-items: center; color:#fff; font-weight: 700; font-size: 0.9em;">&#x2261;</div>
+          <div class="title-2" style="color:#FFAA66; font-size: clamp(0.9rem, 1.4vw, 1.2rem);">Context</div>
+        </div>
+        <div class="body" style="font-size: clamp(0.75rem, 1.1vw, 0.9rem); line-height: 1.5;">Memory, skills, intelligence. RAG over governed sources. Progressive disclosure &mdash; only relevant context is loaded.</div>
+      </div>
+      <div class="card-panel" style="--accent: var(--blue); border-left: 3px solid var(--blue); background: rgba(24,140,229,0.08); padding: clamp(0.6rem, 1.2vw, 1rem);">
+        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem;">
+          <div style="width: 32px; height: 32px; border-radius: 6px; background: var(--blue); display: grid; place-items: center; color:#fff; font-weight: 700; font-size: 0.9em;">&#x2692;</div>
+          <div class="title-2 text-blue" style="font-size: clamp(0.9rem, 1.4vw, 1.2rem);">Execution</div>
+        </div>
+        <div class="body" style="font-size: clamp(0.75rem, 1.1vw, 0.9rem); line-height: 1.5;">Tools, middleware, sandbox. Every action is a registered tool with its own auth, scope, and HITL hooks.</div>
+      </div>
+    </div>
+    <div class="reveal d8 card-panel" style="background: rgba(255,230,0,0.08); border: 2px solid var(--primary); margin-top: clamp(0.4rem, 1vh, 0.6rem); text-align: center; padding: clamp(0.6rem, 1.2vw, 1rem);">
+      <p class="body-strong" style="color: var(--primary); font-size: clamp(0.85rem, 1.2vw, 1rem);">
+        <em class="serif">The model never executes anything directly.</em> Every action passes through a validated tool interface.
+      </p>
+    </div>
+  </div>
+  <div class="slide-marker">29 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 30 — THREE INTELLIGENCES
+     ============================================================ -->
+<section class="slide" data-title="Three Intelligences">
+  <div class="slide-eyebrow">4.2 · What an agent is allowed to know</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Three <span class="text-yellow">intelligences</span> feed every agent.</h1>
+    <p class="reveal d2 lede">
+      Agents are only as useful as the context they can access. Citadel
+      classifies that context into three distinct intelligences, each
+      with its own access pattern, governance posture, and refresh cadence.
+    </p>
+    <div class="reveal d4 grid-3" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: stretch;">
+      <div class="pillar" style="--accent: var(--blue);">
+        <div class="capital">Workspace Intelligence</div>
+        <div class="body">
+          <div class="lead"><strong style="color:#fff;">How people work.</strong> The patterns of communication, scheduling, and collaboration that make up a working day.</div>
+          <div class="examples">
+            · Calendars · meetings · channels<br>
+            · Documents &amp; mail · attachments<br>
+            · Communication graph &amp; tenure<br>
+            · Microsoft Graph as primary source
+          </div>
+        </div>
+      </div>
+      <div class="pillar" style="--accent: var(--green);">
+        <div class="capital">Business Data Intelligence</div>
+        <div class="body">
+          <div class="lead"><strong style="color:#fff;">How the business operates.</strong> The metrics, KPIs, and processes that the company actually runs on.</div>
+          <div class="examples">
+            · ARR · NPS · churn · pipeline<br>
+            · Operational analytics<br>
+            · Process telemetry · SLAs<br>
+            · MetricFlow / Unity / OneLake
+          </div>
+        </div>
+      </div>
+      <div class="pillar" style="--accent: var(--purple);">
+        <div class="capital">Enterprise Knowledge</div>
+        <div class="body">
+          <div class="lead"><strong style="color:#fff;">All institutional knowledge.</strong> Documents, SOPs, contracts, and externally-mounted systems via MCP servers.</div>
+          <div class="examples">
+            · Docs · SOPs · contracts · wikis<br>
+            · MCP-connected systems<br>
+            · Knowledge graphs · taxonomies<br>
+            · Vectorised, lineage-tracked
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="reveal d8 caption center" style="margin: 0.6rem auto 0; max-width: 78ch;">
+      Each intelligence is mounted at the Context Layer through a typed adapter &mdash; never read raw, always governed, always logged.
+    </p>
+  </div>
+  <div class="slide-marker">30 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 31 — AGENT FACTORY (Stack + Tools)
+     ============================================================ -->
+<section class="slide" data-title="Agent FACTORY">
+  <div class="slide-eyebrow">4.3 · Agent FACTORY on Citadel</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Build with <em class="serif">any</em> tool.<br>Govern with <span class="text-yellow">one</span> platform.</h1>
+    <p class="reveal d2 lede">
+      The hardest political problem in an enterprise AI program is choosing a
+      framework. Different teams have different preferences, skills, and
+      vendor relationships. Forcing a single framework on the whole enterprise
+      is a losing battle. Citadel sidesteps it.
+    </p>
+    <div class="reveal d4 grid-2" style="margin-top: clamp(0.4rem, 1vh, 0.6rem); align-items: stretch; gap: clamp(0.8rem, 1.5vw, 1.2rem);">
+      <div class="card-panel-glass" style="background: rgba(255,230,0,0.04); padding: clamp(0.7rem, 1.2vw, 1rem);">
+        <div class="kicker text-yellow" style="font-size: clamp(0.6rem, 0.9vw, 0.75rem);">Citadel stack · governs everything below</div>
+        <div class="stack-side" style="margin-top: 0.5em; gap: 4px;">
+          <div class="layer-row" style="--accent: var(--blue); padding: 0.5em 0.8em; font-size: clamp(0.75rem, 1.1vw, 0.9rem);"><span class="glyph">L1</span><div>APIM Gateway · single entry</div></div>
+          <div class="layer-row" style="--accent: var(--orange); padding: 0.5em 0.8em; font-size: clamp(0.75rem, 1.1vw, 0.9rem);"><span class="glyph">L2</span><div>AI Control Plane · policy &amp; lineage</div></div>
+          <div class="layer-row" style="--accent: var(--teal); padding: 0.5em 0.8em; font-size: clamp(0.75rem, 1.1vw, 0.9rem);"><span class="glyph">L3</span><div>Agent Identity · Entra principals</div></div>
+          <div class="layer-row" style="--accent: var(--purple); padding: 0.5em 0.8em; font-size: clamp(0.75rem, 1.1vw, 0.9rem);"><span class="glyph">L4</span><div>Security Fabric · network &amp; data</div></div>
+        </div>
+        <div class="caption" style="margin-top: 0.6em; font-size: clamp(0.65rem, 0.9vw, 0.8rem);">Every framework, every tool, every notebook routes through these four layers — without exception.</div>
+      </div>
+      <div class="stack-tight" style="gap: clamp(0.3rem, 0.5vh, 0.4rem);">
+        <div class="card-panel" style="--accent: var(--teal); padding: 0.4em 0.6em;">
+          <div class="kicker text-teal" style="font-size: clamp(0.55rem, 0.75vw, 0.7rem); margin-bottom: 0.3em;">Low-code</div>
+          <div class="row-tight" style="gap: 0.4em; flex-wrap: wrap;">
+            <span class="chip" style="font-size: clamp(0.6rem, 0.85vw, 0.75rem); padding: 0.3em 0.6em;">Copilot Studio</span>
+            <span class="chip" style="font-size: clamp(0.6rem, 0.85vw, 0.75rem); padding: 0.3em 0.6em;">Power Platform</span>
+            <span class="chip" style="font-size: clamp(0.6rem, 0.85vw, 0.75rem); padding: 0.3em 0.6em;">M365 Agents</span>
+          </div>
+        </div>
+        <div class="card-panel" style="--accent: var(--orange); padding: 0.4em 0.6em;">
+          <div class="kicker" style="color:#FFAA66; font-size: clamp(0.55rem, 0.75vw, 0.7rem); margin-bottom: 0.3em;">Framework-based</div>
+          <div class="row-tight" style="gap: 0.4em; flex-wrap: wrap;">
+            <span class="chip" style="font-size: clamp(0.6rem, 0.85vw, 0.75rem); padding: 0.3em 0.6em;">LangChain</span>
+            <span class="chip" style="font-size: clamp(0.6rem, 0.85vw, 0.75rem); padding: 0.3em 0.6em;">LangGraph</span>
+            <span class="chip" style="font-size: clamp(0.6rem, 0.85vw, 0.75rem); padding: 0.3em 0.6em;">Claude SDK</span>
+            <span class="chip" style="font-size: clamp(0.6rem, 0.85vw, 0.75rem); padding: 0.3em 0.6em;">OpenAI SDK</span>
+            <span class="chip" style="font-size: clamp(0.6rem, 0.85vw, 0.75rem); padding: 0.3em 0.6em;">MS Agent FW</span>
+          </div>
+        </div>
+        <div class="card-panel" style="--accent: var(--blue); padding: 0.4em 0.6em;">
+          <div class="kicker text-blue" style="font-size: clamp(0.55rem, 0.75vw, 0.7rem); margin-bottom: 0.3em;">SDK / custom</div>
+          <div class="row-tight" style="gap: 0.4em; flex-wrap: wrap;">
+            <span class="chip" style="font-size: clamp(0.6rem, 0.85vw, 0.75rem); padding: 0.3em 0.6em;">Custom code</span>
+            <span class="chip" style="font-size: clamp(0.6rem, 0.85vw, 0.75rem); padding: 0.3em 0.6em;">API integrations</span>
+            <span class="chip" style="font-size: clamp(0.6rem, 0.85vw, 0.75rem); padding: 0.3em 0.6em;">MCP servers</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="reveal d8 caption center" style="margin: 0.6rem auto 0; max-width: 78ch;">
+      <em class="serif text-yellow">Framework-agnostic governance.</em>
+      Pick the tool that fits the team. The platform contract is the same for all of them.
+    </p>
+  </div>
+  <div class="slide-marker">31 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 32 — 8 CAPABILITIES (HONEYCOMB)
+     ============================================================ -->
+<section class="slide" data-title="Agentic Web Stack">
+  <div class="slide-eyebrow">4.4 · The agentic web stack</div>
+  <div class="slide-content stack center" style="justify-content: center; gap: clamp(0.3rem, 0.8vh, 0.6rem);">
+    <h1 class="reveal d1 title-1" style="font-size: clamp(1.4rem, 3.5vw, 2.8rem);">Eight capabilities. <span class="text-yellow">One agent.</span></h1>
+    <p class="reveal d2 lede" style="margin: 0 auto; font-size: clamp(0.85rem, 1.3vw, 1.1rem);">
+      Every production-grade agent on the platform is composed from these eight
+      capabilities. Each maps to one of Citadel&rsquo;s layers, so each one is
+      governed by construction.
+    </p>
+    <div class="reveal d4" style="margin-top: clamp(0.3rem, 0.8vh, 0.5rem); display: flex; justify-content: center;">
+      <div class="honeycomb" style="grid-template-columns: repeat(3, 1fr); max-width: 520px; grid-auto-rows: clamp(60px, 9vw, 100px); gap: clamp(0.3rem, 0.7vw, 0.6rem);">
+        <div class="hex" style="--accent: var(--blue);"><div class="hex-icon" style="font-size: clamp(0.75rem, 1.2vw, 0.95rem);">✉</div><div class="hex-label" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">Communication</div><div class="hex-tag">L1</div></div>
+        <div class="hex" style="--accent: var(--orange);"><div class="hex-icon" style="font-size: clamp(0.75rem, 1.2vw, 0.95rem);">⌕</div><div class="hex-label" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">Discovery</div><div class="hex-tag">L2/3</div></div>
+        <div class="hex" style="--accent: var(--teal);"><div class="hex-icon" style="font-size: clamp(0.75rem, 1.2vw, 0.95rem);">⛚</div><div class="hex-label" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">Identity</div><div class="hex-tag">L3</div></div>
+        <div class="hex" style="--accent: var(--blue);"><div class="hex-icon" style="font-size: clamp(0.75rem, 1.2vw, 0.95rem);">⚒</div><div class="hex-label" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">Tools</div><div class="hex-tag">L1</div></div>
+        <div class="hex center"><div class="hex-icon" style="font-size: clamp(0.75rem, 1.2vw, 0.95rem);">★</div><div class="hex-label" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">AI Agent</div><div class="hex-tag">Core</div></div>
+        <div class="hex" style="--accent: var(--orange);"><div class="hex-icon" style="font-size: clamp(0.75rem, 1.2vw, 0.95rem);">⌥</div><div class="hex-label" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">Orchestration</div><div class="hex-tag">L2</div></div>
+        <div class="hex" style="--accent: var(--orange);"><div class="hex-icon" style="font-size: clamp(0.75rem, 1.2vw, 0.95rem);">◉</div><div class="hex-label" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">Observability</div><div class="hex-tag">L2</div></div>
+        <div class="hex" style="--accent: var(--orange);"><div class="hex-icon" style="font-size: clamp(0.75rem, 1.2vw, 0.95rem);">◊</div><div class="hex-label" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">Memory</div><div class="hex-tag">L2</div></div>
+        <div class="hex" style="--accent: var(--purple);"><div class="hex-icon" style="font-size: clamp(0.75rem, 1.2vw, 0.95rem);">⛨</div><div class="hex-label" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">Governance</div><div class="hex-tag">All</div></div>
+      </div>
+    </div>
+    <p class="reveal d8 body-strong" style="margin-top: 0.6rem; font-size: clamp(0.85rem, 1.2vw, 1rem);">
+      <em class="serif">Every capability governed, every interaction traceable.</em>
+    </p>
+  </div>
+  <div class="slide-marker">32 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 33 — AGENT LIFECYCLE
+     ============================================================ -->
+<section class="slide" data-title="Agent Lifecycle">
+  <div class="slide-eyebrow">4.5 · The agent lifecycle</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Born governed. <span class="text-yellow">Retired</span> governed.</h1>
+    <p class="reveal d2 lede">
+      An agent on Citadel has a documented lifecycle &mdash; the same way a
+      Kubernetes workload or an APIM API does. There is no &lsquo;just put
+      it in production&rsquo; path.
+    </p>
+    <div class="reveal d4 grid-3" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); gap: clamp(0.6rem, 1.2vw, 1rem);">
+      <div class="card-panel" style="--accent: var(--teal);">
+        <div class="kicker text-teal">1 · Register</div>
+        <p class="body" style="margin-top: 0.5em;">
+          Agent is created in the registry with owner, purpose, allowed models,
+          allowed tools, allowed data sources, evaluation suite, and HITL policy.
+        </p>
+      </div>
+      <div class="card-panel" style="--accent: var(--orange);">
+        <div class="kicker" style="color:#FFAA66;">2 · Evaluate</div>
+        <p class="body" style="margin-top: 0.5em;">
+          Pre-deploy evals on a fixed dataset. Quality, safety, refusal-rate,
+          PII-leakage, jailbreak resistance &mdash; all gated. No green eval, no deploy.
+        </p>
+      </div>
+      <div class="card-panel" style="--accent: var(--blue);">
+        <div class="kicker text-blue">3 · Deploy</div>
+        <p class="body" style="margin-top: 0.5em;">
+          Identity provisioned, gateway route created, quota assigned, audit
+          binding wired up. The agent gets exactly the scope its registry entry asks for &mdash; nothing more.
+        </p>
+      </div>
+      <div class="card-panel" style="--accent: var(--green);">
+        <div class="kicker text-green">4 · Observe</div>
+        <p class="body" style="margin-top: 0.5em;">
+          Live evals on real traffic, drift detection, cost dashboards, refusal
+          monitoring, prompt &amp; response sampling for offline review.
+        </p>
+      </div>
+      <div class="card-panel" style="--accent: var(--purple);">
+        <div class="kicker" style="color:#C57BBC;">5 · Iterate</div>
+        <p class="body" style="margin-top: 0.5em;">
+          Prompt changes, tool changes, model changes &mdash; each is a versioned
+          deployment, each re-runs evals, each is reversible by rollback.
+        </p>
+      </div>
+      <div class="card-panel" style="--accent: var(--red);">
+        <div class="kicker" style="color: var(--red);">6 · Retire</div>
+        <p class="body" style="margin-top: 0.5em;">
+          Identity revoked, route removed, audit data preserved per retention
+          schedule. The retired agent leaves a complete forensic record behind.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">33 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 34 — CHAPTER DIVIDER 05 (Scale)
+     ============================================================ -->
+<section class="slide chapter-divider" data-title="Chapter 05" style="--accent: var(--orange);">
+  <div class="chapter-grid"></div>
+  <div class="slide-content row middle" style="justify-content: space-between; gap: clamp(1rem, 3vw, 3rem);">
+    <div class="reveal-scale d1 chapter-num" style="color: #FFAA66;">05</div>
+    <div class="stack" style="flex: 1; max-width: 56ch;">
+      <div class="reveal d2 chapter-label" style="color: #FFAA66;">Chapter Five · Scale</div>
+      <h2 class="reveal d3 chapter-title">Hub-Spoke<br>Topology.</h2>
+      <p class="reveal d5 chapter-blurb">
+        A platform that hosts one agent is a project. A platform that hosts a
+        hundred agents, across a dozen business units, in five regions, under
+        one governance contract &mdash; that is a factory. Hub-spoke is how we
+        get from the first to the second without rewriting anything.
+      </p>
+      <div class="reveal d7 row" style="gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem;">
+        <span class="chip"><span class="chip-dot" style="color:#FFAA66;"></span>Govern central · innovate local</span>
+        <span class="chip"><span class="chip-dot" style="color:#FFAA66;"></span>One contract, many spokes</span>
+        <span class="chip"><span class="chip-dot" style="color:#FFAA66;"></span>Modular by design</span>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">34 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 35 — ONE HUB MANY SPOKES (RADIAL)
+     ============================================================ -->
+<section class="slide" data-title="Hub Spoke">
+  <div class="slide-eyebrow">5.1 · One hub · many spokes</div>
+  <div class="slide-content grid-2 middle" style="gap: clamp(1.2rem, 3vw, 3rem); align-items: center;">
+    <div class="stack" style="max-width: 48ch;">
+      <h1 class="reveal d1 title-1" style="font-size: clamp(1.3rem, 3vw, 2.4rem);">Govern <em class="serif">central</em>.<br>Innovate <span class="text-yellow">local</span>.</h1>
+      <p class="reveal d2 lede" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">
+        The hub is the Citadel. The spokes are business-unit AI workloads &mdash;
+        Finance, HR, Legal, Ops, IT, R&amp;D. Each spoke is a self-contained
+        Azure subscription with its own compute, its own data, and its own
+        DevOps cycle.
+      </p>
+      <p class="reveal d4 body" style="font-size: clamp(0.75rem, 1.1vw, 0.9rem);">
+        VNet peering carries every AI request from spoke to hub. There is no other allowed egress &mdash; spokes
+        cannot reach Azure OpenAI or any model directly. The contract is
+        enforced by the network, not by trust.
+      </p>
+      <p class="reveal d6 caption" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">
+        New spokes can be onboarded in days, not quarters &mdash; they inherit
+        the hub&rsquo;s governance the moment peering is established.
+      </p>
+    </div>
+    <div class="reveal-scale d3 radial-stage" style="max-width: clamp(320px, 42vw, 580px); max-height: 50vh;">
+      <svg viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet">
+        <line x1="500" y1="310" x2="220" y2="135" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
+        <line x1="500" y1="310" x2="780" y2="135" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
+        <line x1="500" y1="310" x2="100" y2="310" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
+        <line x1="500" y1="310" x2="900" y2="310" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
+        <line x1="500" y1="310" x2="280" y2="495" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
+        <line x1="500" y1="310" x2="720" y2="495" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
+      </svg>
+      <div class="hub-circle" style="box-shadow: 0 0 40px rgba(255,230,0,0.25), inset 0 0 0 4px rgba(255,230,0,0.6);">
+        <span class="hub-icon">⛨</span><span class="hub-icon">⚖</span>
+        <span class="hub-icon">◉</span><span class="hub-icon">📋</span>
+        <div class="hub-title">Citadel<br>Governance Hub</div>
+      </div>
+      <div class="spoke s-finance">⌂<span class="spoke-tag">Finance</span></div>
+      <div class="spoke s-hr">☻<span class="spoke-tag">HR</span></div>
+      <div class="spoke s-legal">⚖<span class="spoke-tag">Legal</span></div>
+      <div class="spoke s-rd">⚗<span class="spoke-tag">R&amp;D</span></div>
+      <div class="spoke s-ops">⚙<span class="spoke-tag">Ops</span></div>
+      <div class="spoke s-it">⌬<span class="spoke-tag">IT</span></div>
+    </div>
+  </div>
+  <div class="slide-marker">35 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 36 — SPOKE AUTONOMY · HUB CONTROL
+     ============================================================ -->
+<section class="slide" data-title="Autonomy + Control">
+  <div class="slide-eyebrow">5.2 · Spoke autonomy &middot; Hub control</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Spoke independence with <span class="text-yellow">central oversight</span>.</h1>
+    <p class="reveal d2 lede">
+      Each spoke owns compute, data, and operations. The hub owns governance.
+      The two meet at a single contract &mdash; the handshake that makes the
+      whole topology auditable.
+    </p>
+    <div class="reveal d4 grid-2" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: stretch;">
+      <div class="compare-col" style="--accent: var(--teal);">
+        <div class="head"><span>Spoke · local autonomy</span><span class="caption mono">owns: compute · data · ops</span></div>
+        <div class="body">
+          <div class="row"><div class="ico">⌬</div><div><strong>Dedicated compute</strong><span class="desc">AKS, Container Apps, VMs &mdash; the spoke chooses.</span></div></div>
+          <div class="row"><div class="ico">▤</div><div><strong>App-specific data</strong><span class="desc">Dedicated databases, storage, caches.</span></div></div>
+          <div class="row"><div class="ico">⟳</div><div><strong>Independent scaling</strong><span class="desc">Autonomous DevOps cycle. Deploy when ready.</span></div></div>
+          <div class="row"><div class="ico">⌘</div><div><strong>Own integrations</strong><span class="desc">Spoke-specific data sources and external APIs.</span></div></div>
+        </div>
+      </div>
+      <div class="compare-col" style="--accent: var(--primary);">
+        <div class="head" style="color: var(--bg);"><span>Hub · central governance</span><span class="caption mono" style="color: var(--bg); opacity: 0.7;">owns: gateway · policy · cost · audit</span></div>
+        <div class="body">
+          <div class="row"><div class="ico">⛨</div><div><strong>Single entry point</strong><span class="desc">All AI API calls through one gateway.</span></div></div>
+          <div class="row"><div class="ico">⚖</div><div><strong>Policy enforcement</strong><span class="desc">Consistent rules across all spokes.</span></div></div>
+          <div class="row"><div class="ico">$</div><div><strong>Cost attribution</strong><span class="desc">Unified billing, chargeback, budget alerts.</span></div></div>
+          <div class="row"><div class="ico">📋</div><div><strong>Complete audit trail</strong><span class="desc">Full traceability for compliance &mdash; 7 years.</span></div></div>
+        </div>
+      </div>
+    </div>
+    <p class="reveal d8 caption center" style="margin: 0.6rem auto 0; max-width: 80ch;">
+      Connecting them: a single <span class="text-yellow">contract</span> &mdash; VNet peering carrying Entra-authenticated, policy-checked traffic. Anything else is denied at the network layer.
+    </p>
+  </div>
+  <div class="slide-marker">36 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 37 — THE CONTRACT
+     ============================================================ -->
+<section class="slide" data-title="The Contract">
+  <div class="slide-eyebrow">5.3 · The contract between hub and spoke</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">A handshake <em class="serif">in code</em>.</h1>
+    <p class="reveal d2 lede">
+      &lsquo;Contract&rsquo; is not a metaphor. It is a versioned manifest, signed
+      at deploy time, that declares what a spoke is allowed to do and what
+      the hub guarantees in return. If either side breaks it, the route fails closed.
+    </p>
+    <div class="reveal d4 grid-2" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: stretch; gap: clamp(0.8rem, 1.6vw, 1.6rem);">
+      <div class="card-panel-glass">
+        <div class="kicker text-yellow">Spoke declares</div>
+        <ul class="bullet-list" style="--accent: var(--teal); margin-top: 0.6em;">
+          <li><strong>Identity.</strong> The Entra principal(s) that will originate AI calls.</li>
+          <li><strong>Use cases.</strong> Named applications &mdash; e.g. <em class="mono">finance-arr-agent</em>.</li>
+          <li><strong>Models requested.</strong> From the central allow-list, with rate limits.</li>
+          <li><strong>Data scopes.</strong> Which Unity Catalog assets the spoke needs to read.</li>
+          <li><strong>Cost ceiling.</strong> Monthly token budget, with kill-switch behaviour.</li>
+        </ul>
+      </div>
+      <div class="card-panel-glass">
+        <div class="kicker text-yellow">Hub guarantees</div>
+        <ul class="bullet-list" style="--accent: var(--primary); margin-top: 0.6em;">
+          <li><strong>Gateway availability.</strong> APIM SLO + multi-region failover.</li>
+          <li><strong>Policy stability.</strong> Versioned policies; breaking changes announced.</li>
+          <li><strong>Audit retention.</strong> 7 years immutable, with legal hold support.</li>
+          <li><strong>Cost transparency.</strong> Daily chargeback feed with line-item detail.</li>
+          <li><strong>Incident SLA.</strong> Defined response times for security &amp; availability events.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="reveal d8 caption center" style="margin: 0.6rem auto 0; max-width: 80ch;">
+      Onboarding a new spoke is, in operational terms, a <em>pull request</em> against the contract repo &mdash; reviewed by platform, security, and finance, then merged.
+    </p>
+  </div>
+  <div class="slide-marker">37 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 38 — COMPLETE ARCHITECTURE
+     ============================================================ -->
+<section class="slide" data-title="Complete Architecture">
+  <div class="slide-eyebrow">5.4 · The complete architecture</div>
+  <div class="slide-content stack center" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">The AI+ FACTORY Hub &mdash; <span class="text-yellow">end to end</span>.</h1>
+    <p class="reveal d2 lede" style="margin: 0 auto;">
+      Landing Zone &middot; Citadel &middot; Data &middot; Agents &middot; Hub-spoke. Read bottom-to-top.
+    </p>
+    <div class="reveal d4 arch-stack" style="margin-top: clamp(0.6rem, 1.6vh, 1rem);">
+      <div class="arch-row" style="--accent: var(--primary); border-left-color: var(--primary);">
+        <span class="ico">⊛</span>
+        <div><div class="ttl">Agentic Layer · Hub-Spoke Topology</div><div class="sub">Citadel hub &middot; Finance &middot; HR &middot; Legal &middot; Ops &middot; IT spokes</div></div>
+        <span class="tag">5</span>
+      </div>
+      <div class="arch-row" style="--accent: var(--green); border-left-color: var(--green);">
+        <span class="ico">▦</span>
+        <div><div class="ttl">Data Foundation</div><div class="sub">MetricFlow &middot; Unity Catalog &middot; OneLake &middot; Databricks SQL</div></div>
+        <span class="tag">3</span>
+      </div>
+      <div class="arch-citadel">
+        <div class="sub-layer" style="background: var(--purple);"><span class="glyph"></span>L4 · Security</div>
+        <div class="sub-layer" style="background: var(--teal);"><span class="glyph"></span>L3 · Identity</div>
+        <div class="sub-layer" style="background: var(--orange);"><span class="glyph"></span>L2 · Control Plane</div>
+        <div class="sub-layer" style="background: var(--blue);"><span class="glyph"></span>L1 · Gateway</div>
+      </div>
+      <div class="arch-row" style="--accent: var(--blue); border-left-color: var(--blue);">
+        <span class="ico">☁</span>
+        <div><div class="ttl">Azure Landing Zone</div><div class="sub">Network &amp; security &middot; identity &amp; access &middot; operations &amp; monitoring</div></div>
+        <span class="tag">1</span>
+      </div>
+    </div>
+    <p class="reveal d8 serif" style="font-size: clamp(1rem, 1.6vw, 1.4rem); color: var(--text-2); margin-top: 1rem; max-width: 70ch;">
+      A single platform vision: secure infrastructure, governed AI, trusted data, autonomous agents, scalable topology.
+    </p>
+  </div>
+  <div class="slide-marker">38 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 39 — KEY METRICS
+     ============================================================ -->
+<section class="slide" data-title="Key Metrics">
+  <div class="slide-eyebrow">5.5 · The numbers that matter</div>
+  <div class="slide-content stack center" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Four numbers that change the <span class="text-yellow">conversation</span>.</h1>
+    <p class="reveal d2 lede" style="margin: 0 auto;">
+      The business case for the AI+ FACTORY Hub rests on four numbers &mdash;
+      one for time, one for risk, one for cost, one for compliance. Each is
+      measurable, attributable, and defensible.
+    </p>
+    <div class="reveal d4 grid-4" style="margin-top: clamp(0.8rem, 2vh, 1.4rem); gap: clamp(0.6rem, 1.2vw, 1rem);">
+      <div class="metric-card">
+        <div class="num">2&ndash;4<span style="font-size: 0.5em; color: var(--text-2);">&nbsp;wks</span></div>
+        <div class="lbl"><strong style="color:#fff;">Time to production governance.</strong> A governed AI environment in weeks, not quarters.</div>
+      </div>
+      <div class="metric-card">
+        <div class="num">~80<span style="font-size: 0.6em; color: var(--text-2);">%</span></div>
+        <div class="lbl"><strong style="color:#fff;">Reduction in shadow-AI risk.</strong> The unbypassable gateway closes the most common exfiltration path.</div>
+      </div>
+      <div class="metric-card">
+        <div class="num">20&ndash;30<span style="font-size: 0.6em; color: var(--text-2);">%</span></div>
+        <div class="lbl"><strong style="color:#fff;">Cost reduction.</strong> Smart routing, model right-sizing, and shared quota turn token spend into a managed line item.</div>
+      </div>
+      <div class="metric-card">
+        <div class="num">7<span style="font-size: 0.5em; color: var(--text-2);">&nbsp;yrs</span></div>
+        <div class="lbl"><strong style="color:#fff;">Audit trail retention.</strong> Hash-chained, immutable, with legal hold &mdash; the regulator-ready evidence file.</div>
+      </div>
+    </div>
+    <p class="reveal d8 caption" style="margin-top: 1rem; max-width: 76ch;">
+      Each number ties back to a specific architectural decision in this deck &mdash;
+      Landing Zone collapses time, the gateway reduces risk, the control plane drives cost, and the audit trail underwrites compliance.
+    </p>
+  </div>
+  <div class="slide-marker">39 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 40 — WHO BUILDS WHAT
+     ============================================================ -->
+<section class="slide" data-title="Who Builds What">
+  <div class="slide-eyebrow">5.6 · Operating model</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Three teams. <span class="text-yellow">Clear boundaries.</span></h1>
+    <p class="reveal d2 lede">
+      The factory does not collapse responsibilities. It separates them &mdash; on
+      purpose &mdash; so that the platform team, the spoke teams, and the central
+      AI governance function each know exactly what they own and what they consume.
+    </p>
+    <div class="reveal d4 grid-3" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: stretch;">
+      <div class="card-panel" style="--accent: var(--blue);">
+        <div class="kicker text-blue">Platform team</div>
+        <h3 class="title-2" style="margin-top: 0.4em;">Owns the hub.</h3>
+        <ul class="bullet-list" style="--accent: var(--blue); margin-top: 0.5em;">
+          <li>Landing Zone &amp; networking</li>
+          <li>Citadel layers 1&ndash;4 in code</li>
+          <li>Gateway policy library</li>
+          <li>Identity model · Entra apps</li>
+          <li>Audit pipeline · log retention</li>
+        </ul>
+      </div>
+      <div class="card-panel" style="--accent: var(--teal);">
+        <div class="kicker text-teal">Spoke teams</div>
+        <h3 class="title-2" style="margin-top: 0.4em;">Build the agents.</h3>
+        <ul class="bullet-list" style="--accent: var(--teal); margin-top: 0.5em;">
+          <li>Pick the framework that fits</li>
+          <li>Author registry entries</li>
+          <li>Define use-case evals</li>
+          <li>Own application data &amp; compute</li>
+          <li>Sign and renew the contract</li>
+        </ul>
+      </div>
+      <div class="card-panel" style="--accent: var(--purple);">
+        <div class="kicker" style="color:#C57BBC;">AI governance</div>
+        <h3 class="title-2" style="margin-top: 0.4em;">Sets the rules.</h3>
+        <ul class="bullet-list" style="--accent: var(--purple); margin-top: 0.5em;">
+          <li>Acceptable-use &amp; safety policy</li>
+          <li>Model allow-list</li>
+          <li>Eval &amp; certification gates</li>
+          <li>Incident response playbook</li>
+          <li>Regulator interface</li>
+        </ul>
+      </div>
+    </div>
+    <p class="reveal d8 caption center" style="margin: 0.6rem auto 0; max-width: 84ch;">
+      The platform team enables. The spokes innovate. Governance certifies. None of the three can do the others&rsquo; jobs &mdash; and that is the point.
+    </p>
+  </div>
+  <div class="slide-marker">40 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 41 — A DAY IN THE LIFE
+     ============================================================ -->
+<section class="slide" data-title="Day in the Life">
+  <div class="slide-eyebrow">A day in the life · one prompt traced end-to-end</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1" style="font-size: clamp(1.4rem, 3.5vw, 2.8rem);">One prompt. <span class="text-yellow">Eight hops.</span> Every one logged.</h1>
+    <p class="reveal d2 lede" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">
+      The actual life of one request &mdash; from keystroke to certified answer.
+    </p>
+    <div class="reveal d4" style="margin-top: clamp(0.4rem, 1vh, 0.6rem);">
+      <table class="data-table" style="font-size: clamp(0.7rem, 1vw, 0.88rem);">
+        <thead><tr><th style="width:2.5em; padding: 0.5em 0.6em;">#</th><th style="padding: 0.5em 0.6em;">Where</th><th style="padding: 0.5em 0.6em;">What happens</th><th style="width: 10em; padding: 0.5em 0.6em;">Audit</th></tr></thead>
+        <tbody>
+          <tr><td style="padding: 0.4em 0.6em;"><strong>1</strong></td><td style="padding: 0.4em 0.6em;">Spoke client</td><td style="padding: 0.4em 0.6em;">User types prompt; client mints OBO token.</td><td style="padding: 0.4em 0.6em;">Client · user · device</td></tr>
+          <tr><td style="padding: 0.4em 0.6em;"><strong>2</strong></td><td style="padding: 0.4em 0.6em;">APIM Gateway</td><td style="padding: 0.4em 0.6em;">Token verified; rate quota; content-safety + PII scan.</td><td style="padding: 0.4em 0.6em;">Policy · tokens-in</td></tr>
+          <tr><td style="padding: 0.4em 0.6em;"><strong>3</strong></td><td style="padding: 0.4em 0.6em;">Control plane</td><td style="padding: 0.4em 0.6em;">Use-case resolved; allowed model pool selected.</td><td style="padding: 0.4em 0.6em;">Use case · model · route</td></tr>
+          <tr><td style="padding: 0.4em 0.6em;"><strong>4</strong></td><td style="padding: 0.4em 0.6em;">Reasoning layer</td><td style="padding: 0.4em 0.6em;">Model plans steps, decides to call <code class="mono">resolve_metric</code> tool.</td><td style="padding: 0.4em 0.6em;">Plan hash · tool intent</td></tr>
+          <tr><td style="padding: 0.4em 0.6em;"><strong>5</strong></td><td style="padding: 0.4em 0.6em;">Databricks SQL</td><td style="padding: 0.4em 0.6em;">MetricFlow resolves ARR under director&rsquo;s OBO identity.</td><td style="padding: 0.4em 0.6em;">SQL hash · rows scanned</td></tr>
+          <tr><td style="padding: 0.4em 0.6em;"><strong>6</strong></td><td style="padding: 0.4em 0.6em;">Unity Catalog</td><td style="padding: 0.4em 0.6em;">Row filter applies scope; column mask evaluates.</td><td style="padding: 0.4em 0.6em;">Filter · mask · lineage</td></tr>
+          <tr><td style="padding: 0.4em 0.6em;"><strong>7</strong></td><td style="padding: 0.4em 0.6em;">Reasoning layer</td><td style="padding: 0.4em 0.6em;">Model composes natural-language answer with citations.</td><td style="padding: 0.4em 0.6em;">Output hash · tokens-out</td></tr>
+          <tr><td style="padding: 0.4em 0.6em;"><strong>8</strong></td><td style="padding: 0.4em 0.6em;">APIM Gateway</td><td style="padding: 0.4em 0.6em;">Response PII rescan; immutable audit event written.</td><td style="padding: 0.4em 0.6em;">Final event · chain hash</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="reveal d8 caption center" style="margin-top: 0.6rem; max-width: 78ch;">
+      Replace the user with a junior analyst, and the answer changes &mdash; row filter narrows, mask engages &mdash; without the agent, the model, or the spoke knowing why.
+    </p>
+  </div>
+  <div class="slide-marker">41 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 42 — IMPLEMENTATION ROADMAP
+     ============================================================ -->
+<section class="slide" data-title="Roadmap">
+  <div class="slide-eyebrow">Implementation roadmap · 90-day path</div>
+  <div class="slide-content stack" style="justify-content: center; gap: clamp(0.3rem, 0.8vh, 0.6rem);">
+    <h1 class="reveal d1 title-1" style="font-size: clamp(1.4rem, 3.5vw, 2.8rem);">From greenfield to first <span class="text-yellow">governed agent</span> in 90 days.</h1>
+    <p class="reveal d2 lede" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">
+      The architecture is opinionated, which makes the rollout sequential and predictable. Each phase produces something usable.
+    </p>
+    <div class="reveal d4 stack-tight" style="margin-top: clamp(0.3rem, 0.8vh, 0.5rem); gap: clamp(0.3rem, 0.7vh, 0.5rem);">
+      <div class="agenda-card" style="--accent: var(--blue); padding: clamp(0.4rem, 1vw, 0.7rem) clamp(0.7rem, 1.4vw, 1.2rem);">
+        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D1&ndash;15</span>
+        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 1 · Land</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Adopt or extend the Azure Landing Zone. Subscriptions, networking, identity, baseline policy.</div></div>
+        <span class="duration">2 wks</span>
+      </div>
+      <div class="agenda-card" style="--accent: var(--purple); padding: clamp(0.4rem, 1vw, 0.7rem) clamp(0.7rem, 1.4vw, 1.2rem);">
+        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D16&ndash;45</span>
+        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 2 · Govern</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Citadel layers 1&ndash;4 deployed as code. Gateway policies, control plane, agent identity, security fabric.</div></div>
+        <span class="duration">4 wks</span>
+      </div>
+      <div class="agenda-card" style="--accent: var(--green); padding: clamp(0.4rem, 1vw, 0.7rem) clamp(0.7rem, 1.4vw, 1.2rem);">
+        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D40&ndash;70</span>
+        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 3 · Curate data</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Unity Catalog &amp; MetricFlow stand up. Three to five Core metrics certified.</div></div>
+        <span class="duration">4 wks</span>
+      </div>
+      <div class="agenda-card" style="--accent: var(--teal); padding: clamp(0.4rem, 1vw, 0.7rem) clamp(0.7rem, 1.4vw, 1.2rem);">
+        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D60&ndash;90</span>
+        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 4 · First spoke</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Pilot business-unit spoke onboarded against the contract. First production agent under audit.</div></div>
+        <span class="duration">4 wks</span>
+      </div>
+      <div class="agenda-card" style="--accent: var(--orange); padding: clamp(0.4rem, 1vw, 0.7rem) clamp(0.7rem, 1.4vw, 1.2rem);">
+        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D90+</span>
+        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 5 · Scale</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Onboard additional spokes against the same contract. Each new spoke is days, not quarters.</div></div>
+        <span class="duration">ongoing</span>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">42 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 43 — RISKS & MITIGATIONS
+     ============================================================ -->
+<section class="slide" data-title="Risks">
+  <div class="slide-eyebrow">Risks &amp; mitigations</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Where this goes wrong &mdash; and <span class="text-yellow">how we stop it</span>.</h1>
+    <p class="reveal d2 lede">
+      An honest deck names the failure modes. None of these are hypothetical &mdash; each one has a documented countermeasure already wired into the platform.
+    </p>
+    <div class="reveal d4 grid-2" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: stretch;">
+      <div class="card-panel" style="--accent: var(--red);">
+        <div class="kicker" style="color: var(--red);">Risk · gateway becomes bottleneck</div>
+        <p class="body" style="margin-top: 0.5em;">A single APIM region can become the failure domain for the whole platform.</p>
+        <div class="divider-dashed" style="margin: 0.6em 0;"></div>
+        <p class="body-strong">Mitigation: multi-region active-active APIM with geo-routing; private link to model providers in each region; documented RTO/RPO.</p>
+      </div>
+      <div class="card-panel" style="--accent: var(--red);">
+        <div class="kicker" style="color: var(--red);">Risk · cost runaway</div>
+        <p class="body" style="margin-top: 0.5em;">A misbehaving agent loops, exhausting the spoke&rsquo;s monthly token budget in hours.</p>
+        <div class="divider-dashed" style="margin: 0.6em 0;"></div>
+        <p class="body-strong">Mitigation: hard quota at gateway with soft + hard alerts; per-conversation circuit breakers; daily chargeback feed; default kill-switch behaviour.</p>
+      </div>
+      <div class="card-panel" style="--accent: var(--red);">
+        <div class="kicker" style="color: var(--red);">Risk · semantic drift</div>
+        <p class="body" style="margin-top: 0.5em;">Edge metrics quietly diverge from Core; two reports cite different ARR.</p>
+        <div class="divider-dashed" style="margin: 0.6em 0;"></div>
+        <p class="body-strong">Mitigation: name-collision rejection at deploy; periodic Core/Edge reconciliation; promotion path made the path of least resistance.</p>
+      </div>
+      <div class="card-panel" style="--accent: var(--red);">
+        <div class="kicker" style="color: var(--red);">Risk · framework lock-in</div>
+        <p class="body" style="margin-top: 0.5em;">A spoke standardises on a framework that the vendor later abandons.</p>
+        <div class="divider-dashed" style="margin: 0.6em 0;"></div>
+        <p class="body-strong">Mitigation: tool-and-context interfaces are framework-neutral; agent registry holds the contract, not the framework; migration is a re-skin.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">43 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 44 — KEY QUOTE / PRINCIPLE
+     ============================================================ -->
+<section class="slide" data-title="Principle">
+  <div class="ambient-orb" style="width: 520px; height: 520px; background: var(--primary); top: -200px; right: -160px; opacity: 0.08;"></div>
+  <div class="slide-eyebrow">The one thing to remember</div>
+  <div class="slide-content row middle" style="gap: clamp(1.4rem, 4vw, 4rem);">
+    <div class="stack" style="flex: 1.4; max-width: 30ch;">
+      <div class="reveal d1 quote-block">
+        Governance is not a policy document.<br>It is an <span class="text-yellow">architecture</span>.
+      </div>
+      <div class="reveal d4 quote-attr" style="margin-top: 1.2em;">— The AI+ FACTORY Hub thesis</div>
+    </div>
+    <div class="stack" style="flex: 1; max-width: 44ch;">
+      <p class="reveal d6 body">
+        Every decision in this deck flows from that one premise. If governance
+        lives in a wiki, it is advisory. If it lives in the gateway, the
+        identity model, and the data layer, it is enforced.
+      </p>
+      <p class="reveal d8 body">
+        That is the difference between an AI strategy and an AI <em>platform</em> &mdash;
+        and it is what the AI+ FACTORY Hub delivers.
+      </p>
+    </div>
+  </div>
+  <div class="slide-marker">44 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 45 — RECAP
+     ============================================================ -->
+<section class="slide" data-title="Recap">
+  <div class="slide-eyebrow">Recap · five chapters in five lines</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-display">In <span class="text-yellow">summary</span>.</h1>
+    <div class="stack-tight" style="margin-top: clamp(0.6rem, 1.6vh, 1.2rem);">
+      <div class="reveal-x d2 row middle" style="gap: 1.2rem; padding: 0.8em 0; border-bottom: 1px solid var(--border);">
+        <span class="serif text-blue" style="font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">01</span>
+        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);">The <span class="text-blue">Landing Zone</span> gives us secure infrastructure in two weeks instead of two quarters.</p>
+      </div>
+      <div class="reveal-x d3 row middle" style="gap: 1.2rem; padding: 0.8em 0; border-bottom: 1px solid var(--border);">
+        <span class="serif" style="color:#C57BBC; font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">02</span>
+        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);"><span style="color:#C57BBC;">Citadel</span>&rsquo;s four layers turn AI into a governed enterprise capability &mdash; auth, content, identity, security.</p>
+      </div>
+      <div class="reveal-x d4 row middle" style="gap: 1.2rem; padding: 0.8em 0; border-bottom: 1px solid var(--border);">
+        <span class="serif text-green" style="font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">03</span>
+        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);">The <span class="text-green">data foundation</span> ensures one metric definition, identity-aware filters, and full lineage for every query.</p>
+      </div>
+      <div class="reveal-x d5 row middle" style="gap: 1.2rem; padding: 0.8em 0; border-bottom: 1px solid var(--border);">
+        <span class="serif text-teal" style="font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">04</span>
+        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);">The <span class="text-teal">agentic layer</span> separates reasoning, context, and execution &mdash; framework-agnostic, tool-gated, fully audited.</p>
+      </div>
+      <div class="reveal-x d6 row middle" style="gap: 1.2rem; padding: 0.8em 0;">
+        <span class="serif" style="color:#FFAA66; font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">05</span>
+        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);"><span style="color:#FFAA66;">Hub-spoke topology</span> scales the platform by addition, not rewrite &mdash; one contract, many spokes.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">45 / 46</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 46 — CLOSING / THANK YOU
+     ============================================================ -->
+<section class="slide s-title grid-bg" data-title="Thank you">
+  <div class="mesh"></div>
+  <div class="slide-content stack" style="justify-content: center; gap: clamp(0.8rem, 2vh, 1.6rem);">
+    <div class="reveal d1 eyebrow">End of deck · v1.0 · 2026</div>
+    <h1 class="reveal d2 wordmark" style="font-size: clamp(3rem, 10vw, 8rem); line-height: 0.85;">Thank<br>you<span class="text-yellow">.</span></h1>
+    <div class="yellow-line" style="margin: 0.4em 0;"></div>
+    <div class="reveal d6 lede" style="max-width: 64ch;">
+      The AI+ FACTORY Hub is ready to host your first governed agent. Bring a use case &mdash; we&rsquo;ll bring the platform.
+    </div>
+    <div class="reveal d8 row" style="gap: 1rem; flex-wrap: wrap; margin-top: 0.6rem;">
+      <span class="chip chip-yellow"><span class="chip-dot"></span>Architecture review · 60 min</span>
+      <span class="chip"><span class="chip-dot"></span>Workshop · 2 days</span>
+      <span class="chip"><span class="chip-dot"></span>Pilot scoping · 1 week</span>
+    </div>
+  </div>
+  <div class="meta-row">
+    <span class="caption mono">EY · Confidential</span>
+    <span class="caption mono">Press ← to revisit · Esc to overview</span>
+  </div>
+  <div class="slide-marker">46 / 46</div>
+</section>
+
+<!-- ============================================================
+     RUNTIME: nav, reveal, keyboard, progress
+     ============================================================ -->
+<script>
+(function () {
+  'use strict';
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const navDots = document.getElementById('navDots');
+  const progressFill = document.getElementById('progressFill');
+
+  // Build nav dots
+  slides.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.setAttribute('aria-label', 'Slide ' + (i + 1) + (s.dataset.title ? ' · ' + s.dataset.title : ''));
+    b.title = (i + 1) + '. ' + (s.dataset.title || '');
+    b.addEventListener('click', () => s.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    navDots.appendChild(b);
+  });
+  const dots = Array.from(navDots.children);
+
+  // IntersectionObserver triggers reveal + active-dot
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        const idx = slides.indexOf(entry.target);
+        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+        if (progressFill) {
+          progressFill.style.width = ((idx + 1) / slides.length * 100) + '%';
+        }
+      }
+    });
+  }, { threshold: 0.55 });
+  slides.forEach(s => io.observe(s));
+
+  // Keyboard navigation
+  let lock = false;
+  function go(delta) {
+    if (lock) return;
+    const cur = slides.findIndex(s => s.classList.contains('visible'));
+    const next = Math.max(0, Math.min(slides.length - 1, (cur < 0 ? 0 : cur) + delta));
+    if (next === cur) return;
+    lock = true;
+    slides[next].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => { lock = false; }, 480);
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+    else if (e.key === 'Home') { e.preventDefault(); slides[0].scrollIntoView({ behavior: 'smooth' }); }
+    else if (e.key === 'End') { e.preventDefault(); slides[slides.length - 1].scrollIntoView({ behavior: 'smooth' }); }
+  });
+
+  // Initial slide visible
+  slides[0].classList.add('visible');
+  if (dots[0]) dots[0].classList.add('active');
+})();
+</script>
+</body>
+</html>

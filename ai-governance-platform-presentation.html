@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI+ Governance Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ===========================================
+       CSS CUSTOM PROPERTIES (THEME)
+       Bold Signal — Confident, bold, modern
+       =========================================== */
+    :root {
+      --bg-primary: #1a1a1a;
+      --bg-gradient: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+      --card-bg: #FF5722;
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.7);
+      --text-on-card: #1a1a1a;
+      --accent: #FF5722;
+
+      --font-display: "Archivo Black", sans-serif;
+      --font-body: "Space Grotesk", sans-serif;
+
+      --title-size: clamp(2rem, 5vw, 4.5rem);
+      --h2-size: clamp(1.5rem, 3.5vw, 2.5rem);
+      --h3-size: clamp(1.1rem, 2.5vw, 1.75rem);
+      --body-size: clamp(0.8rem, 1.4vw, 1.05rem);
+      --small-size: clamp(0.65rem, 1vw, 0.85rem);
+
+      --slide-padding: clamp(1.5rem, 4vw, 4rem);
+      --content-gap: clamp(0.75rem, 2vw, 1.5rem);
+      --element-gap: clamp(0.5rem, 1vw, 1rem);
+
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --duration-normal: 0.6s;
+    }
+
+    /* ===========================================
+       BASE STYLES
+       =========================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+      font-family: var(--font-body);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+
+    html {
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+
+    /* ===========================================
+       VIEWPORT FITTING: MANDATORY BASE STYLES
+       =========================================== */
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: var(--bg-gradient);
+    }
+
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-height: 100%;
+      overflow: hidden;
+      padding: var(--slide-padding);
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    img, .image-container {
+      max-width: 100%;
+      max-height: min(50vh, 400px);
+      object-fit: contain;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+      gap: clamp(0.5rem, 1.5vw, 1rem);
+    }
+
+    @media (max-height: 700px) {
+      :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.5rem, 4.5vw, 3rem);
+        --h2-size: clamp(1.25rem, 3vw, 2rem);
+      }
+    }
+
+    @media (max-height: 600px) {
+      :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.25rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.9rem);
+      }
+      .nav-dots, .keyboard-hint, .decorative { display: none; }
+    }
+
+    @media (max-height: 500px) {
+      :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1.1rem, 3.5vw, 1.75rem);
+        --h2-size: clamp(1rem, 2.5vw, 1.5rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+      }
+    }
+
+    @media (max-width: 600px) {
+      :root { --title-size: clamp(1.5rem, 7vw, 2.5rem); }
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+      }
+      html { scroll-behavior: auto; }
+    }
+
+    /* ===========================================
+       PROGRESS BAR
+       =========================================== */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: var(--accent);
+      z-index: 1000;
+      transition: width 0.3s ease;
+    }
+
+    /* ===========================================
+       NAVIGATION DOTS
+       =========================================== */
+    .nav-dots {
+      position: fixed;
+      right: 1.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 1000;
+    }
+
+    .nav-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      padding: 0;
+    }
+
+    .nav-dot.active {
+      background: var(--accent);
+      transform: scale(1.4);
+    }
+
+    /* ===========================================
+       SLIDE NUMBER & NAVIGATION BREADCRUMB
+       =========================================== */
+    .slide-number {
+      position: absolute;
+      top: var(--slide-padding);
+      left: var(--slide-padding);
+      font-family: var(--font-display);
+      font-size: var(--small-size);
+      color: rgba(255, 255, 255, 0.35);
+      letter-spacing: 0.1em;
+      z-index: 10;
+    }
+
+    .slide-nav {
+      position: absolute;
+      top: var(--slide-padding);
+      right: var(--slide-padding);
+      display: flex;
+      gap: 1.5rem;
+      font-size: var(--small-size);
+      color: rgba(255, 255, 255, 0.35);
+      z-index: 10;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: 60%;
+    }
+
+    .slide-nav span { transition: color 0.3s ease; }
+    .slide-nav span.active { color: var(--accent); }
+
+    /* ===========================================
+       ANIMATIONS
+       =========================================== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity var(--duration-normal) var(--ease-out-expo),
+                  transform var(--duration-normal) var(--ease-out-expo);
+    }
+
+    .slide.visible .reveal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-scale {
+      opacity: 0;
+      transform: scale(0.92);
+      transition: opacity var(--duration-normal) var(--ease-out-expo),
+                  transform var(--duration-normal) var(--ease-out-expo);
+    }
+
+    .slide.visible .reveal-scale {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .reveal-left {
+      opacity: 0;
+      transform: translateX(-40px);
+      transition: opacity var(--duration-normal) var(--ease-out-expo),
+                  transform var(--duration-normal) var(--ease-out-expo);
+    }
+
+    .slide.visible .reveal-left {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .reveal:nth-child(1) { transition-delay: 0.1s; }
+    .reveal:nth-child(2) { transition-delay: 0.2s; }
+    .reveal:nth-child(3) { transition-delay: 0.3s; }
+    .reveal:nth-child(4) { transition-delay: 0.4s; }
+    .reveal:nth-child(5) { transition-delay: 0.5s; }
+    .reveal:nth-child(6) { transition-delay: 0.6s; }
+
+    /* ===========================================
+       TITLE SLIDE
+       =========================================== */
+    .title-slide .slide-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--content-gap);
+      align-items: center;
+      max-width: 1100px;
+    }
+
+    .title-slide h1 {
+      font-family: var(--font-display);
+      font-size: var(--title-size);
+      line-height: 1.05;
+      margin-bottom: var(--element-gap);
+    }
+
+    .title-slide .subtitle {
+      font-size: var(--body-size);
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .title-slide .accent-card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: clamp(1.5rem, 3vw, 2.5rem);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+    }
+
+    .title-slide .accent-card p {
+      font-family: var(--font-display);
+      font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+      color: var(--text-on-card);
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    /* ===========================================
+       CONTENT SLIDES
+       =========================================== */
+    .content-slide h2 {
+      font-family: var(--font-display);
+      font-size: var(--h2-size);
+      margin-bottom: var(--content-gap);
+      line-height: 1.15;
+    }
+
+    .content-slide h3 {
+      font-family: var(--font-display);
+      font-size: var(--h3-size);
+      margin-bottom: var(--element-gap);
+      color: var(--accent);
+    }
+
+    .content-slide p, .content-slide li {
+      font-size: var(--body-size);
+      line-height: 1.55;
+      color: var(--text-secondary);
+      margin-bottom: var(--element-gap);
+    }
+
+    .content-slide ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .content-slide ul li {
+      position: relative;
+      padding-left: 1.5em;
+      margin-bottom: calc(var(--element-gap) * 0.75);
+    }
+
+    .content-slide ul li::before {
+      content: "—";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ===========================================
+       CARD GRID
+       =========================================== */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+      gap: var(--element-gap);
+      margin-top: var(--content-gap);
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: clamp(1rem, 2vw, 1.5rem);
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
+
+    .card h4 {
+      font-family: var(--font-display);
+      font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+
+    .card p {
+      font-size: var(--small-size);
+      color: var(--text-secondary);
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    /* ===========================================
+       TWO COLUMN
+       =========================================== */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--content-gap);
+      align-items: start;
+    }
+
+    /* ===========================================
+       HIGHLIGHT BOX
+       =========================================== */
+    .highlight-box {
+      background: rgba(255, 87, 34, 0.1);
+      border-left: 4px solid var(--accent);
+      padding: clamp(1rem, 2vw, 1.5rem);
+      border-radius: 0 12px 12px 0;
+      margin: var(--content-gap) 0;
+    }
+
+    .highlight-box p {
+      margin: 0;
+      color: var(--text-primary);
+      font-size: var(--body-size);
+    }
+
+    /* ===========================================
+       TABLE STYLES
+       =========================================== */
+    .slide-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: var(--content-gap);
+      font-size: var(--small-size);
+    }
+
+    .slide-table th {
+      text-align: left;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+      font-family: var(--font-display);
+      font-size: clamp(0.75rem, 1.2vw, 0.9rem);
+      color: var(--accent);
+    }
+
+    .slide-table td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .slide-table tr:last-child td { border-bottom: none; }
+
+    /* ===========================================
+       CLOSING SLIDE
+       =========================================== */
+    .closing-slide .slide-content {
+      text-align: center;
+      align-items: center;
+    }
+
+    .closing-slide h2 {
+      font-family: var(--font-display);
+      font-size: var(--title-size);
+      margin-bottom: var(--content-gap);
+    }
+
+    .closing-slide p {
+      font-size: var(--body-size);
+      color: var(--text-secondary);
+      max-width: 600px;
+    }
+
+    /* ===========================================
+       INLINE EDITING UI
+       =========================================== */
+    .edit-hotzone {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 80px;
+      height: 80px;
+      z-index: 10000;
+      cursor: pointer;
+    }
+
+    .edit-toggle {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      color: var(--text-on-card);
+      font-size: 1.2rem;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 10001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .edit-toggle.show, .edit-toggle.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .edit-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: var(--accent);
+      color: var(--text-on-card);
+      text-align: center;
+      padding: 8px;
+      font-size: var(--small-size);
+      font-weight: 600;
+      transform: translateY(-100%);
+      transition: transform 0.3s ease;
+      z-index: 9999;
+    }
+
+    .edit-banner.active { transform: translateY(0); }
+
+    body.edit-active [contenteditable="true"] {
+      outline: 2px dashed rgba(255, 87, 34, 0.5);
+      outline-offset: 4px;
+      cursor: text;
+    }
+
+    body.edit-active [contenteditable="true"]:hover {
+      outline-color: var(--accent);
+    }
+
+    /* ===========================================
+       RESPONSIVE OVERRIDES
+       =========================================== */
+    @media (max-width: 768px) {
+      .title-slide .slide-content,
+      .two-col { grid-template-columns: 1fr; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Inline Editing UI -->
+  <div class="edit-hotzone"></div>
+  <button class="edit-toggle" id="editToggle" title="Edit mode (E)">✏️</button>
+  <div class="edit-banner" id="editBanner">✏️ Edit Mode — Click any text to edit. Press Ctrl+S to save.</div>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar" id="progressBar"></div>
+
+  <!-- Navigation Dots -->
+  <nav class="nav-dots" id="navDots"></nav>
+
+  <!-- ==================== SLIDE 1: TITLE ==================== -->
+  <section class="slide title-slide">
+    <div class="slide-number">01</div>
+    <div class="slide-nav">
+      <span class="active">OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <div class="reveal">
+        <h1>AI+ Governance Platform</h1>
+        <p class="subtitle">Enterprise-grade AI infrastructure deployment and governance at scale</p>
+      </div>
+      <div class="accent-card reveal-scale">
+        <p>Unified AI Landing Zone &amp; Citadel Governance Hub</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 2: INTRODUCTION ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">02</div>
+    <div class="slide-nav">
+      <span class="active">OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">What is the AI+ Governance Platform?</h2>
+      <div class="two-col">
+        <div class="reveal">
+          <p>A comprehensive framework for deploying and governing enterprise AI infrastructure at scale.</p>
+          <ul>
+            <li>Unifies two core components into a single enterprise-ready system</li>
+            <li>Provides structured approach with security, observability, and cost control</li>
+            <li>Follows Microsoft's Azure Landing Zone best practices</li>
+            <li>Adds AI-specific governance, observability, and cost management</li>
+          </ul>
+        </div>
+        <div class="reveal">
+          <div class="card">
+            <h4>AI Landing Zone</h4>
+            <p>Secure, scalable workload environments for AI applications and agents</p>
+          </div>
+          <div class="card" style="margin-top: var(--element-gap);">
+            <h4>Citadel Governance Hub</h4>
+            <p>Centralized governance, policy enforcement, and API management via Azure APIM</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 3: THE CHALLENGE ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">03</div>
+    <div class="slide-nav">
+      <span class="active">OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">The Enterprise AI Challenge</h2>
+      <div class="card-grid reveal">
+        <div class="card">
+          <h4>Security Isolation</h4>
+          <p>AI workloads need isolated environments with controlled network boundaries</p>
+        </div>
+        <div class="card">
+          <h4>Governance at Scale</h4>
+          <p>Centralized policy enforcement across multiple teams and environments</p>
+        </div>
+        <div class="card">
+          <h4>Cost Control</h4>
+          <p>Prevent runaway token consumption with rate limiting and budget tracking</p>
+        </div>
+        <div class="card">
+          <h4>Observability</h4>
+          <p>Complete audit trails for compliance, security, and operational insights</p>
+        </div>
+        <div class="card">
+          <h4>Agent Governance</h4>
+          <p>Manage identity, access, and behavior of autonomous AI agents</p>
+        </div>
+        <div class="card">
+          <h4>Data Foundation</h4>
+          <p>Ensure governed data access with certified metrics and access controls</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 4: SOLUTION OVERVIEW ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">04</div>
+    <div class="slide-nav">
+      <span class="active">OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Solution: Two Core Components</h2>
+      <div class="two-col">
+        <div class="reveal">
+          <h3>AI Landing Zone</h3>
+          <ul>
+            <li>Secure spoke VNets for AI workloads</li>
+            <li>Isolated environments per business unit</li>
+            <li>Application-specific resources</li>
+            <li>Independent scaling and deployment</li>
+            <li>Connects to central governance hub</li>
+          </ul>
+        </div>
+        <div class="reveal">
+          <h3>Citadel Governance Hub</h3>
+          <ul>
+            <li>Azure API Management as AI gateway</li>
+            <li>Centralized monitoring and logging</li>
+            <li>Policy enforcement at runtime</li>
+            <li>Cross-spoke governance and visibility</li>
+            <li>4-layer security architecture</li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight-box reveal">
+        <p>Together, these components enable organizations to innovate with AI while maintaining enterprise-grade security, compliance, and cost control.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 5: ARCHITECTURE OVERVIEW ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">05</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span class="active">ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Architecture: Hub &amp; Spoke</h2>
+      <div class="two-col">
+        <div class="reveal">
+          <p>The Citadel architecture uses a hub-and-spoke network model for maximum security and flexibility.</p>
+          <h3 style="margin-top: var(--content-gap);">Hub Components</h3>
+          <ul>
+            <li>API Management gateway</li>
+            <li>Shared monitoring and logging</li>
+            <li>Policy enforcement point</li>
+            <li>Cross-spoke governance</li>
+          </ul>
+        </div>
+        <div class="reveal">
+          <h3>Spoke Benefits</h3>
+          <ul>
+            <li><strong>Security Isolation</strong> — Separate boundaries limit blast radius</li>
+            <li><strong>Cost Optimization</strong> — Shared hub reduces duplication</li>
+            <li><strong>Governance at Scale</strong> — Centralized policy enforcement</li>
+            <li><strong>Flexible Deployment</strong> — Deploy in different regions, subscriptions, environments</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 6: 4-LAYER MODEL ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">06</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span class="active">ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">The 4-Layer Architecture</h2>
+      <div class="card-grid reveal">
+        <div class="card">
+          <h4>Layer 1: Foundation</h4>
+          <p>Infrastructure and security — VNets, identity, Key Vault, monitoring foundation</p>
+        </div>
+        <div class="card">
+          <h4>Layer 2: AI Services</h4>
+          <p>Managed AI capabilities — Azure OpenAI, AI Search, ML Workspace, APIM</p>
+        </div>
+        <div class="card">
+          <h4>Layer 3: Governance</h4>
+          <p>Policy and control — access contracts, rate limiting, content safety, budgets</p>
+        </div>
+        <div class="card">
+          <h4>Layer 4: Applications</h4>
+          <p>AI-powered solutions — LOB apps, chatbots, document processing, integrations</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 7: LAYER 1 ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">07</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span class="active">ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Layer 1: Governance Hub</h2>
+      <p class="reveal">The runtime enforcement plane that serves as the entry point for all AI traffic.</p>
+      <div class="two-col" style="margin-top: var(--content-gap);">
+        <div class="reveal">
+          <h3>Core Capabilities</h3>
+          <ul>
+            <li>Identity validation (Entra ID, API keys, managed identities)</li>
+            <li>Rate limiting and throttling (QPM, TPM quotas)</li>
+            <li>Content safety and filtering</li>
+            <li>Request routing and load balancing</li>
+            <li>Audit logging and usage tracking</li>
+          </ul>
+        </div>
+        <div class="reveal">
+          <h3>APIM Gateway Functions</h3>
+          <ul>
+            <li>Authentication enforcement</li>
+            <li>Policy evaluation at runtime</li>
+            <li>Request routing to backends</li>
+            <li>Semantic caching for cost reduction</li>
+            <li>Event emission to Event Hub</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 8: LAYER 2 ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">08</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span class="active">ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Layer 2: AI Control Plane</h2>
+      <p class="reveal">Observability and compliance telemetry for all AI workloads.</p>
+      <div class="card-grid reveal">
+        <div class="card">
+          <h4>Cost Attribution</h4>
+          <p>Per-request token tracking with dimensional attribution by team, project, and agent</p>
+        </div>
+        <div class="card">
+          <h4>Audit Trail</h4>
+          <p>Complete request/response logging with 7-year retention for compliance</p>
+        </div>
+        <div class="card">
+          <h4>Agent Evaluations</h4>
+          <p>Execution traces and compliance signals for agent behavior monitoring</p>
+        </div>
+        <div class="card">
+          <h4>Real-Time Dashboards</h4>
+          <p>Power BI dashboards showing usage patterns, violations, and anomalies</p>
+        </div>
+      </div>
+      <div class="highlight-box reveal">
+        <p>All usage events flow through Event Hub → Log Analytics, providing a single pipeline for LLM and data query observability.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 9: LAYER 3 ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">09</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span class="active">ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Layer 3: Agent Identity</h2>
+      <p class="reveal">Identity lifecycle management and zero-secrets authentication chain for AI agents.</p>
+      <div class="two-col">
+        <div class="reveal">
+          <h3>Agent 365 Integration</h3>
+          <ul>
+            <li>Register and manage agent identities</li>
+            <li>Lifecycle management (create, rotate, retire)</li>
+            <li>Access package enforcement</li>
+            <li>Shadow agent detection</li>
+          </ul>
+        </div>
+        <div class="reveal">
+          <h3>Zero-Secrets Chain</h3>
+          <ul>
+            <li>Agent uses Entra Managed Identity</li>
+            <li>APIM validates MI token</li>
+            <li>APIM exchanges its own MI token</li>
+            <li>No PATs, no connection strings, no shared keys</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 10: LAYER 4 ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">10</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span class="active">ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Layer 4: Security Fabric</h2>
+      <p class="reveal">Unified protection layer with threat detection, data governance, and compliance.</p>
+      <div class="card-grid reveal">
+        <div class="card">
+          <h4>Microsoft Defender</h4>
+          <p>Runtime threat protection, vulnerability assessment, and security alerts for AI deployments</p>
+        </div>
+        <div class="card">
+          <h4>Microsoft Purview</h4>
+          <p>Data classification, sensitivity labels, DLP, and complete data governance audit trail</p>
+        </div>
+        <div class="card">
+          <h4>Entra ID</h4>
+          <p>Conditional access, identity protection, and full identity chain management</p>
+        </div>
+        <div class="card">
+          <h4>Sentinel Integration</h4>
+          <p>Threat intelligence and security incident response across the AI infrastructure</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 11: AGENT FACTORY ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">11</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span class="active">AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Enterprise Agent Factory</h2>
+      <p class="reveal">An open operating model for deploying AI agents at scale — independent of any single vendor or framework.</p>
+      <div class="highlight-box reveal">
+        <p>The next decade of enterprise software will be shaped by adaptive AI agents. Scaling from experimentation to production requires a disciplined operating model with clear governance.</p>
+      </div>
+      <div class="two-col" style="margin-top: var(--content-gap);">
+        <div class="reveal">
+          <h3>What It Provides</h3>
+          <ul>
+            <li>Disciplined operating model with governance</li>
+            <li>Intelligence layers for enterprise context</li>
+            <li>Harness architecture for safe agent actions</li>
+            <li>Governance foundation enforcing policy at runtime</li>
+          </ul>
+        </div>
+        <div class="reveal">
+          <h3>Built On</h3>
+          <ul>
+            <li>Reasoning Layer — LLM + orchestration engine</li>
+            <li>Context Layer — memory, skills, RAG</li>
+            <li>Execution Layer — tools, middleware, sandbox</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 12: THREE PILLARS ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">12</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span class="active">AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Three Pillars</h2>
+      <div class="card-grid reveal">
+        <div class="card">
+          <h4>Intelligence Layers</h4>
+          <p>Workspace, business data, and enterprise knowledge layers provide contextual grounding agents need</p>
+        </div>
+        <div class="card">
+          <h4>Builder Toolchains</h4>
+          <p>Low-code platforms, open frameworks (LangChain, LangGraph, Claude SDK, OpenAI SDK), and SDK-based approaches</p>
+        </div>
+        <div class="card">
+          <h4>Harness &amp; Governance</h4>
+          <p>Citadel 4-layer architecture provides identity, security, compliance, and operational telemetry</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 13: INTELLIGENCE LAYERS ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">13</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span class="active">AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Intelligence Layers</h2>
+      <p class="reveal">Agents are only as useful as the context they can access. Three interconnected intelligence layers:</p>
+      <div class="card-grid reveal">
+        <div class="card">
+          <h4>Workspace Intelligence</h4>
+          <p>How people work — calendars, messaging, documents, project systems</p>
+        </div>
+        <div class="card">
+          <h4>Business Data Intelligence</h4>
+          <p>How the business operates — data warehouses, BI platforms, operational databases</p>
+        </div>
+        <div class="card">
+          <h4>Enterprise Knowledge</h4>
+          <p>All institutional knowledge — internal docs, SOPs, MCP-connected systems, public web</p>
+        </div>
+      </div>
+      <div class="highlight-box reveal">
+        <p>Context Engineering controls what the model sees. Harness Engineering controls how the model acts. Together they separate experimental demos from production systems.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 14: DATA FOUNDATION ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">14</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span class="active">DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Enterprise Data Foundation</h2>
+      <p class="reveal">Most enterprise AI deployments fail at the data layer. The Data Foundation closes three structural gaps:</p>
+      <div class="card-grid reveal">
+        <div class="card">
+          <h4>Governed Identity</h4>
+          <p>Every data query is authenticated and rate-limited through APIM with zero secrets in the path</p>
+        </div>
+        <div class="card">
+          <h4>Governance-by-Construction</h4>
+          <p>Unity Catalog column masks and row filters execute inside the query engine — masked data never materializes</p>
+        </div>
+        <div class="card">
+          <h4>Full Observability</h4>
+          <p>LLM usage and data queries flow through the same Event Hub → Log Analytics pipeline</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 15: GOVERNED QUERY PATH ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">15</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span class="active">DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Governed Data Query Path</h2>
+      <p class="reveal">Every agent data query traverses the full stack:</p>
+      <table class="slide-table reveal">
+        <thead>
+          <tr>
+            <th>Step</th>
+            <th>Component</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>AI Agent</td>
+            <td>Sends HTTPS request with Entra Bearer Token + APIM key</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>APIM Gateway</td>
+            <td>Validates token, enforces QPM quota, emits usage event</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Databricks SQL</td>
+            <td>Executes query through Unity Catalog with MI token</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Unity Catalog</td>
+            <td>Applies row filters and column masks at query time</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>OneLake</td>
+            <td>Returns governed result set with Entra ID auth</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 16: SEMANTIC LAYER ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">16</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span class="active">DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Semantic Layer: Author Once</h2>
+      <p class="reveal">Certified metric definitions ensure every AI agent answers business questions the same way as BI dashboards.</p>
+      <div class="two-col">
+        <div class="reveal">
+          <h3>How It Works</h3>
+          <ul>
+            <li>Finance Analyst defines metric once in Unity Catalog</li>
+            <li>Certified formula with dimensions and row filters</li>
+            <li>Open APIs: REST, JDBC, GraphQL</li>
+            <li>Power BI, Jupyter, and AI agents consume same definition</li>
+          </ul>
+        </div>
+        <div class="reveal">
+          <h3>Key Benefits</h3>
+          <ul>
+            <li>Identical output across all consumers</li>
+            <li>Identical governance enforcement</li>
+            <li>Single lineage source for audit</li>
+            <li>No inconsistent text-to-SQL inference</li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight-box reveal">
+        <p>Platform-native semantic agents read certified definitions. The governance guarantee is architectural, not procedural.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 17: GOVERNANCE FRAMEWORK ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">17</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span class="active">GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Governance Framework</h2>
+      <p class="reveal">Policy-as-code governance shifts controls left into the deployment pipeline while maintaining runtime enforcement.</p>
+      <div class="card-grid reveal">
+        <div class="card">
+          <h4>Version Controlled</h4>
+          <p>Track policy changes through Git history with full audit trail</p>
+        </div>
+        <div class="card">
+          <h4>Testable</h4>
+          <p>Validate policies before deployment in CI/CD pipelines</p>
+        </div>
+        <div class="card">
+          <h4>Reproducible</h4>
+          <p>Consistent enforcement across dev, staging, and production</p>
+        </div>
+        <div class="card">
+          <h4>Automated</h4>
+          <p>No manual gatekeeping — runtime enforcement via APIM</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 18: ACCESS CONTRACTS ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">18</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span class="active">GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Access Contracts &amp; Rate Limiting</h2>
+      <p class="reveal">Access Contracts bind policies to identities, preventing cost overruns and ensuring fair resource allocation.</p>
+      <div class="two-col">
+        <div class="reveal">
+          <h3>Contract Structure</h3>
+          <ul>
+            <li>Identity (team, user, or agent)</li>
+            <li>Environment (dev/staging/prod)</li>
+            <li>Policy set (rate limits, safety, budgets)</li>
+            <li>Validity period with auto-expiry</li>
+          </ul>
+        </div>
+        <div class="reveal">
+          <h3>Limit Types</h3>
+          <ul>
+            <li><strong>Request Rate</strong> — 100 req/min</li>
+            <li><strong>Token Quota</strong> — 1M tokens/day</li>
+            <li><strong>Concurrent</strong> — 10 concurrent requests</li>
+            <li><strong>Burst</strong> — 200 req/min burst</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 19: CONTENT SAFETY ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">19</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span class="active">GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Content Safety &amp; PII Protection</h2>
+      <p class="reveal">Multi-layer safety approach with defense-in-depth for enterprise AI workloads.</p>
+      <div class="card-grid reveal">
+        <div class="card">
+          <h4>Prompt Shields</h4>
+          <p>Block jailbreak attempts and adversarial inputs before reaching the model</p>
+        </div>
+        <div class="card">
+          <h4>Content Filtering</h4>
+          <p>Filter harmful content with configurable severity thresholds</p>
+        </div>
+        <div class="card">
+          <h4>PII Detection</h4>
+          <p>Redact sensitive data in requests and responses with regex and ML-based detection</p>
+        </div>
+        <div class="card">
+          <h4>Output Filtering</h4>
+          <p>Verify response safety before returning to the caller</p>
+        </div>
+      </div>
+      <div class="highlight-box reveal">
+        <p>Unity Catalog column masks are the primary enforcement — APIM PII masking is defense-in-depth for residual detection.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 20: IMPLEMENTATION ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">20</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Implementation &amp; Deployment</h2>
+      <div class="two-col">
+        <div class="reveal">
+          <h3>Infrastructure as Code</h3>
+          <ul>
+            <li>Bicep modules for Azure deployment</li>
+            <li>Terraform modules available</li>
+            <li>Portal deployment with one-click</li>
+            <li>Automated validation notebooks</li>
+          </ul>
+        </div>
+        <div class="reveal">
+          <h3>Deployment Stages</h3>
+          <ul>
+            <li>Git commit → CI build</li>
+            <li>Policy validation</li>
+            <li>Staging deployment</li>
+            <li>Production deployment with checks</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card-grid reveal" style="margin-top: var(--content-gap);">
+        <div class="card">
+          <h4>APIM Premium</h4>
+          <p>Up to 250,000 req/s with geo-replication and private endpoints</p>
+        </div>
+        <div class="card">
+          <h4>Scaling</h4>
+          <p>Horizontal spoke scaling without hub modifications</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 21: KEY BENEFITS ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">21</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Key Benefits</h2>
+      <div class="card-grid reveal">
+        <div class="card">
+          <h4>Enterprise Security</h4>
+          <p>Network isolation, encryption, and access management aligned with enterprise standards</p>
+        </div>
+        <div class="card">
+          <h4>Scalable Architecture</h4>
+          <p>Designed to grow from proof-of-concept to production scale</p>
+        </div>
+        <div class="card">
+          <h4>Operational Excellence</h4>
+          <p>Comprehensive monitoring, logging, and runbooks for reliable operations</p>
+        </div>
+        <div class="card">
+          <h4>Cost Optimization</h4>
+          <p>Built-in cost management with per-team attribution and budget alerts</p>
+        </div>
+        <div class="card">
+          <h4>Compliance Ready</h4>
+          <p>Supports SOX, GDPR, HIPAA, PCI DSS, ISO 27001, and NIST frameworks</p>
+        </div>
+        <div class="card">
+          <h4>Vendor Independent</h4>
+          <p>Open model supporting multiple LLM providers and agent frameworks</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 22: TARGET AUDIENCE ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">22</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Who Is This For?</h2>
+      <div class="card-grid reveal">
+        <div class="card">
+          <h4>Platform Engineers</h4>
+          <p>Building and maintaining AI infrastructure at scale</p>
+        </div>
+        <div class="card">
+          <h4>Cloud Architects</h4>
+          <p>Evaluating and designing enterprise AI systems</p>
+        </div>
+        <div class="card">
+          <h4>DevOps Teams</h4>
+          <p>Managing AI deployments and CI/CD pipelines</p>
+        </div>
+        <div class="card">
+          <h4>Security Teams</h4>
+          <p>Reviewing compliance and security controls</p>
+        </div>
+        <div class="card">
+          <h4>IT Operations</h4>
+          <p>Maintaining AI workloads and monitoring</p>
+        </div>
+        <div class="card">
+          <h4>IT Decision Makers</h4>
+          <p>Understanding the overall approach and ROI</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 23: NEXT STEPS ==================== -->
+  <section class="slide content-slide">
+    <div class="slide-number">23</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">Next Steps</h2>
+      <div class="two-col">
+        <div class="reveal">
+          <h3>Getting Started</h3>
+          <ul>
+            <li>Review the 15-minute quickstart guide</li>
+            <li>Check prerequisites and required permissions</li>
+            <li>Understand core concepts and terminology</li>
+            <li>Explore the architecture overview</li>
+          </ul>
+        </div>
+        <div class="reveal">
+          <h3>Deep Dives</h3>
+          <ul>
+            <li>Deploy the Citadel Governance Hub</li>
+            <li>Configure access contracts and policies</li>
+            <li>Set up agent identity and harness</li>
+            <li>Connect enterprise data foundation</li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight-box reveal">
+        <p>Visit the full documentation at the AI+ Governance Platform docs and explore the open-source repositories on GitHub.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 24: CLOSING ==================== -->
+  <section class="slide closing-slide">
+    <div class="slide-number">24</div>
+    <div class="slide-nav">
+      <span>OVERVIEW</span>
+      <span>ARCHITECTURE</span>
+      <span>AGENTS</span>
+      <span>DATA</span>
+      <span>GOVERNANCE</span>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal">AI+ Governance Platform</h2>
+      <p class="reveal">Enterprise-grade AI infrastructure deployment and governance at scale. Secure, scalable, and compliant — from experimentation to production.</p>
+      <div class="accent-card reveal-scale" style="margin-top: var(--content-gap); max-width: 500px;">
+        <p>Deploy with Confidence. Govern at Scale.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===========================================
+       JAVASCRIPT
+       =========================================== -->
+  <script>
+    /* ===========================================
+       SLIDE PRESENTATION CONTROLLER
+       =========================================== */
+    class SlidePresentation {
+      constructor() {
+        this.slides = document.querySelectorAll(".slide");
+        this.currentSlide = 0;
+        this.setupIntersectionObserver();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupWheelNav();
+        this.setupProgressBar();
+        this.setupNavDots();
+      }
+
+      setupIntersectionObserver() {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+                const index = Array.from(this.slides).indexOf(entry.target);
+                this.currentSlide = index;
+                this.updateProgressBar();
+                this.updateNavDots();
+              }
+            });
+          },
+          { threshold: 0.5 }
+        );
+        this.slides.forEach((slide) => observer.observe(slide));
+      }
+
+      setupKeyboardNav() {
+        document.addEventListener("keydown", (e) => {
+          if (e.target.getAttribute("contenteditable")) return;
+          if (e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+            e.preventDefault();
+            this.nextSlide();
+          } else if (e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "PageUp") {
+            e.preventDefault();
+            this.prevSlide();
+          } else if (e.key === "Home") {
+            e.preventDefault();
+            this.goToSlide(0);
+          } else if (e.key === "End") {
+            e.preventDefault();
+            this.goToSlide(this.slides.length - 1);
+          }
+        });
+      }
+
+      setupTouchNav() {
+        let touchStartY = 0;
+        document.addEventListener("touchstart", (e) => {
+          touchStartY = e.touches[0].clientY;
+        });
+        document.addEventListener("touchend", (e) => {
+          const touchEndY = e.changedTouches[0].clientY;
+          const diff = touchStartY - touchEndY;
+          if (Math.abs(diff) > 50) {
+            if (diff > 0) this.nextSlide();
+            else this.prevSlide();
+          }
+        });
+      }
+
+      setupWheelNav() {
+        let wheelTimeout = null;
+        document.addEventListener("wheel", (e) => {
+          if (wheelTimeout) return;
+          wheelTimeout = setTimeout(() => { wheelTimeout = null; }, 800);
+          if (e.deltaY > 0) this.nextSlide();
+          else this.prevSlide();
+        });
+      }
+
+      nextSlide() {
+        if (this.currentSlide < this.slides.length - 1) {
+          this.goToSlide(this.currentSlide + 1);
+        }
+      }
+
+      prevSlide() {
+        if (this.currentSlide > 0) {
+          this.goToSlide(this.currentSlide - 1);
+        }
+      }
+
+      goToSlide(index) {
+        if (index >= 0 && index < this.slides.length) {
+          this.slides[index].scrollIntoView({ behavior: "smooth" });
+        }
+      }
+
+      setupProgressBar() {
+        this.progressBar = document.getElementById("progressBar");
+        this.updateProgressBar();
+      }
+
+      updateProgressBar() {
+        const progress = ((this.currentSlide + 1) / this.slides.length) * 100;
+        this.progressBar.style.width = progress + "%";
+      }
+
+      setupNavDots() {
+        this.navDotsContainer = document.getElementById("navDots");
+        this.navDotsContainer.innerHTML = "";
+        this.slides.forEach((_, index) => {
+          const dot = document.createElement("button");
+          dot.className = "nav-dot";
+          dot.setAttribute("aria-label", "Go to slide " + (index + 1));
+          dot.addEventListener("click", () => this.goToSlide(index));
+          this.navDotsContainer.appendChild(dot);
+        });
+        this.updateNavDots();
+      }
+
+      updateNavDots() {
+        const dots = this.navDotsContainer.querySelectorAll(".nav-dot");
+        dots.forEach((dot, index) => {
+          dot.classList.toggle("active", index === this.currentSlide);
+        });
+      }
+    }
+
+    /* ===========================================
+       INLINE EDITING CONTROLLER
+       =========================================== */
+    class InlineEditor {
+      constructor() {
+        this.isActive = false;
+        this.editToggle = document.getElementById("editToggle");
+        this.editBanner = document.getElementById("editBanner");
+        this.hotzone = document.querySelector(".edit-hotzone");
+        this.hideTimeout = null;
+        this.setupHotzone();
+        this.setupKeyboardShortcut();
+      }
+
+      setupHotzone() {
+        this.hotzone.addEventListener("mouseenter", () => {
+          clearTimeout(this.hideTimeout);
+          this.editToggle.classList.add("show");
+        });
+        this.hotzone.addEventListener("mouseleave", () => {
+          this.hideTimeout = setTimeout(() => {
+            if (!this.isActive) this.editToggle.classList.remove("show");
+          }, 400);
+        });
+        this.editToggle.addEventListener("mouseenter", () => {
+          clearTimeout(this.hideTimeout);
+        });
+        this.editToggle.addEventListener("mouseleave", () => {
+          this.hideTimeout = setTimeout(() => {
+            if (!this.isActive) this.editToggle.classList.remove("show");
+          }, 400);
+        });
+        this.hotzone.addEventListener("click", () => {
+          this.toggleEditMode();
+        });
+        this.editToggle.addEventListener("click", () => {
+          this.toggleEditMode();
+        });
+      }
+
+      setupKeyboardShortcut() {
+        document.addEventListener("keydown", (e) => {
+          if ((e.key === "e" || e.key === "E") && !e.target.getAttribute("contenteditable")) {
+            this.toggleEditMode();
+          }
+          if (e.ctrlKey && e.key === "s" && this.isActive) {
+            e.preventDefault();
+            this.exportFile();
+          }
+        });
+      }
+
+      toggleEditMode() {
+        this.isActive = !this.isActive;
+        document.body.classList.toggle("edit-active", this.isActive);
+        this.editToggle.classList.toggle("active", this.isActive);
+        this.editBanner.classList.toggle("active", this.isActive);
+
+        const textElements = document.querySelectorAll("h1, h2, h3, h4, p, li, td, th");
+        textElements.forEach((el) => {
+          if (this.isActive) {
+            el.setAttribute("contenteditable", "true");
+          } else {
+            el.removeAttribute("contenteditable");
+          }
+        });
+      }
+
+      exportFile() {
+        const editableEls = Array.from(document.querySelectorAll("[contenteditable]"));
+        editableEls.forEach((el) => el.removeAttribute("contenteditable"));
+        document.body.classList.remove("edit-active");
+        this.editToggle.classList.remove("active", "show");
+        this.editBanner.classList.remove("active", "show");
+
+        const html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+
+        document.body.classList.add("edit-active");
+        editableEls.forEach((el) => el.setAttribute("contenteditable", "true"));
+        this.editToggle.classList.add("active");
+        this.editBanner.classList.add("active");
+
+        const blob = new Blob([html], { type: "text/html" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "ai-governance-platform-presentation.html";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+    }
+
+    /* ===========================================
+       INITIALIZATION
+       =========================================== */
+    document.addEventListener("DOMContentLoaded", () => {
+      new SlidePresentation();
+      new InlineEditor();
+    });
+  </script>
+</body>
+</html>
