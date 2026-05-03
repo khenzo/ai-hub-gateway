@@ -259,7 +259,7 @@ Plans:
 - [x] 29-01-PLAN.md — Create Claude prompt for Opening & Title Sequence slides (0.1-0.2) (completed 2026-05-03)
 
 #### Phase 30: Azure Landing Zone Foundation
-**Goal**: Generate Claude prompts to create Landing Zone foundation slides with isometric diagrams and nested container visuals
+**Goal**: Generate prompts to create Landing Zone foundation slides with isometric diagrams and nested container visuals
 **Depends on**: Phase 29
 **Requirements**: PRES-02
 **Success Criteria** (what must be TRUE):
@@ -269,7 +269,7 @@ Plans:
   4. All prompts specify the Blue (#188CE5), Purple (#750E5C), and Yellow (#FFE600) color applications
 **Plans**: 1 plan
 Plans:
-- [ ] 30-01-PLAN.md — Create Claude prompt for Landing Zone slides (1.1-1.3)
+- [x] 30-01-PLAN.md — Create Claude prompt for Landing Zone slides (1.1-1.3) (completed 2026-05-03)
 
 #### Phase 31: Citadel Governance Core
 **Goal**: Generate Claude prompts to create Citadel 4-layer architecture and APIM gateway slides with animated diagrams
@@ -282,7 +282,7 @@ Plans:
   4. Prompt includes horizontal audit trail timeline with traveling checkpoint dot for Slide 2.4
 **Plans**: 1 plan
 Plans:
-- [ ] 31-01-PLAN.md — Create Claude prompt for Citadel Governance slides (2.1-2.4)
+- [x] 31-01-PLAN.md — Create Claude prompt for Citadel Governance slides (2.1-2.4) (completed 2026-05-03)
 
 #### Phase 32: Data Foundation
 **Goal**: Generate Claude prompts to create Enterprise Data Foundation slides with shield icons, query path flows, and semantic layer diagrams
@@ -295,7 +295,7 @@ Plans:
   4. Prompt includes split-screen Core vs Edge comparison with promotion path arrow for Slide 3.4
 **Plans**: 1 plan
 Plans:
-- [ ] 32-01-PLAN.md — Create Claude prompt for Data Foundation slides (3.1-3.4)
+- [x] 32-01-PLAN.md — Create Claude prompt for Data Foundation slides (3.1-3.4) (completed 2026-05-03)
 
 #### Phase 33: Agentic Layer
 **Goal**: Generate Claude prompts to create Agentic Layer slides with three-layer architecture, intelligence pillars, and honeycomb capability grid
@@ -367,9 +367,9 @@ Plans:
 | 27. Security & Identity Patterns | v2.0 | 1/1 | Complete | 2026-04-28 |
 | 28. Navigation & Integration | v2.0 | 1/1 | Complete | 2026-04-28 |
 | 29. Opening & Title Sequence | v3.0 | 1/1 | Complete | 2026-05-03 |
-| 30. Landing Zone Foundation | v3.0 | 0/1 | Not started | - |
-| 31. Citadel Governance Core | v3.0 | 0/1 | Not started | - |
-| 32. Data Foundation | v3.0 | 0/1 | Not started | - |
+| 30. Landing Zone Foundation | v3.0 | 1/1 | Complete | 2026-05-03 |
+| 31. Citadel Governance Core | v3.0 | 1/1 | Complete | 2026-05-03 |
+| 32. Data Foundation | v3.0 | 1/1 | Complete | 2026-05-03 |
 | 33. Agentic Layer | v3.0 | 0/1 | Not started | - |
 | 34. Hub-Spoke Topology | v3.0 | 0/1 | Not started | - |
 | 35. Closing & Call to Action | v3.0 | 0/1 | Not started | - |
