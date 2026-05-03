@@ -256,7 +256,7 @@ Plans:
   4. Output specifies HTML/CSS/JS structure using GSAP or CSS animations
 **Plans**: 1 plan
 Plans:
-- [ ] 29-01-PLAN.md — Create Claude prompt for Opening & Title Sequence slides (0.1-0.2)
+- [x] 29-01-PLAN.md — Create Claude prompt for Opening & Title Sequence slides (0.1-0.2) (completed 2026-05-03)
 
 #### Phase 30: Azure Landing Zone Foundation
 **Goal**: Generate Claude prompts to create Landing Zone foundation slides with isometric diagrams and nested container visuals
@@ -366,7 +366,7 @@ Plans:
 | 26. APIM Governed Data Access | v2.0 | 1/1 | Complete | 2026-04-28 |
 | 27. Security & Identity Patterns | v2.0 | 1/1 | Complete | 2026-04-28 |
 | 28. Navigation & Integration | v2.0 | 1/1 | Complete | 2026-04-28 |
-| 29. Opening & Title Sequence | v3.0 | 0/1 | Not started | - |
+| 29. Opening & Title Sequence | v3.0 | 1/1 | Complete | 2026-05-03 |
 | 30. Landing Zone Foundation | v3.0 | 0/1 | Not started | - |
 | 31. Citadel Governance Core | v3.0 | 0/1 | Not started | - |
 | 32. Data Foundation | v3.0 | 0/1 | Not started | - |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: AI+ HUB Factory Presentation
 status: in_progress
-stopped_at: Milestone v3.0 created — ready to plan Phase 29
-last_updated: "2026-05-03T12:00:00.000Z"
-last_activity: 2026-05-03 — Created v3.0 milestone with 7 phases (29-35)
+stopped_at: Completed Plan 29-01 — Opening & Title Sequence prompt created
+last_updated: "2026-05-03T07:18:46Z"
+last_activity: 2026-05-03 — Executed Plan 29-01, created opening title sequence prompt
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 7
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 14
 ---
 
 # Project State
@@ -26,17 +26,17 @@ See: .planning/PROJECT.md (updated 2026-04-27)
 ## Current Position
 
 Phase: Phase 29 — Opening & Title Sequence
-Plan: None yet
-Status: Ready to plan
-Last activity: 2026-05-03 — Created v3.0 milestone with 7 phases (29-35)
+Plan: 29-01 — Opening & Title Sequence Prompt (COMPLETED)
+Status: In Progress — 1 of 1 plans complete for Phase 29
+Last activity: 2026-05-03 — Executed Plan 29-01, created opening title sequence prompt
 
-Progress: [░░░░░░░░░░░░] 0% (0/7 plans complete)
+Progress: [█░░░░░░░░░░░] 14% (1/7 plans complete)
 
 ## v3.0 Phase Summary
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
-| 29. Opening & Title Sequence | Generate prompts for title card and agenda slides | PRES-01 | Not started |
+| 29. Opening & Title Sequence | Generate prompts for title card and agenda slides | PRES-01 | Complete (1/1 plans) |
 | 30. Landing Zone Foundation | Generate prompts for Landing Zone foundation slides | PRES-02 | Not started |
 | 31. Citadel Governance Core | Generate prompts for Citadel 4-layer and APIM slides | PRES-03 | Not started |
 | 32. Data Foundation | Generate prompts for Enterprise Data slides | PRES-04 | Not started |
@@ -64,7 +64,7 @@ Progress: [░░░░░░░░░░░░] 0% (0/7 plans complete)
 **Milestone v3.0: AI+ HUB Factory Presentation — IN PROGRESS**
 - 7 phases (Phases 29-35), 7 plans
 - Requirements: 7 defined
-- Phase 29: Not started
+- Phase 29: Complete (1/1 plans) — Opening title sequence prompt created
 - Phase 30: Not started
 - Phase 31: Not started
 - Phase 32: Not started
@@ -72,8 +72,14 @@ Progress: [░░░░░░░░░░░░] 0% (0/7 plans complete)
 - Phase 34: Not started
 - Phase 35: Not started
 
+## Key Decisions
+
+- **Prompt self-containment:** Each phase prompt includes full design system specs so any Claude instance can execute without reading PRESENTATION.md
+- **GSAP for animations:** Complex timelines require GSAP rather than CSS-only animations
+- **Lucide icons:** Chosen over Phosphor for consistency with existing codebase preferences
+
 ## Session Continuity
 
-Last session: 2026-05-03T12:00:00.000Z
-Stopped at: Milestone v3.0 created — ready to plan Phase 29
+Last session: 2026-05-03T07:18:46Z
+Stopped at: Completed Plan 29-01 — Opening & Title Sequence prompt created
 Resume file: None
