@@ -16,33 +16,6 @@ In this approach, the Citadel Governance Hub is deployed within the existing hub
 This allows for direct communication between the unified AI gateway and connected agentic spokes, leveraging existing security and networking configurations.
 
 ```mermaid
-%%{init: {
-  'theme': 'base',
-  'themeVariables': {
-    'primaryColor': '#0078d4',
-    'primaryTextColor': '#fff',
-    'primaryBorderColor': '#0078d4',
-    'lineColor': '#8a8886',
-    'secondaryColor': '#50e6ff',
-    'tertiaryColor': '#f3f2f1',
-    'noteBkgColor': '#fef9e7',
-    'noteTextColor': '#323130',
-    'noteBorderColor': '#d4a300',
-    'actorBkg': '#0078d4',
-    'actorBorder': '#005a9e',
-    'actorTextColor': '#fff',
-    'actorLineColor': '#8a8886',
-    'signalColor': '#323130',
-    'signalTextColor': '#323130',
-    'labelBoxBkgColor': '#e1dfdd',
-    'labelBoxBorderColor': '#605e5c',
-    'labelTextColor': '#323130',
-    'loopTextColor': '#323130',
-    'activationBorderColor': '#0078d4',
-    'activationBkgColor': '#deecf9',
-    'sequenceNumberColor': '#fff'
-  }
-}}%%
 sequenceDiagram
     autonumber
     
@@ -108,33 +81,6 @@ Agentic workloads in other spokes are routed first to the hub network firewall t
 This provides an additional layer of isolation for AI workloads while still enabling secure communication with other enterprise resources in the hub.
 
 ```mermaid
-%%{init: {
-  'theme': 'base',
-  'themeVariables': {
-    'primaryColor': '#0078d4',
-    'primaryTextColor': '#fff',
-    'primaryBorderColor': '#0078d4',
-    'lineColor': '#8a8886',
-    'secondaryColor': '#d13438',
-    'tertiaryColor': '#f3f2f1',
-    'noteBkgColor': '#fef9e7',
-    'noteTextColor': '#323130',
-    'noteBorderColor': '#d4a300',
-    'actorBkg': '#0078d4',
-    'actorBorder': '#005a9e',
-    'actorTextColor': '#fff',
-    'actorLineColor': '#8a8886',
-    'signalColor': '#323130',
-    'signalTextColor': '#323130',
-    'labelBoxBkgColor': '#e1dfdd',
-    'labelBoxBorderColor': '#605e5c',
-    'labelTextColor': '#323130',
-    'loopTextColor': '#323130',
-    'activationBorderColor': '#0078d4',
-    'activationBkgColor': '#deecf9',
-    'sequenceNumberColor': '#fff'
-  }
-}}%%
 sequenceDiagram
     autonumber
     

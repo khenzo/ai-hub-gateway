@@ -1,0 +1,30 @@
+{
+        "group": "EY Framework Alignment",
+        "tab": "EY Alignment",
+        "pages": [
+          "ey-framework-alignment/index",
+          "ey-framework-alignment/alignment-map",
+          "ey-framework-alignment/aks-deployment",
+          "ey-framework-alignment/github-scaffolding",
+          "ey-framework-alignment/cicd-pipeline",
+          {
+            "group": "Security & Governance",
+            "icon": "shield",
+            "pages": [
+              "ey-framework-alignment/governance-tiers",
+              "ey-framework-alignment/guardrails-config",
+              "ey-framework-alignment/compliance-tooling"
+            ]
+          },
+          {
+            "group": "Protocols & Discovery",
+            "icon": "search",
+            "pages": [
+              "ey-framework-alignment/mcp-governance",
+              "ey-framework-alignment/a2a-trust-broker",
+              "ey-framework-alignment/agent-discovery"
+            ]
+          },
+          "ey-framework-alignment/gaps-and-recommendations"
+        ]
+      }

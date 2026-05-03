@@ -44,7 +44,7 @@ h1, h2, h3, h4, h5, h6 {
 h1 { letter-spacing: -0.04em; }
 h2 {
   letter-spacing: -0.03em;
-  border-bottom: 1px solid rgba(255, 230, 0, 0.15) !important;
+  /*border-bottom: 1px solid rgba(255, 230, 0, 0.15) !important;*/
   padding-bottom: 0.4em !important;
 }
 h3 { font-weight: 600; letter-spacing: -0.02em; }
@@ -55,12 +55,29 @@ code, pre, kbd {
 
 /* ── Body / prose text: override Tailwind gray utility classes on dark bg ── */
 /* Mintlify applies text-gray-700/600/500 directly on divs; those beat body inheritance */
-.text-gray-950, .text-gray-900, .text-gray-800,
-.text-gray-700, .text-gray-600, .text-gray-500,
-.prose-gray, .prose-gray p, .prose-gray li,
-.prose-gray strong, .prose-gray em,
-.prose { color: rgba(230, 229, 222, 0.88) !important; }
+:not(.mermaid) .text-gray-950,
+:not(.mermaid) .text-gray-900,
+:not(.mermaid) .text-gray-800,
+:not(.mermaid) .text-gray-700,
+:not(.mermaid) .text-gray-600,
+:not(.mermaid) .text-gray-500,
+:not(.mermaid) .prose-gray,
+:not(.mermaid) .prose-gray p,
+:not(.mermaid) .prose-gray li,
+:not(.mermaid) .prose-gray em,
+:not(.mermaid) .prose {
+  color: rgba(230, 229, 222, 0.88) !important;
+}
+.prose li strong{
+  color: var(--ey-yellow) !important;
+}
 
+td strong{
+  color: var(--ey-teal) !important;
+}
+.prose span strong {
+  color: var(--ey-yellow) !important;
+}
 /* ═══════════════════════════════════════════════════
    LOGO
    ═══════════════════════════════════════════════════ */
@@ -106,7 +123,7 @@ pre {
   background-color: #12121A !important;
   border-radius: 4px !important;
 }
-pre code { color: rgba(255, 255, 255, 0.85) !important; }
+/*pre code { color: rgba(255, 255, 255, 0.85) !important; }*/
 
 code:not(pre > code) {
   background-color: rgba(255, 230, 0, 0.1) !important;
@@ -137,6 +154,23 @@ table tbody tr:nth-child(even) {
    ═══════════════════════════════════════════════════ */
 
 /* Mintlify callout types use bg-blue-*, bg-amber-*, bg-green-*, bg-red-* */
+
+
+/* Generic Callout Style (for callouts without specific color classes) */
+.callout {
+  background-color: rgba(200, 200, 200, 0.1); /* Light gray background, slightly transparent */
+  border-left: 4px solid rgba(150, 150, 150, 0.6); /* Subtle gray left border */
+  color: rgba(230, 229, 222, 0.9) !important; /* Your default text color */
+  padding: 1rem; /* Some internal spacing */
+  margin-bottom: 1rem; /* Space below the callout */
+  border-radius: 4px; /* Slightly rounded corners */
+}
+
+.callout .text-neutral-800 {
+  color:inherit!important
+}
+
+/* Specific Callout Styles (these will override the generic one due to specificity or !important) */
 .callout[class*="blue"],
 .callout[class*="sky"],
 .callout[class*="indigo"] {
@@ -172,16 +206,96 @@ table tbody tr:nth-child(even) {
 /* Callout icons keep their accent color */
 .callout svg { opacity: 1 !important; }
 
+
 /* ═══════════════════════════════════════════════════
    MERMAID DIAGRAMS — white surface so #333 text is readable
    ═══════════════════════════════════════════════════ */
 
+/* General Mermaid container and text styles */
 .mermaid {
-  background-color: #FFFFFF !important;
-  border-radius: 8px !important;
-  padding: 24px !important;
-  border: 1px solid rgba(255, 230, 0, 0.2) !important;
+  display: flex; /* Make the container a flex container */
+  justify-content: center; /* Center items horizontally */
+  align-items: center; /* Center items vertically (if needed, diagram often takes full height) */
+  /* Remove or override any inline transform styles if they are interfering with centering */
+  transform: none !important;
+  transition: none !important;
+  transform-origin: initial !important;
+
+  /* Other desirable styles for the mermaid container (from previous suggestions) */
+  background-color: #f8f8f8;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: auto;
 }
+
+/* Ensure ALL SVG text elements within Mermaid use their defined fill (color) */
+.mermaid svg text,
+.mermaid svg tspan {
+  fill: initial !important; /* Use the fill color defined by Mermaid/your custom classes */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* A clear, readable font */
+  font-size: 14px; /* Slightly larger base font size for clarity */
+}
+
+/* Node labels (for <p> tags inside foreignObject, like "Gateway", "Entra ID") */
+.mermaid .nodeLabel p {
+  color: initial !important; /* Ensure these also respect Mermaid's color definitions */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.4; /* Improve line spacing */
+  margin: 0; /* Remove default paragraph margins */
+  font-size: 14px; /* Consistent font size for node labels */
+  font-weight: 500; /* Medium weight for general readability */
+}
+
+/* Styling specifically for cluster labels (e.g., "AI APPLICATION LANDING ZONE", "CENTRAL GOVERNANCE HUB") */
+.mermaid .cluster-label text,
+.mermaid .cluster-label span p {
+  fill: #333333 !important; /* Darker text for cluster titles */
+  color: #333333 !important; /* Fallback for foreignObject content */
+  font-weight: bold; /* Make cluster titles stand out */
+  font-size: 14px; /* A bit larger than regular node text */
+}
+
+/* Styling specifically for edge labels (e.g., "VNet Peering") */
+.mermaid .edgeLabel text,
+.mermaid .edgeLabel span p {
+  fill: #555555 !important; /* Slightly subdued text for edge labels */
+  color: #555555 !important;
+  font-size: 13px; /* Smaller than node text, but still readable */
+  font-weight: normal;
+  background-color: transparent !important; /* Ensure the background is clear */
+}
+
+/* General styling for node shapes to ensure backgrounds are readable */
+.mermaid .node rect,
+.mermaid .node circle,
+.mermaid .node ellipse,
+.mermaid .node polygon,
+.mermaid .node path {
+  fill: #ECECFF; /* Default node background (Mermaid's default light purple) */
+  stroke: #9370DB; /* Default node border */
+  stroke-width: 1px;
+}
+
+/* Hide the Mermaid controls wrapper */
+[data-component-name="mermaid-controls-wrapper"] {
+  display: none !important;
+}
+
+/* Styles for node background colors when you need to override Mermaid's defaults
+   but without specific class names like .service or .apim.
+   You'll need to rely on the Mermaid config to set these initially if not using custom classes.
+   These are just examples if you wanted a generic override for all nodes.
+*/
+/*
+.mermaid .node rect,
+.mermaid .node circle {
+  fill: lightgray;
+  stroke: gray;
+}
+*/
+
+
 
 /* ═══════════════════════════════════════════════════
    ACCORDION
@@ -233,7 +347,7 @@ table tbody tr:nth-child(even) {
 /* All text inside white cards → navy */
 .card, .card p, .card span, .card div,
 .card .text-gray-950, .card .text-gray-900, .card .text-gray-800,
-.card .text-gray-700, .card .text-gray-600, .card .text-gray-500 {
+.card .text-gray-700, .card .text-gray-600, .card .text-gray-500, .card ul li {
   color: var(--ey-navy) !important;
 }
 
@@ -244,6 +358,10 @@ table tbody tr:nth-child(even) {
   color: var(--ey-surface) !important;
   text-decoration: underline;
   text-decoration-color: var(--ey-yellow) !important;
+}
+
+.card span strong {
+  color: var(--ey-blue) !important;
 }
 
 /* ═══════════════════════════════════════════════════
