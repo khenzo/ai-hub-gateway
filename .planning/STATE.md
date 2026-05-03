@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: AI+ HUB Factory Presentation
 status: in_progress
-stopped_at: Completed Plan 29-01 — Opening & Title Sequence prompt created
-last_updated: "2026-05-03T07:18:46Z"
-last_activity: 2026-05-03 — Executed Plan 29-01, created opening title sequence prompt
+stopped_at: Completed Plan 32-01 — Data Foundation prompt created
+last_updated: "2026-05-03T10:23:00Z"
+last_activity: 2026-05-03 — Executed Plan 32-01, created Data Foundation prompt
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 7
-  completed_plans: 1
-  percent: 14
+  completed_plans: 3
+  percent: 43
 ---
 
 # Project State
@@ -25,21 +25,21 @@ See: .planning/PROJECT.md (updated 2026-04-27)
 
 ## Current Position
 
-Phase: Phase 29 — Opening & Title Sequence
-Plan: 29-01 — Opening & Title Sequence Prompt (COMPLETED)
-Status: In Progress — 1 of 1 plans complete for Phase 29
-Last activity: 2026-05-03 — Executed Plan 29-01, created opening title sequence prompt
+Phase: Phase 32 — Data Foundation
+Plan: 32-01 — Data Foundation Prompt (COMPLETED)
+Status: Complete — 1 of 1 plans complete for Phase 32
+Last activity: 2026-05-03 — Executed Plan 32-01, created Data Foundation prompt
 
-Progress: [█░░░░░░░░░░░] 14% (1/7 plans complete)
+Progress: [████░░░░░░░░] 43% (3/7 plans complete)
 
 ## v3.0 Phase Summary
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
 | 29. Opening & Title Sequence | Generate prompts for title card and agenda slides | PRES-01 | Complete (1/1 plans) |
-| 30. Landing Zone Foundation | Generate prompts for Landing Zone foundation slides | PRES-02 | Not started |
-| 31. Citadel Governance Core | Generate prompts for Citadel 4-layer and APIM slides | PRES-03 | Not started |
-| 32. Data Foundation | Generate prompts for Enterprise Data slides | PRES-04 | Not started |
+| 30. Landing Zone Foundation | Generate prompts for Landing Zone foundation slides | PRES-02 | Complete (1/1 plans) |
+| 31. Citadel Governance Core | Generate prompts for Citadel 4-layer and APIM slides | PRES-03 | Complete (1/1 plans) |
+| 32. Data Foundation | Generate prompts for Enterprise Data slides | PRES-04 | Complete (1/1 plans) |
 | 33. Agentic Layer | Generate prompts for Agentic Intelligence slides | PRES-05 | Not started |
 | 34. Hub-Spoke Topology | Generate prompts for Hub-Spoke scaling slides | PRES-06 | Not started |
 | 35. Closing & Call to Action | Generate prompts for Business Value and CTA slides | PRES-07 | Not started |
@@ -65,9 +65,9 @@ Progress: [█░░░░░░░░░░░] 14% (1/7 plans complete)
 - 7 phases (Phases 29-35), 7 plans
 - Requirements: 7 defined
 - Phase 29: Complete (1/1 plans) — Opening title sequence prompt created
-- Phase 30: Not started
-- Phase 31: Not started
-- Phase 32: Not started
+- Phase 30: Complete (1/1 plans) — Landing Zone foundation prompt created
+- Phase 31: Complete (1/1 plans) — Citadel Governance prompt created
+- Phase 32: Complete (1/1 plans) — Data Foundation prompt created
 - Phase 33: Not started
 - Phase 34: Not started
 - Phase 35: Not started
@@ -77,9 +77,12 @@ Progress: [█░░░░░░░░░░░] 14% (1/7 plans complete)
 - **Prompt self-containment:** Each phase prompt includes full design system specs so any Claude instance can execute without reading PRESENTATION.md
 - **GSAP for animations:** Complex timelines require GSAP rather than CSS-only animations
 - **Lucide icons:** Chosen over Phosphor for consistency with existing codebase preferences
+- **Shield checkmark animation:** SVG stroke-dashoffset technique for drawing effect rather than CSS clip-path, ensuring smoother animation and better browser support
+- **Query path loop:** CSS animations for continuous data packet loop rather than GSAP to reduce JavaScript overhead during continuous playback
+- **Typewriter effect:** Per-character setTimeout for precise control over typing speed and synchronization with other animations
 
 ## Session Continuity
 
-Last session: 2026-05-03T07:18:46Z
-Stopped at: Completed Plan 29-01 — Opening & Title Sequence prompt created
+Last session: 2026-05-03T10:23:00Z
+Stopped at: Completed Plan 32-01 — Data Foundation prompt created
 Resume file: None
