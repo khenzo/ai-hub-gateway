@@ -65,6 +65,16 @@
   ],
   "anchors": [
     {
+      "name": "Business Presentation",
+      "icon": "presentation-screen",
+      "url": "https://d2mkqg3u8r0me5.cloudfront.net/presentation/ai-plus-hub-factory-business.html"
+    },
+    {
+      "name": "Technical Presentation",
+      "icon": "chalkboard-user",
+      "url": "https://d2mkqg3u8r0me5.cloudfront.net/presentation/ai-plus-hub-factory-technical.html"
+    },
+    {
       "name": "Azure Documentation",
       "icon": "microsoft",
       "url": "https://learn.microsoft.com/azure"
@@ -82,6 +92,13 @@
   ],
   "navigation": {
     "groups": [
+      {
+        "group": "Presentations",
+        "tab": "Getting Started",
+        "pages": [
+          "presentations"
+        ]
+      },
       {
         "group": "Getting Started",
         "tab": "Getting Started",

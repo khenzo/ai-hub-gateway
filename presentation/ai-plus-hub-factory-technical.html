@@ -113,6 +113,7 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
 .s-title { justify-content: center; align-items: flex-start; position: relative; overflow: hidden; }
 .s-title .mesh { position: absolute; inset: -10%; background: radial-gradient(circle at 20% 30%, rgba(117,14,92,0.22), transparent 45%), radial-gradient(circle at 80% 60%, rgba(24,140,229,0.18), transparent 50%), radial-gradient(circle at 50% 90%, rgba(255,230,0,0.08), transparent 55%); filter: blur(40px); animation: drift 14s ease-in-out infinite; }
 .s-title .wordmark { font-size: clamp(4rem, 14vw, 12rem); font-weight: 900; line-height: 0.85; letter-spacing: -0.06em; color: var(--primary); text-shadow: 0 0 60px rgba(255,230,0,0.35), 0 0 120px rgba(255,230,0,0.15); }
+.s-title .evidence {color:var(--blue)}
 .s-title .product { font-size: clamp(2rem, 6vw, 4.4rem); font-weight: 800; letter-spacing: -0.03em; color: var(--text); line-height: 1; }
 .s-title .yellow-line { height: 4px; background: var(--primary); width: 0; max-width: 280px; transition: width 900ms var(--ease) 800ms; }
 .slide.visible .s-title .yellow-line { width: 280px; }
@@ -196,7 +197,7 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
   <div class="slide-content" style="justify-content: center; gap: clamp(0.8rem, 2vh, 2rem);">
     <div class="reveal d1 eyebrow">EY AI+ FACTORY Hub · Technical Architecture · v1.0 / 2026</div>
     <div class="reveal d2 wordmark">AI+</div>
-    <div class="reveal d3 product">FACTORY Hub</div>
+    <div class="reveal d3 product"><span class="evidence">FACTORY</span> Hub</div>
     <div class="yellow-line"></div>
     <div class="reveal d6 lede" style="max-width: 60ch;">
       Technical deep dive into the platform architecture — from Azure Landing Zone
@@ -204,7 +205,7 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       framework-agnostic agent orchestration.
     </div>
     <div class="reveal d8 caption" style="max-width: 60ch;">
-      A six-chapter technical walkthrough covering: infrastructure-as-code deployment,
+      A technical walkthrough covering: infrastructure-as-code deployment,
       APIM policy enforcement, Entra identity chains, Unity Catalog governance,
       MetricFlow semantic models, and hub-spoke scaling patterns.
     </div>
@@ -220,7 +221,6 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
 <section class="slide grid-bg" data-title="Architecture Overview">
   <div class="slide-eyebrow">Architecture Overview</div>
   <div class="slide-content stack" style="justify-content: center;">
-    <div class="reveal d1 eyebrow">Platform architecture, not product positioning</div>
     <h1 class="reveal d2 title-display">A governed AI platform<br><span class="text-yellow">built as infrastructure.</span></h1>
     <div class="reveal d4 grid-2" style="margin-top: clamp(0.8rem, 2vh, 1.4rem);">
       <p class="lede">
@@ -297,14 +297,13 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       <div class="stack-tight">
         <p class="lede">
           The AI+ FACTORY Hub is a <strong style="color:#fff;">product delivery platform</strong>.
-          Each team picks the best framework and the best model for their use case —
-          without asking permission, without rebuilding governance, and without
+          Each team picks the best framework and the best model for their use case, without rebuilding governance, and without
           vendor lock-in.
         </p>
         <p class="body">
           The Hub provides the <strong>governance substrate</strong>: identity, audit,
           cost control, content safety, and data access policies. Teams provide the
-          use case, the prompt engineering, and the business logic. The platform
+          use case, the engineering, and the business logic. The platform
           handles everything else.
         </p>
       </div>
@@ -339,50 +338,6 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
     </p>
   </div>
   <div class="slide-marker">03 / 47</div>
-</section>
-
-<!-- SLIDE 04 -->
-<section class="slide" data-title="The Problem">
-  <div class="ambient-orb" style="width: 420px; height: 420px; background: var(--red); top: -120px; right: -120px; opacity: 0.18;"></div>
-  <div class="slide-eyebrow">The Problem</div>
-  <div class="slide-content stack" style="justify-content: center;">
-    <h1 class="reveal d1 title-1">When governance arrives <em class="serif text-red">after</em> the agents,<br>governance arrives <span class="text-yellow">too late</span>.</h1>
-    <p class="reveal d2 lede">
-      Across most enterprises, AI adoption is happening in three places at once &mdash;
-      and only one of them is visible to IT.
-    </p>
-    <div class="reveal d4 grid-3" style="margin-top: clamp(0.6rem, 1.6vh, 1rem);">
-      <div class="card-panel" style="--accent: var(--red);">
-        <div class="kicker" style="color: var(--red);">Symptom 1</div>
-        <h3 class="title-2" style="margin-top: 0.5em;">Shadow AI</h3>
-        <p class="body" style="margin-top: 0.5em;">
-          Teams paste customer data into public chatbots. PII leaves the perimeter
-          before security ever sees the request. There is no log, no policy, no recall.
-        </p>
-      </div>
-      <div class="card-panel" style="--accent: var(--orange);">
-        <div class="kicker" style="color: var(--orange);">Symptom 2</div>
-        <h3 class="title-2" style="margin-top: 0.5em;">Pilot graveyard</h3>
-        <p class="body" style="margin-top: 0.5em;">
-          A dozen proofs-of-concept run on a dozen frameworks. Each handles auth,
-          retrieval, and prompts differently. None is production-ready, and merging them is impossible.
-        </p>
-      </div>
-      <div class="card-panel" style="--accent: var(--purple);">
-        <div class="kicker" style="color: #B266A8;">Symptom 3</div>
-        <h3 class="title-2" style="margin-top: 0.5em;">Stalled program</h3>
-        <p class="body" style="margin-top: 0.5em;">
-          Legal and security place a moratorium until a control framework exists.
-          Innovation freezes for nine months while the platform team reinvents APIM and Entra.
-        </p>
-      </div>
-    </div>
-    <p class="reveal d6 caption" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); max-width: 86ch;">
-      The AI+ FACTORY Hub exists because every enterprise eventually needs to answer
-      the same question: <em class="serif" style="color: #fff;">how do we let people use AI without losing control of the data, the cost, and the audit trail?</em>
-    </p>
-  </div>
-  <div class="slide-marker">04 / 47</div>
 </section>
 
 <!-- SLIDE 05 -->

@@ -5,8 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "cd docs && mintlify dev",
-    "build": "cd docs && mintlify build",
-    "start": "cd docs && mintlify dev"
+    "build": "cd docs && rm -rf export export.zip && mintlify export && unzip -q export.zip -d export",
+    "start": "cd docs && mintlify dev",
+    "deploy": "./deploy-s3.sh"
   },
   "devDependencies": {
     "mintlify": "^4.0.0"

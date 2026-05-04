@@ -1,0 +1,76 @@
+---
+title: "AI Foundry Configuration"
+description: "Foundry instance and model deployment configuration"
+---
+
+# AI Foundry Configuration
+
+## Foundry Instance Configuration
+
+```bicep
+param aiFoundryInstances = [
+  {
+    name: 'foundry-primary'
+    location: 'eastus'
+    customSubDomainName: ''
+    defaultProjectName: 'citadel-governance-project'
+  }
+  {
+    name: 'foundry-secondary'
+    location: 'westus2'
+    customSubDomainName: ''
+    defaultProjectName: 'citadel-governance-project'
+  }
+]
+```
+
+## Model Deployment Configuration
+
+```bicep
+param aiFoundryModelsConfig = [
+  {
+    name: 'gpt-4o'
+    publisher: 'OpenAI'
+    version: '2024-11-20'
+    sku: 'GlobalStandard'
+    capacity: 100
+    aiserviceIndex: 0
+  }
+  {
+    name: 'gpt-4o-mini'
+    publisher: 'OpenAI'
+    version: '2024-07-18'
+    sku: 'GlobalStandard'
+    capacity: 100
+    aiserviceIndex: 0
+  }
+  {
+    name: 'text-embedding-3-large'
+    publisher: 'OpenAI'
+    version: '1'
+    sku: 'GlobalStandard'
+    capacity: 100
+    aiserviceIndex: 0
+  }
+]
+```
+
+## SKU and Capacity Examples
+
+### Standard Deployment
+```bicep
+{
+  name: 'gpt-4o'
+  sku: 'GlobalStandard'
+  capacity: 100
+}
+```
+
+### Provisioned Deployment
+```bicep
+{
+  name: 'gpt-4o'
+  sku: 'ProvisionedManaged'
+  capacity: 100
+}
+```
