@@ -118,7 +118,9 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
 .s-title .yellow-line { height: 4px; background: var(--primary); width: 0; max-width: 280px; transition: width 900ms var(--ease) 800ms; }
 .slide.visible .s-title .yellow-line { width: 280px; }
 .s-title .meta-row { display: flex; justify-content: space-between; align-items: flex-end; position: absolute; bottom: clamp(1rem, 4vw, 4rem); left: clamp(1rem, 4vw, 4rem); right: clamp(1rem, 4vw, 4rem); }
-.agenda-card { display: grid; grid-template-columns: auto 1fr auto; gap: clamp(1rem, 1.4vw, 2rem); align-items: center; padding: clamp(0.9rem, 1.6vw, 1.6rem) clamp(1.2rem, 2vw, 2rem); background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 6px; position: relative; }
+.agenda-card { display: grid; grid-template-columns: auto 1fr auto; gap: clamp(1rem, 1.4vw, 2rem); align-items: center; padding: clamp(0.9rem, 1.6vw, 1.6rem) clamp(1.2rem, 2vw, 2rem); background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 6px; position: relative; cursor: pointer; transition: transform 200ms var(--ease), border-color 200ms var(--ease), background 200ms var(--ease); }
+.agenda-card:hover { transform: translateX(4px); background: var(--surface-2, var(--surface)); border-color: var(--accent); }
+.agenda-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .agenda-card .num { font-family: var(--serif); font-size: clamp(1.8rem, 3.6vw, 3rem); font-weight: 700; color: var(--accent); line-height: 1; font-style: italic; }
 .agenda-card .title { font-size: clamp(1rem, 1.6vw, 1.4rem); font-weight: 700; color: var(--text); margin-bottom: 0.25em; }
 .agenda-card .desc { font-size: var(--body); color: var(--text-2); line-height: 1.5; }
@@ -150,11 +152,11 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
 .pillar .capital { background: var(--accent); padding: clamp(0.7rem, 1.2vw, 1.1rem); color: #fff; display: flex; align-items: center; gap: 0.6em; font-weight: 700; font-size: clamp(0.95rem, 1.3vw, 1.15rem); clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%); }
 .pillar .body { padding: clamp(0.9rem, 1.4vw, 1.4rem); display: flex; flex-direction: column; gap: 0.7em; flex: 1; }
 .compare-col { border-radius: 8px; overflow: hidden; background: rgba(255,255,255,0.025); border: 2px solid var(--accent); display: flex; flex-direction: column; }
-.compare-col .head { padding: clamp(0.7rem, 1.2vw, 1.1rem) clamp(1rem, 1.6vw, 1.5rem); background: var(--accent); color: #fff; font-weight: 700; font-size: clamp(0.95rem, 1.3vw, 1.2rem); display: flex; justify-content: space-between; align-items: center; }
-.compare-col .body { padding: clamp(0.9rem, 1.4vw, 1.4rem); display: flex; flex-direction: column; gap: 0.8em; flex: 1; }
-.compare-col .row { display: grid; grid-template-columns: auto 1fr; gap: 0.8em; align-items: start; padding: 0.6em 0; border-bottom: 1px solid var(--border); }
+.compare-col .head { padding: clamp(0.3rem, 0.6vw, 0.5rem) clamp(0.6rem, 1vw, 0.8rem); background: var(--accent); color: #fff; font-weight: 700; font-size: clamp(0.8rem, 1.1vw, 0.95rem); display: flex; justify-content: space-between; align-items: center; }
+.compare-col .body { padding: clamp(0.3rem, 0.5vw, 0.5rem); display: flex; flex-direction: column; gap: 0.15em; flex: 1; }
+.compare-col .row { display: grid; grid-template-columns: auto 1fr; gap: 0.4em; align-items: start; padding: 0.15em 0; border-bottom: 1px solid var(--border); }
 .compare-col .row:last-child { border-bottom: 0; }
-.compare-col .row .ico { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.05); display: grid; place-items: center; color: var(--accent); font-family: var(--mono-font); font-weight: 700; font-size: 0.85em; border: 1px solid var(--accent); }
+.compare-col .row .ico { width: 22px; height: 22px; border-radius: 4px; background: rgba(255,255,255,0.05); display: grid; place-items: center; color: var(--accent); font-family: var(--mono-font); font-weight: 700; font-size: 0.75em; border: 1px solid var(--accent); }
 .data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--body); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); }
 .data-table thead { background: rgba(255,230,0,0.08); }
 .data-table th { text-align: left; padding: 0.85em 1em; font-family: var(--mono-font); font-size: var(--caption); color: var(--primary); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; border-bottom: 1px solid var(--border); }
@@ -195,9 +197,9 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
 <section class="slide s-title grid-bg" data-title="Title">
   <div class="mesh"></div>
   <div class="slide-content" style="justify-content: center; gap: clamp(0.8rem, 2vh, 2rem);">
-    <div class="reveal d1 eyebrow">EY AI+ FACTORY Hub · Technical Architecture · v1.0 / 2026</div>
+    <div class="reveal d1 eyebrow">EY <span class="text-yellow">AI+</span> <span class="text-blue">FACTORY</span> <span class="text-red">Hub</span> · Technical Architecture · v1.0 / 2026</div>
     <div class="reveal d2 wordmark">AI+</div>
-    <div class="reveal d3 product"><span class="evidence">FACTORY</span> Hub</div>
+    <div class="reveal d3 product"><span class="evidence">FACTORY</span> <span class="text-red">Hub</span></div>
     <div class="yellow-line"></div>
     <div class="reveal d6 lede" style="max-width: 60ch;">
       Technical deep dive into the platform architecture — from Azure Landing Zone
@@ -214,77 +216,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
     <span class="caption mono">EY · Confidential · Engineering Deep Dive</span>
     <span class="caption mono">Press &rarr; to begin</span>
   </div>
-  <div class="slide-marker">2 / 47</div>
-</section>
-
-<!-- SLIDE 02 -->
-<section class="slide grid-bg" data-title="Architecture Overview">
-  <div class="slide-eyebrow">Architecture Overview</div>
-  <div class="slide-content stack" style="justify-content: center;">
-    <h1 class="reveal d2 title-display">A governed AI platform<br><span class="text-yellow">built as infrastructure.</span></h1>
-    <div class="reveal d4 grid-2" style="margin-top: clamp(0.8rem, 2vh, 1.4rem);">
-      <p class="lede">
-        The AI+ FACTORY Hub is an <strong style="color:#fff;">infrastructure platform</strong> — not an application.
-        It provides the substrate, governance controls, data contracts, and identity
-        model that every AI workload inherits by default.
-      </p>
-      <p class="lede">
-        Built on Azure Landing Zones, extended with Citadel governance layers,
-        Databricks Unity Catalog, and framework-agnostic agent harnesses — all
-        deployed via <strong style="color:#fff;">Bicep IaC</strong> with zero secrets in the data path.
-      </p>
-    </div>
-    <div class="reveal d8 row" style="gap: clamp(0.5rem, 1.4vw, 1.4rem); flex-wrap: wrap; margin-top: clamp(0.6rem, 1.6vh, 1rem);">
-      <span class="chip chip-yellow"><span class="chip-dot"></span>Bicep &amp; Terraform IaC</span>
-      <span class="chip"><span class="chip-dot"></span>Zero-trust networking</span>
-      <span class="chip"><span class="chip-dot"></span>Managed identity chains</span>
-      <span class="chip"><span class="chip-dot"></span>Framework-agnostic agents</span>
-      <span class="chip"><span class="chip-dot"></span>APIM policy enforcement</span>
-    </div>
-  </div>
-  <div class="slide-marker">3 / 47</div>
+  <div class="slide-marker">1 / 48</div>
 </section>
 
 <!-- ============================================================
      SLIDE 02 — POSITIONING STATEMENT
      ============================================================ -->
-<section class="slide grid-bg" data-title="Positioning">
-  <div class="slide-eyebrow">Positioning</div>
-  <div class="slide-content stack" style="justify-content: center;">
-    <div class="reveal d1 eyebrow">The paradigm has shifted</div>
-    <h1 class="reveal d2 title-1">Coding is no longer the primary bottleneck. <div class="text-yellow block">Architecture provisioning and product management are.</span></h1>
-    <div class="reveal d4 grid-2" style="margin-top: clamp(0.8rem, 2vh, 1.4rem);">
-      <div class="card-panel" style="--accent: var(--red);">
-        <div class="kicker" style="color: var(--red);">The old bottleneck</div>
-        <h3 class="title-2" style="margin-top: 0.5em;">Engineering throughput</h3>
-        <p class="body" style="margin-top: 0.5em;">
-          Traditionally, software delivery was constrained by how fast teams could write,
-          test, and deploy code. With AI-assisted development, that constraint has dissolved.
-        </p>
-      </div>
-      <div class="card-panel" style="--accent: var(--green);">
-        <div class="kicker" style="color: var(--green);">The new bottleneck</div>
-        <h3 class="title-2" style="margin-top: 0.5em;">Platform &amp; product velocity</h3>
-        <p class="body" style="margin-top: 0.5em;">
-          Today, speed is gated by how quickly infrastructure is provisioned, governed, and
-          how product teams can iterate on requirements without waiting for platform approval.
-        </p>
-      </div>
-    </div>
-    <div class="reveal d6 lede" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); max-width: 86ch;">
-      The AI+ FACTORY Hub exists to eliminate these new bottlenecks. It provides a
-      <strong style="color:#fff;">pre-engineered, governed platform</strong> that lets product teams move at the speed of AI
-      while enterprise architecture maintains control over identity, data, cost, and compliance.
-    </div>
-    <div class="reveal d8 row" style="gap: clamp(0.5rem, 1.4vw, 1.4rem); flex-wrap: wrap; margin-top: clamp(0.6rem, 1.6vh, 1rem);">
-      <span class="chip chip-yellow"><span class="chip-dot"></span>Platform-as-a-service</span>
-      <span class="chip"><span class="chip-dot"></span>Self-service provisioning</span>
-      <span class="chip"><span class="chip-dot"></span>Governance-by-construction</span>
-      <span class="chip"><span class="chip-dot"></span>Product-team velocity</span>
-    </div>
-  </div>
-  <div class="slide-marker">02 / 46</div>
-</section>
 
 <!-- SLIDE 03 -->
 <section class="slide" data-title="Platform Vision">
@@ -296,9 +233,8 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
     <div class="reveal d4 grid-2" style="margin-top: clamp(0.8rem, 2vh, 1.4rem);">
       <div class="stack-tight">
         <p class="lede">
-          The AI+ FACTORY Hub is a <strong style="color:#fff;">product delivery platform</strong>.
-          Each team picks the best framework and the best model for their use case, without rebuilding governance, and without
-          vendor lock-in.
+          The <span class="text-yellow">AI+</span> <span class="text-blue">FACTORY</span> <span class="text-red">Hub</span> is a <strong style="color:#fff;">product delivery platform</strong>.
+          Teams choose freely within a governed palette: pre-approved frameworks, pre-certified models, and governed data scopes. The platform handles the rest.
         </p>
         <p class="body">
           The Hub provides the <strong>governance substrate</strong>: identity, audit,
@@ -337,8 +273,122 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       governance, security, and audit — regardless of which provider sits behind the API.
     </p>
   </div>
-  <div class="slide-marker">03 / 47</div>
+  <div class="slide-marker">2 / 48</div>
 </section>
+
+<!-- SLIDE 02 -->
+<section class="slide grid-bg" data-title="Architecture Overview">
+  <div class="slide-eyebrow">Architecture Overview</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d2 title-display">Built on the shoulders of <span class="text-yellow">giants.</span></h1>
+    <div class="reveal d4 grid-2" style="margin-top: clamp(0.8rem, 2vh, 1.4rem);">
+      <p class="lede">
+        The <span class="text-yellow">AI+</span> <span class="text-blue">FACTORY</span> <span class="text-red">Hub</span> is not reinvented infrastructure. It is Microsoft's 
+        <strong style="color:#fff;">Azure Landing Zones</strong>, <strong style="color:#fff;">Well-Architected Framework</strong>, and 
+        <strong style="color:#fff;">Cloud Adoption Framework</strong> — extended for AI. Every pattern, every module, 
+        every line of Bicep comes from Microsoft's own solution accelerators and reference implementations.
+      </p>
+      <p class="lede">
+        The hub-spoke topology, the Citadel governance layers, the APIM policies — all are proven 
+        Microsoft patterns codified into production-ready artifacts. We provide the assembly; Microsoft 
+        provided the engineering, the knowledge, and the battle-tested architecture.
+      </p>
+    </div>
+    <div class="reveal d8 row" style="gap: clamp(0.5rem, 1.4vw, 1.4rem); flex-wrap: wrap; margin-top: clamp(0.6rem, 1.6vh, 1rem);">
+      <span class="chip chip-yellow"><span class="chip-dot"></span>Azure Landing Zones</span>
+      <span class="chip"><span class="chip-dot"></span>Well-Architected Framework</span>
+      <span class="chip"><span class="chip-dot"></span>Cloud Adoption Framework</span>
+      <span class="chip"><span class="chip-dot"></span>AI Hub Gateway Accelerator</span>
+      <span class="chip"><span class="chip-dot"></span>Foundry Citadel</span>
+    </div>
+  </div>
+  <div class="slide-marker">3 / 48</div>
+</section>
+
+<!-- SLIDE 02b — ONE-CLICK DEPLOYMENT -->
+<section class="slide grid-bg" data-title="One-Click Deployment">
+  <div class="slide-eyebrow">Deployment Experience</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-display">From zero to <span class="text-yellow">governed</span> in minutes.</h1>
+    <p class="reveal d2 lede" style="margin-top: 0.5rem;">
+      Both the <strong style="color:#fff;">AI Landing Zone</strong> and the <strong style="color:#fff;">Citadel APIM Hub</strong> deploy from Microsoft's 
+      official GitHub repositories with a single click. No manual configuration. No weeks of setup.
+    </p>
+    <div class="reveal d4 grid-2" style="margin-top: clamp(0.8rem, 2vh, 1.4rem); gap: clamp(1rem, 2vw, 2rem);">
+      <div class="card-panel" style="--accent: var(--blue); display: flex; flex-direction: column; gap: 0.8em;">
+        <div class="kicker text-blue">AI Landing Zone</div>
+        <div class="code-block" style="font-size: clamp(0.65rem, 0.85vw, 0.78rem); flex: 1;">
+<span class="cc"># Deploy from Microsoft's official repo</span>
+<span class="ck">az deployment sub create</span> \
+  <span class="ck">--name</span> <span class="cv">ai-landing-zone</span> \
+  <span class="ck">--location</span> <span class="ct">westeurope</span> \
+  <span class="ck">--template-uri</span> \
+  <span class="ct">"https://github.com/Azure/AI-Landing-Zones"</span></div>
+        <div class="caption" style="color: var(--text-2);">
+          <strong>Source:</strong> <span class="mono">Azure/AI-Landing-Zones</span> — Microsoft's official AI infrastructure blueprint
+        </div>
+      </div>
+      <div class="card-panel" style="--accent: var(--orange); display: flex; flex-direction: column; gap: 0.8em;">
+        <div class="kicker" style="color: var(--orange);">Citadel APIM Hub</div>
+        <div class="code-block" style="font-size: clamp(0.65rem, 0.85vw, 0.78rem); flex: 1;">
+<span class="cc"># Deploy the governance layer</span>
+<span class="ck">az deployment group create</span> \
+  <span class="ck">--resource-group</span> <span class="cv">rg-citadel-hub</span> \
+  <span class="ck">--template-uri</span> \
+  <span class="ct">"https://aka.ms/ai-hub-gateway"</span></div>
+        <div class="caption" style="color: var(--text-2);">
+          <strong>Source:</strong> <span class="mono">Azure-Samples/ai-hub-gateway-solution-accelerator</span> — Production-ready APIM policies
+        </div>
+      </div>
+    </div>
+    <div class="reveal d8 row" style="gap: clamp(0.5rem, 1.4vw, 1.4rem); flex-wrap: wrap; margin-top: clamp(0.6rem, 1.6vh, 1rem);">
+      <span class="chip chip-yellow"><span class="chip-dot"></span>One-click deploy</span>
+      <span class="chip"><span class="chip-dot"></span>Microsoft maintained</span>
+      <span class="chip"><span class="chip-dot"></span>Production ready</span>
+      <span class="chip"><span class="chip-dot"></span>Regular updates</span>
+    </div>
+  </div>
+  <div class="slide-marker">4 / 48</div>
+</section>
+
+<section class="slide" data-title="Complete Architecture">
+  <div class="slide-eyebrow">1.4 · The complete architecture</div>
+  <div class="slide-content stack center" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">The <span class="text-yellow">AI+</span> <span class="text-blue">FACTORY</span> <span class="text-red">Hub</span> — <span class="text-yellow">end to end</span>.</h1>
+    <p class="reveal d2 lede" style="margin: 0 auto;">
+      Hub-spoke · Landing Zone · Citadel · Data · Agents. Read bottom-to-top.
+    </p>
+    <div class="reveal d4 arch-stack" style="margin-top: clamp(0.6rem, 1.6vh, 1rem);">
+      <div class="arch-row" style="--accent: var(--primary); border-left-color: var(--primary);">
+        <span class="ico">&#10687;</span>
+        <div><div class="ttl">Agentic Layer · Hub-Spoke Topology</div><div class="sub">Citadel hub · Finance · HR · Legal · Ops · IT spokes</div></div>
+    
+      </div>
+      <div class="arch-row" style="--accent: var(--green); border-left-color: var(--green);">
+        <span class="ico">&#9641;</span>
+        <div><div class="ttl">Data Foundation</div><div class="sub">MetricFlow · Unity Catalog · OneLake · Databricks SQL</div></div>
+
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; border: 1px solid var(--border); border-radius: 6px; padding: 4px; background: rgba(255,255,255,0.02);">
+        <div style="padding: 0.55em 0.7em; border-radius: 4px; color: #fff; font-weight: 700; font-size: clamp(0.65rem, 0.9vw, 0.85rem); display: flex; align-items: center; gap: 0.4em; background: var(--purple);"><span style="width: 16px; height: 16px; background: rgba(255,255,255,0.25); border-radius: 3px;"></span>L4 · Security</div>
+        <div style="padding: 0.55em 0.7em; border-radius: 4px; color: #fff; font-weight: 700; font-size: clamp(0.65rem, 0.9vw, 0.85rem); display: flex; align-items: center; gap: 0.4em; background: var(--teal);"><span style="width: 16px; height: 16px; background: rgba(255,255,255,0.25); border-radius: 3px;"></span>L3 · Identity</div>
+        <div style="padding: 0.55em 0.7em; border-radius: 4px; color: #fff; font-weight: 700; font-size: clamp(0.65rem, 0.9vw, 0.85rem); display: flex; align-items: center; gap: 0.4em; background: var(--orange);"><span style="width: 16px; height: 16px; background: rgba(255,255,255,0.25); border-radius: 3px;"></span>L2 · Control Plane</div>
+        <div style="padding: 0.55em 0.7em; border-radius: 4px; color: #fff; font-weight: 700; font-size: clamp(0.65rem, 0.9vw, 0.85rem); display: flex; align-items: center; gap: 0.4em; background: var(--blue);"><span style="width: 16px; height: 16px; background: rgba(255,255,255,0.25); border-radius: 3px;"></span>L1 · Gateway</div>
+      </div>
+      <div class="arch-row" style="--accent: var(--blue); border-left-color: var(--blue);">
+        <span class="ico">&#9729;</span>
+        <div><div class="ttl">Azure Landing Zone</div><div class="sub">Network &amp; security · identity &amp; access · operations &amp; monitoring</div></div>
+
+      </div>
+    </div>
+    <p class="reveal d8 serif" style="font-size: clamp(1rem, 1.6vw, 1.4rem); color: var(--text-2); margin-top: 1rem; max-width: 70ch;">
+      A single platform vision: scalable topology, secure infrastructure, governed AI, trusted data, autonomous agents.
+    </p>
+  </div>
+  <div class="slide-marker">5 / 48</div>
+</section>
+
+
 
 <!-- SLIDE 05 -->
 <section class="slide" data-title="Agenda">
@@ -346,43 +396,282 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
   <div class="slide-content stack" style="justify-content: center; gap: clamp(0.4rem, 1vh, 0.8rem);">
     <h1 class="reveal d1 title-display" style="font-size: clamp(1.5rem, 4vw, 3rem);">Platform Architecture <em class="serif text-yellow">Deep Dive</em></h1>
     <div class="stack-tight" style="margin-top: clamp(0.3rem, 0.8vh, 0.6rem); gap: clamp(0.3rem, 0.8vh, 0.6rem);">
-      <div class="reveal-x d2 agenda-card" style="--accent: var(--blue);">
+      <div class="reveal-x d2 agenda-card" style="--accent: var(--orange);" data-target="chapter-01">
         <span class="num">01</span>
-        <div><div class="title">Foundation — Azure Landing Zone</div><div class="desc">Hub-spoke VNets, private endpoints, NSGs, Azure Firewall. Bicep/Terraform IaC for infrastructure-as-code deployment.</div></div>
-        <span class="duration">~4 min</span>
-      </div>
-      <div class="reveal-x d3 agenda-card" style="--accent: var(--purple);">
-        <span class="num">02</span>
-        <div><div class="title">Governance — Citadel &amp; APIM</div><div class="desc">Four-layer governance stack. APIM policies, Entra auth, managed identities, content safety, PII masking, audit logging.</div></div>
-        <span class="duration">~5 min</span>
-      </div>
-      <div class="reveal-x d4 agenda-card" style="--accent: var(--green);">
-        <span class="num">03</span>
-        <div><div class="title">Data — Unity Catalog &amp; MetricFlow</div><div class="desc">Semantic layer with governance-by-construction. Row filters, column masks, lineage tracking, OneLake storage substrate.</div></div>
-        <span class="duration">~5 min</span>
-      </div>
-      <div class="reveal-x d5 agenda-card" style="--accent: var(--teal);">
-        <span class="num">04</span>
-        <div><div class="title">Intelligence — Agentic Layer</div><div class="desc">Reasoning, context, execution separation. Framework-agnostic harness, tool interfaces, context engineering, observability.</div></div>
-        <span class="duration">~6 min</span>
-      </div>
-      <div class="reveal-x d6 agenda-card" style="--accent: var(--orange);">
-        <span class="num">05</span>
         <div><div class="title">Scale — Hub-Spoke Topology</div><div class="desc">Contract-driven spoke onboarding. VNet peering, policy inheritance, modular scaling by addition not rewrite.</div></div>
         <span class="duration">~5 min</span>
       </div>
+      <div class="reveal-x d3 agenda-card" style="--accent: var(--blue);" data-target="chapter-02">
+        <span class="num">02</span>
+        <div><div class="title">Foundation — Azure Landing Zone</div><div class="desc">Hub-spoke VNets, private endpoints, NSGs, Azure Firewall. Bicep/Terraform IaC for infrastructure-as-code deployment.</div></div>
+        <span class="duration">~4 min</span>
+      </div>
+      <div class="reveal-x d4 agenda-card" style="--accent: var(--purple);" data-target="chapter-03">
+        <span class="num">03</span>
+        <div><div class="title">Governance — Citadel &amp; APIM</div><div class="desc">Four-layer governance stack. APIM policies, Entra auth, managed identities, content safety, PII masking, audit logging.</div></div>
+        <span class="duration">~5 min</span>
+      </div>
+      <div class="reveal-x d5 agenda-card" style="--accent: var(--green);" data-target="chapter-04">
+        <span class="num">04</span>
+        <div><div class="title">Data — Unity Catalog &amp; MetricFlow</div><div class="desc">Semantic layer with governance-by-construction. Row filters, column masks, lineage tracking, OneLake storage substrate.</div></div>
+        <span class="duration">~5 min</span>
+      </div>
+      <div class="reveal-x d6 agenda-card" style="--accent: var(--teal);" data-target="chapter-05">
+        <span class="num">05</span>
+        <div><div class="title">Intelligence — Agentic Layer</div><div class="desc">Reasoning, context, execution separation. Framework-agnostic harness, tool interfaces, context engineering, observability.</div></div>
+        <span class="duration">~6 min</span>
+      </div>
     </div>
   </div>
-  <div class="slide-marker">5 / 47</div>
+  <div class="slide-marker">6 / 48</div>
 </section>
 
-<!-- SLIDE 06 -->
-<section class="slide chapter-divider" data-title="Chapter 01" style="--accent: var(--blue);">
+<!-- SLIDE 34 -->
+<section class="slide chapter-divider" id="chapter-01" data-title="Chapter 01" style="--accent: var(--orange);">
   <div class="chapter-grid"></div>
   <div class="slide-content row middle" style="justify-content: space-between; gap: clamp(1rem, 3vw, 3rem);">
-    <div class="reveal-scale d1 chapter-num text-blue">01</div>
+    <div class="reveal-scale d1 chapter-num text-orange">01</div>
     <div class="stack" style="flex: 1; max-width: 56ch;">
-      <div class="reveal d2 chapter-label text-blue">Chapter One · Foundation</div>
+      <div class="reveal d2 chapter-label" style="color: #FFAA66;">Chapter One · Scale</div>
+      <h2 class="reveal d3 chapter-title">Hub-Spoke<br>Topology.</h2>
+      <p class="reveal d5 chapter-blurb">
+        Enterprise AI at scale requires a governance topology that scales by
+        addition, not by redesign. The hub-spoke model centralizes policy,
+        identity, and audit in a single Citadel while enabling business-unit
+        spokes to innovate autonomously — each bound by contract, connected
+        by VNet peering, and governed by default.
+      </p>
+      <div class="reveal d7 row" style="gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem;">
+        <span class="chip"><span class="chip-dot" style="color:#FFAA66;"></span>Govern central · innovate local</span>
+        <span class="chip"><span class="chip-dot" style="color:#FFAA66;"></span>One contract, many spokes</span>
+        <span class="chip"><span class="chip-dot" style="color:#FFAA66;"></span>Modular by design</span>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">7 / 48</div>
+</section>
+
+<!-- SLIDE 35 -->
+<section class="slide" data-title="Hub Spoke">
+  <div class="slide-eyebrow">1.1 · One hub · many spokes</div>
+  <div class="slide-content grid-2 middle" style="gap: clamp(1.2rem, 3vw, 3rem); align-items: center;">
+    <div class="stack" style="max-width: 48ch;">
+      <h1 class="reveal d1 title-1" style="font-size: clamp(1.3rem, 3vw, 2.4rem);">Govern <em class="serif">central</em>.<br>Innovate <span class="text-yellow">local</span>.</h1>
+      <p class="reveal d2 lede" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">
+        The hub is the Citadel. The spokes are business-unit AI workloads —
+        Finance, HR, Legal, Ops, IT, R&amp;D. Each spoke is a self-contained
+        Azure Resource Group (or Subscription) with its own compute, its own data, and its own
+        DevOps cycle.
+      </p>
+      <p class="reveal d4 body" style="font-size: clamp(0.75rem, 1.1vw, 0.9rem);">
+        VNet peering carries every AI request from spoke to hub. There is no other allowed egress — spokes
+        cannot reach Azure OpenAI or any model directly. The contract is
+        enforced by the network, not by trust.
+      </p>
+      <p class="reveal d6 caption" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">
+        New spokes can be onboarded in days, not quarters — they inherit
+        the hub's governance the moment peering is established.
+      </p>
+    </div>
+    <div class="reveal-scale d3 radial-stage" style="max-width: clamp(320px, 42vw, 580px); max-height: 50vh;">
+      <svg viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet">
+        <line x1="500" y1="310" x2="220" y2="135" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
+        <line x1="500" y1="310" x2="780" y2="135" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
+        <line x1="500" y1="310" x2="100" y2="310" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
+        <line x1="500" y1="310" x2="900" y2="310" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
+        <line x1="500" y1="310" x2="280" y2="495" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
+        <line x1="500" y1="310" x2="720" y2="495" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
+      </svg>
+      <div class="hub-circle" style="box-shadow: 0 0 40px rgba(255,230,0,0.25), inset 0 0 0 4px rgba(255,230,0,0.6);">
+        <span class="hub-icon">&#9960;</span><span class="hub-icon">&#9878;</span>
+        <span class="hub-icon">&#9673;</span><span class="hub-icon">&#128203;</span>
+        <div class="hub-title">Citadel<br>Governance Hub</div>
+      </div>
+      <div class="spoke" style="background: var(--teal); --accent: rgba(39,172,170,0.4); top: 22%; left: 22%;">&#8962;<span style="font-family: var(--mono-font); font-weight: 400; font-size: 0.7em; opacity: 0.85;">Finance</span></div>
+      <div class="spoke" style="background: var(--green); --accent: rgba(45,183,87,0.4); top: 22%; left: 78%;">&#9787;<span style="font-family: var(--mono-font); font-weight: 400; font-size: 0.7em; opacity: 0.85;">HR</span></div>
+      <div class="spoke" style="background: var(--purple); --accent: rgba(117,14,92,0.4); top: 50%; left: 10%;">&#9878;<span style="font-family: var(--mono-font); font-weight: 400; font-size: 0.7em; opacity: 0.85;">Legal</span></div>
+      <div class="spoke" style="background: var(--teal); --accent: rgba(39,172,170,0.4); top: 50%; left: 90%;">&#9879;<span style="font-family: var(--mono-font); font-weight: 400; font-size: 0.7em; opacity: 0.85;">R&amp;D</span></div>
+      <div class="spoke" style="background: var(--orange); --accent: rgba(255,109,0,0.4); top: 80%; left: 28%;">&#9881;<span style="font-family: var(--mono-font); font-weight: 400; font-size: 0.7em; opacity: 0.85;">Ops</span></div>
+      <div class="spoke" style="background: var(--blue); --accent: rgba(24,140,229,0.4); top: 80%; left: 72%;">&#9000;<span style="font-family: var(--mono-font); font-weight: 400; font-size: 0.7em; opacity: 0.85;">IT</span></div>
+    </div>
+  </div>
+  <div class="slide-marker">7 / 48</div>
+</section>
+
+<!-- SLIDE 36 -->
+<section class="slide" data-title="Autonomy + Control">
+  <div class="slide-eyebrow">1.2 · Spoke autonomy · Hub control</div>
+  <div class="slide-content stack" style="justify-content: flex-start; padding-top: 2rem;">
+    <h1 class="reveal d1 title-1" style="font-size: clamp(1rem, 2vw, 1.6rem); margin: 0;">Spoke independence with <span class="text-yellow">central oversight</span>.</h1>
+    <p class="reveal d2 lede" style="margin: 0.2rem 0 0.4rem; font-size: clamp(0.75rem, 1vw, 0.9rem);">
+      Each spoke owns compute, data, and operations. The hub owns governance.
+      The two meet at a single contract — the handshake that makes the
+      whole topology auditable.
+    </p>
+    <div class="reveal d4 grid-2" style="margin-top: 0; align-items: stretch;">
+      <div class="compare-col" style="--accent: var(--teal);">
+        <div class="head"><span>Spoke · local autonomy</span><span class="caption mono">owns: compute · data · ops</span></div>
+        <div class="body">
+          <div class="row"><div class="ico">&#9000;</div><div><strong style="font-size: clamp(0.75rem, 1vw, 0.9rem);">Dedicated compute</strong><br><span class="desc" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">AKS, Container Apps, VMs — the spoke chooses.</span></div></div>
+          <div class="row"><div class="ico">&#9645;</div><div><strong style="font-size: clamp(0.75rem, 1vw, 0.9rem);">App-specific data</strong><br><span class="desc" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">Dedicated databases, storage, caches.</span></div></div>
+          <div class="row"><div class="ico">&#8635;</div><div><strong style="font-size: clamp(0.75rem, 1vw, 0.9rem);">Independent scaling</strong><br><span class="desc" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">Autonomous DevOps cycle. Deploy when ready.</span></div></div>
+          <div class="row"><div class="ico">&#8984;</div><div><strong style="font-size: clamp(0.75rem, 1vw, 0.9rem);">Own integrations</strong><br><span class="desc" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">Spoke-specific data sources and external APIs.</span></div></div>
+        </div>
+      </div>
+      <div class="compare-col" style="--accent: var(--primary);">
+        <div class="head" style="color: var(--bg);"><span>Hub · central governance</span><span class="caption mono" style="color: var(--bg); opacity: 0.7;">owns: gateway · policy · cost · audit</span></div>
+        <div class="body">
+          <div class="row"><div class="ico">&#9960;</div><div><strong style="font-size: clamp(0.75rem, 1vw, 0.9rem);">Single entry point</strong><br><span class="desc" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">All AI API calls through one gateway.</span></div></div>
+          <div class="row"><div class="ico">&#9878;</div><div><strong style="font-size: clamp(0.75rem, 1vw, 0.9rem);">Policy enforcement</strong><br><span class="desc" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">Consistent rules across all spokes.</span></div></div>
+          <div class="row"><div class="ico">$</div><div><strong style="font-size: clamp(0.75rem, 1vw, 0.9rem);">Cost attribution</strong><br><span class="desc" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">Unified billing, chargeback, budget alerts.</span></div></div>
+          <div class="row"><div class="ico">&#128203;</div><div><strong style="font-size: clamp(0.75rem, 1vw, 0.9rem);">Complete audit trail</strong><br><span class="desc" style="font-size: clamp(0.65rem, 0.85vw, 0.8rem);">Full traceability for compliance — 7 years.</span></div></div>
+        </div>
+      </div>
+    </div>
+    <p class="reveal d8 caption center" style="margin: 0.2rem auto 0; max-width: 80ch; font-size: clamp(0.65rem, 0.85vw, 0.8rem);">
+      Connecting them: a single <span class="text-yellow">contract</span> — VNet peering carrying Entra-authenticated, policy-checked traffic. Anything else is denied at the network layer.
+    </p>
+  </div>
+  <div class="slide-marker">8 / 48</div>
+</section>
+
+<!-- SLIDE 37 -->
+<section class="slide" data-title="The Contract">
+  <div class="slide-eyebrow">1.3 · The contract between hub and spoke</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">What the spoke declares. <span class="text-yellow">What the hub guarantees.</span></h1>
+    <p class="reveal d2 lede" style="margin-top: 0.3rem;">
+      Every spoke onboarding starts with a signed contract — a versioned manifest
+      that defines the boundary between autonomy and governance. Break the contract,
+      and the route fails closed.
+    </p>
+    <div class="reveal d4 grid-2" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: stretch; gap: clamp(0.8rem, 1.6vw, 1.6rem);">
+      <div class="card-panel-glass">
+        <div class="kicker text-yellow">Spoke declares</div>
+        <ul class="bullet-list" style="--accent: var(--teal); margin-top: 0.6em;">
+          <li><strong>Identity.</strong> The Entra principal(s) that will originate AI calls.</li>
+          <li><strong>Use cases.</strong> Named applications — e.g. <em class="mono">finance-arr-agent</em>.</li>
+          <li><strong>Models requested.</strong> From the central allow-list, with rate limits.</li>
+          <li><strong>Data scopes.</strong> Which Unity Catalog assets the spoke needs to read.</li>
+          <li><strong>Cost ceiling.</strong> Monthly token budget, with kill-switch behaviour.</li>
+        </ul>
+      </div>
+      <div class="card-panel-glass">
+        <div class="kicker text-yellow">Hub guarantees</div>
+        <ul class="bullet-list" style="--accent: var(--primary); margin-top: 0.6em;">
+          <li><strong>Gateway availability.</strong> APIM SLO + multi-region failover.</li>
+          <li><strong>Policy stability.</strong> Versioned policies; breaking changes announced.</li>
+          <li><strong>Audit retention.</strong> 7 years immutable, with legal hold support.</li>
+          <li><strong>Cost transparency.</strong> Daily chargeback feed with line-item detail.</li>
+          <li><strong>Incident SLA.</strong> Defined response times for security &amp; availability events.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-marker">9 / 48</div>
+</section>
+
+<!-- SLIDE 38 -->
+<section class="slide" data-title="Complete Architecture">
+  <div class="slide-eyebrow">1.4 · The complete architecture</div>
+  <div class="slide-content stack center" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">The <span class="text-yellow">AI+</span> <span class="text-blue">FACTORY</span> <span class="text-red">Hub</span> — <span class="text-yellow">end to end</span>.</h1>
+    <p class="reveal d2 lede" style="margin: 0 auto;">
+      Hub-spoke · Landing Zone · Citadel · Data · Agents. Read bottom-to-top.
+    </p>
+    <div class="reveal d4 arch-stack" style="margin-top: clamp(0.6rem, 1.6vh, 1rem);">
+      <div class="arch-row" style="--accent: var(--primary); border-left-color: var(--primary);">
+        <span class="ico">&#10687;</span>
+        <div><div class="ttl">Agentic Layer · Hub-Spoke Topology</div><div class="sub">Citadel hub · Finance · HR · Legal · Ops · IT spokes</div></div>
+        <span class="tag">1 / 5</span>
+      </div>
+      <div class="arch-row" style="--accent: var(--green); border-left-color: var(--green);">
+        <span class="ico">&#9641;</span>
+        <div><div class="ttl">Data Foundation</div><div class="sub">MetricFlow · Unity Catalog · OneLake · Databricks SQL</div></div>
+        <span class="tag">4</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; border: 1px solid var(--border); border-radius: 6px; padding: 4px; background: rgba(255,255,255,0.02);">
+        <div style="padding: 0.55em 0.7em; border-radius: 4px; color: #fff; font-weight: 700; font-size: clamp(0.65rem, 0.9vw, 0.85rem); display: flex; align-items: center; gap: 0.4em; background: var(--purple);"><span style="width: 16px; height: 16px; background: rgba(255,255,255,0.25); border-radius: 3px;"></span>L4 · Security</div>
+        <div style="padding: 0.55em 0.7em; border-radius: 4px; color: #fff; font-weight: 700; font-size: clamp(0.65rem, 0.9vw, 0.85rem); display: flex; align-items: center; gap: 0.4em; background: var(--teal);"><span style="width: 16px; height: 16px; background: rgba(255,255,255,0.25); border-radius: 3px;"></span>L3 · Identity</div>
+        <div style="padding: 0.55em 0.7em; border-radius: 4px; color: #fff; font-weight: 700; font-size: clamp(0.65rem, 0.9vw, 0.85rem); display: flex; align-items: center; gap: 0.4em; background: var(--orange);"><span style="width: 16px; height: 16px; background: rgba(255,255,255,0.25); border-radius: 3px;"></span>L2 · Control Plane</div>
+        <div style="padding: 0.55em 0.7em; border-radius: 4px; color: #fff; font-weight: 700; font-size: clamp(0.65rem, 0.9vw, 0.85rem); display: flex; align-items: center; gap: 0.4em; background: var(--blue);"><span style="width: 16px; height: 16px; background: rgba(255,255,255,0.25); border-radius: 3px;"></span>L1 · Gateway</div>
+      </div>
+      <div class="arch-row" style="--accent: var(--blue); border-left-color: var(--blue);">
+        <span class="ico">&#9729;</span>
+        <div><div class="ttl">Azure Landing Zone</div><div class="sub">Network &amp; security · identity &amp; access · operations &amp; monitoring</div></div>
+        <span class="tag">2</span>
+      </div>
+    </div>
+    <p class="reveal d8 serif" style="font-size: clamp(1rem, 1.6vw, 1.4rem); color: var(--text-2); margin-top: 1rem; max-width: 70ch;">
+      A single platform vision: scalable topology, secure infrastructure, governed AI, trusted data, autonomous agents.
+    </p>
+  </div>
+  <div class="slide-marker">10 / 48</div>
+</section>
+
+<!-- SLIDE 39 -->
+
+<!-- SLIDE 40 -->
+<section class="slide" data-title="Who Builds What">
+  <div class="slide-eyebrow">1.6 · Operating model</div>
+  <div class="slide-content stack" style="justify-content: center;">
+    <h1 class="reveal d1 title-1">Three areas. <span class="text-yellow">Clear boundaries.</span></h1>
+    <p class="reveal d2 lede">
+      The factory does not collapse responsibilities. It separates them — on
+      purpose — so that the platform team, the spoke teams, and the central
+      AI governance function each know exactly what they own and what they consume.
+    </p>
+    <div class="reveal d4 grid-3" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: stretch;">
+      <div class="card-panel" style="--accent: var(--blue);">
+        <div class="kicker text-blue">Platform team</div>
+        <h3 class="title-2" style="margin-top: 0.4em;">Owns the hub.</h3>
+        <ul class="bullet-list" style="--accent: var(--blue); margin-top: 0.5em;">
+          <li>Landing Zone &amp; networking</li>
+          <li>Citadel layers 1–4 in code</li>
+          <li>Gateway policy library</li>
+          <li>Identity model · Entra apps</li>
+          <li>Audit pipeline · log retention</li>
+        </ul>
+      </div>
+      <div class="card-panel" style="--accent: var(--teal);">
+        <div class="kicker text-teal">Spoke teams</div>
+        <h3 class="title-2" style="margin-top: 0.4em;">Build the agents.</h3>
+        <ul class="bullet-list" style="--accent: var(--teal); margin-top: 0.5em;">
+          <li>Pick the framework that fits</li>
+          <li>Author registry entries</li>
+          <li>Define use-case evals</li>
+          <li>Own application data &amp; compute</li>
+          <li>Sign and renew the contract</li>
+        </ul>
+      </div>
+      <div class="card-panel" style="--accent: var(--purple);">
+        <div class="kicker" style="color:#C57BBC;">AI governance</div>
+        <h3 class="title-2" style="margin-top: 0.4em;">Sets the rules.</h3>
+        <ul class="bullet-list" style="--accent: var(--purple); margin-top: 0.5em;">
+          <li>Acceptable-use &amp; safety policy</li>
+          <li>Model allow-list</li>
+          <li>Eval &amp; certification gates</li>
+          <li>Incident response playbook</li>
+          <li>Regulator interface</li>
+        </ul>
+      </div>
+    </div>
+    <p class="reveal d8 caption center" style="margin: 0.6rem auto 0; max-width: 84ch;">
+      The platform team enables. The spokes innovate. Governance certifies. None of the three can do the others' jobs — and that is the point.
+    </p>
+  </div>
+  <div class="slide-marker">11 / 48</div>
+</section>
+
+<!-- SLIDE 41 -->
+
+<!-- SLIDE 06 -->
+<section class="slide chapter-divider" id="chapter-02" data-title="Chapter 02" style="--accent: var(--blue);">
+  <div class="chapter-grid"></div>
+  <div class="slide-content row middle" style="justify-content: space-between; gap: clamp(1rem, 3vw, 3rem);">
+    <div class="reveal-scale d1 chapter-num text-blue">02</div>
+    <div class="stack" style="flex: 1; max-width: 56ch;">
+      <div class="reveal d2 chapter-label text-blue">Chapter Two · Foundation</div>
       <h2 class="reveal d3 chapter-title">The Azure<br>Landing Zone.</h2>
       <p class="reveal d5 chapter-blurb">
         Infrastructure substrate for AI workloads. Network isolation, identity backbone,
@@ -396,12 +685,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </div>
     </div>
   </div>
-  <div class="slide-marker">6 / 47</div>
+  <div class="slide-marker">12 / 48</div>
 </section>
 
 <!-- SLIDE 07 -->
 <section class="slide" data-title="What is the Landing Zone">
-  <div class="slide-eyebrow">1.1 · Foundation</div>
+  <div class="slide-eyebrow">2.1 · Foundation</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Infrastructure Substrate: <span class="text-yellow">Azure Landing Zone</span></h1>
     <p class="reveal d2 lede">Pre-engineered Azure composition for AI workloads — identity, networking, security, monitoring, and policy inherited by default.</p>
@@ -414,7 +703,7 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
           and audit pipelines without rebuilding them.
         </p>
         <p class="body">
-          The AI+ FACTORY Hub <strong>extends</strong> Microsoft's Cloud Adoption Framework
+          The <span class="text-yellow">AI+</span> <span class="text-blue">FACTORY</span> <span class="text-red">Hub</span> <strong>extends</strong> Microsoft's Cloud Adoption Framework
           (CAF) Landing Zones with AI-specific design areas: private endpoints for Azure OpenAI,
           VNet isolation for model endpoints, and managed identity patterns for agent auth.
         </p>
@@ -442,12 +731,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </div>
     </div>
   </div>
-  <div class="slide-marker">7 / 47</div>
+  <div class="slide-marker">13 / 48</div>
 </section>
 
 <!-- SLIDE 08 -->
 <section class="slide" data-title="Three Slabs">
-  <div class="slide-eyebrow">1.2 · Three slabs of the substrate</div>
+  <div class="slide-eyebrow">2.2 · Three slabs of the substrate</div>
   <div class="slide-content grid-2 middle" style="gap: clamp(1.4rem, 3vw, 3rem); align-items: center;">
     <div class="stack" style="max-width: 60ch;">
       <h1 class="reveal d1 title-1" style="font-size: clamp(1.3rem, 3vw, 2.4rem);">Three layers,<br>one <span class="text-yellow">substrate</span>.</h1>
@@ -542,12 +831,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </svg>
     </div>
   </div>
-  <div class="slide-marker">8 / 47</div>
+  <div class="slide-marker">14 / 48</div>
 </section>
 
 <!-- SLIDE 09 -->
 <section class="slide" data-title="Network Architecture">
-  <div class="slide-eyebrow">1.3 · Network architecture</div>
+  <div class="slide-eyebrow">2.3 · Network architecture</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Hub-spoke topology with <span class="text-yellow">private endpoints</span>.</h1>
     <p class="reveal d2 lede">
@@ -592,12 +881,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
   }
 }</div>
   </div>
-  <div class="slide-marker">9 / 47</div>
+  <div class="slide-marker">15 / 48</div>
 </section>
 
 <!-- SLIDE 10 -->
 <section class="slide" data-title="LZ as Container">
-  <div class="slide-eyebrow">1.4 · The Landing Zone hosts everything</div>
+  <div class="slide-eyebrow">2.4 · The Landing Zone hosts everything</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Single secure container <span class="text-yellow">for the entire platform</span>.</h1>
     <p class="reveal d2 lede">
@@ -631,17 +920,17 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       every identity is Entra-issued, every policy is inherited from management groups above.
     </p>
   </div>
-  <div class="slide-marker">10 / 47</div>
+  <div class="slide-marker">16 / 48</div>
 </section>
 
 <!-- SLIDE 10 -->
 <section class="slide" data-title="Integration">
-  <div class="slide-eyebrow">1.5 · ALZ integration</div>
+  <div class="slide-eyebrow">2.5 · ALZ integration</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Extends CAF ALZ — <span class="text-yellow">no rip-and-replace</span>.</h1>
     <p class="reveal d2 lede">
       If your enterprise has adopted Microsoft's Cloud Adoption Framework Landing Zones,
-      the AI+ FACTORY Hub is a <strong>supplemental design area</strong>. It extends each
+      the <span class="text-yellow">AI+</span> <span class="text-blue">FACTORY</span> <span class="text-red">Hub</span> is a <strong>supplemental design area</strong>. It extends each
       of the eight ALZ design areas with AI-specific concerns.
     </p>
     <div class="reveal d4" style="margin-top: clamp(0.6rem, 1.6vh, 1rem);">
@@ -662,16 +951,16 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       Supplemental design — <em>extends</em>, does not replace. CAF ALZ remains the source of truth for shared services.
     </p>
   </div>
-  <div class="slide-marker">11 / 47</div>
+  <div class="slide-marker">17 / 48</div>
 </section>
 
 <!-- SLIDE 11 -->
-<section class="slide chapter-divider" data-title="Chapter 02" style="--accent: var(--purple);">
+<section class="slide chapter-divider" id="chapter-03" data-title="Chapter 03" style="--accent: var(--purple);">
   <div class="chapter-grid"></div>
   <div class="slide-content row middle" style="justify-content: space-between; gap: clamp(1rem, 3vw, 3rem);">
-    <div class="reveal-scale d1 chapter-num" style="color: #B266A8;">02</div>
+    <div class="reveal-scale d1 chapter-num text-purple">03</div>
     <div class="stack" style="flex: 1; max-width: 56ch;">
-      <div class="reveal d2 chapter-label" style="color: #B266A8;">Chapter Two · Governance</div>
+      <div class="reveal d2 chapter-label" style="color: #B266A8;">Chapter Three · Governance</div>
       <h2 class="reveal d3 chapter-title">The Citadel<br>Governance Hub.</h2>
       <p class="reveal d5 chapter-blurb">
         Four interlocking layers enforced at runtime — not documented in a wiki.
@@ -685,12 +974,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </div>
     </div>
   </div>
-  <div class="slide-marker">12 / 47</div>
+  <div class="slide-marker">18 / 48</div>
 </section>
 
 <!-- SLIDE 12 -->
 <section class="slide" data-title="Citadel Hub">
-  <div class="slide-eyebrow">2.1 · The heart of the platform</div>
+  <div class="slide-eyebrow">3.1 · The heart of the platform</div>
   <div class="slide-content grid-2 middle" style="gap: clamp(1.4rem, 3vw, 3rem); align-items: center;">
     <div class="stack" style="max-width: 58ch;">
       <h1 class="reveal d1 title-1" style="font-size: clamp(1.3rem, 3vw, 2.4rem);">Citadel:<br><span class="text-yellow">four-layer architecture</span>.</h1>
@@ -725,12 +1014,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </div>
     </div>
   </div>
-  <div class="slide-marker">13 / 47</div>
+  <div class="slide-marker">19 / 48</div>
 </section>
 
 <!-- SLIDE 13 -->
 <section class="slide" data-title="Why governance">
-  <div class="slide-eyebrow">2.2 · Why a hub at all?</div>
+  <div class="slide-eyebrow">3.2 · Why a hub at all?</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Without a hub, every team rebuilds the same controls <em class="serif text-yellow">differently</em>.</h1>
     <div class="reveal d3 grid-2" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: stretch;">
@@ -759,12 +1048,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       The hub solves these concerns <em>once</em>, then inherits them by every spoke, every framework, every agent.
     </p>
   </div>
-  <div class="slide-marker">14 / 47</div>
+  <div class="slide-marker">20 / 48</div>
 </section>
 
 <!-- SLIDE 14 -->
 <section class="slide" data-title="APIM Gateway">
-  <div class="slide-eyebrow">2.3 · Layer 1 · The Gateway</div>
+  <div class="slide-eyebrow">3.3 · Layer 1 · The Gateway</div>
   <div class="slide-content grid-2 middle" style="gap: clamp(1.4rem, 3vw, 3rem); align-items: center;">
     <div class="stack" style="max-width: 60ch;">
       <h1 class="reveal d1 title-1" style="font-size: clamp(1.3rem, 3vw, 2.4rem);">Unified <span class="text-yellow">AI gateway</span>.</h1>
@@ -803,12 +1092,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </div>
     </div>
   </div>
-  <div class="slide-marker">15 / 47</div>
+  <div class="slide-marker">21 / 48</div>
 </section>
 
 <!-- SLIDE 15 -->
 <section class="slide" data-title="APIM Capabilities">
-  <div class="slide-eyebrow">2.4 · Six policies · one gateway</div>
+  <div class="slide-eyebrow">3.4 · Six policies · one gateway</div>
   <div class="slide-content stack center" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Six policies, applied to <span class="text-yellow">every</span> request.</h1>
     <p class="reveal d2 lede">
@@ -830,12 +1119,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       A request that passes all six carries verifiable provenance into the log.
     </p>
   </div>
-  <div class="slide-marker">16 / 47</div>
+  <div class="slide-marker">22 / 48</div>
 </section>
 
 <!-- SLIDE 16 -->
 <section class="slide" data-title="4-Layer Interlock">
-  <div class="slide-eyebrow">2.5 · Separation of concerns</div>
+  <div class="slide-eyebrow">3.5 · Separation of concerns</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Layers in <span class="text-yellow">motion</span>.</h1>
     <p class="reveal d2 lede">
@@ -882,12 +1171,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       A change in any layer cannot weaken the layer below it — platform-enforced boundary.
     </p>
   </div>
-  <div class="slide-marker">17 / 47</div>
+  <div class="slide-marker">23 / 48</div>
 </section>
 
 <!-- SLIDE 17 -->
 <section class="slide" data-title="Audit Trail">
-  <div class="slide-eyebrow">2.6 · Governance in action</div>
+  <div class="slide-eyebrow">3.6 · Governance in action</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Every interaction is <span class="text-yellow">traceable</span>.</h1>
     <p class="reveal d2 lede">
@@ -911,12 +1200,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
 | <span class="ck">where</span> <span class="cv">Properties</span>.<span class="cv">agentId</span> == <span class="ct">"finance-arr-agent"</span>
 | <span class="ck">project</span> <span class="cv">Timestamp</span>, <span class="cv">Principal</span>, <span class="cv">Model</span>, <span class="cv">TokensIn</span>, <span class="cv">TokensOut</span>, <span class="cv">CostUSD</span></div>
   </div>
-  <div class="slide-marker">18 / 47</div>
+  <div class="slide-marker">24 / 48</div>
 </section>
 
 <!-- SLIDE 18 -->
 <section class="slide" data-title="Retention">
-  <div class="slide-eyebrow">2.7 · Retention architecture</div>
+  <div class="slide-eyebrow">3.7 · Retention architecture</div>
   <div class="slide-content grid-2 middle" style="gap: clamp(1.4rem, 3vw, 3rem); align-items: center;">
     <div class="stack" style="max-width: 56ch;">
       <h1 class="reveal d1 title-1" style="font-size: clamp(1.3rem, 3vw, 2.4rem);">Logs the auditor will <span class="text-yellow">accept</span>.</h1>
@@ -959,16 +1248,16 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </table>
     </div>
   </div>
-  <div class="slide-marker">19 / 47</div>
+  <div class="slide-marker">25 / 48</div>
 </section>
 
 <!-- SLIDE 19 -->
-<section class="slide chapter-divider" data-title="Chapter 03" style="--accent: var(--green);">
+<section class="slide chapter-divider" id="chapter-04" data-title="Chapter 04" style="--accent: var(--green);">
   <div class="chapter-grid"></div>
   <div class="slide-content row middle" style="justify-content: space-between; gap: clamp(1rem, 3vw, 3rem);">
-    <div class="reveal-scale d1 chapter-num text-green">03</div>
+    <div class="reveal-scale d1 chapter-num text-green">04</div>
     <div class="stack" style="flex: 1; max-width: 56ch;">
-      <div class="reveal d2 chapter-label text-green">Chapter Three · Data</div>
+      <div class="reveal d2 chapter-label text-green">Chapter Four · Data</div>
       <h2 class="reveal d3 chapter-title">The Source<br>of Thought.</h2>
       <p class="reveal d5 chapter-blurb">
         Most enterprise AI deployments do not fail at the model. They fail at
@@ -982,12 +1271,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </div>
     </div>
   </div>
-  <div class="slide-marker">20 / 47</div>
+  <div class="slide-marker">26 / 48</div>
 </section>
 
 <!-- SLIDE 20 -->
 <section class="slide" data-title="Three Guarantees">
-  <div class="slide-eyebrow">3.1 · Three guarantees the data layer must make</div>
+  <div class="slide-eyebrow">4.1 · Three guarantees the data layer must make</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Three <span class="text-yellow">non-negotiable</span> guarantees.</h1>
     <p class="reveal d2 lede">
@@ -1022,12 +1311,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </div>
     </div>
   </div>
-  <div class="slide-marker">21 / 47</div>
+  <div class="slide-marker">27 / 48</div>
 </section>
 
 <!-- SLIDE 21 -->
 <section class="slide" data-title="Why AI fails at data">
-  <div class="slide-eyebrow">3.2 · Why most AI fails at the data layer</div>
+  <div class="slide-eyebrow">4.2 · Why most AI fails at the data layer</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">The model is rarely the bottleneck.<br><span class="text-yellow">The data plumbing is.</span></h1>
     <div class="reveal d3 grid-2" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: start;">
@@ -1059,12 +1348,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       Each of these has a known fix. Putting them together as one architecture — that is the Data Foundation chapter.
     </p>
   </div>
-  <div class="slide-marker">22 / 47</div>
+  <div class="slide-marker">28 / 48</div>
 </section>
 
 <!-- SLIDE 22 -->
 <section class="slide" data-title="Query Path">
-  <div class="slide-eyebrow">3.3 · The governed query path</div>
+  <div class="slide-eyebrow">4.3 · The governed query path</div>
   <div class="slide-content grid-2 middle" style="gap: clamp(1.2rem, 3vw, 3rem); align-items: center;">
     <div class="stack" style="max-width: 56ch;">
       <h1 class="reveal d1 title-1" style="font-size: clamp(1.3rem, 3vw, 2.4rem);">From agent question<br>to <span class="text-yellow">certified answer</span>.</h1>
@@ -1104,12 +1393,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </div>
     </div>
   </div>
-  <div class="slide-marker">23 / 47</div>
+  <div class="slide-marker">29 / 48</div>
 </section>
 
 <!-- SLIDE 23 -->
 <section class="slide" data-title="Identity-aware access">
-  <div class="slide-eyebrow">3.4 · Identity-aware access</div>
+  <div class="slide-eyebrow">4.4 · Identity-aware access</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Same prompt. Same agent. <span class="text-yellow">Different data.</span></h1>
     <p class="reveal d2 lede">
@@ -1139,12 +1428,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       Unity Catalog injected them based on the verified Entra principal that arrived at the gateway.
     </p>
   </div>
-  <div class="slide-marker">24 / 47</div>
+  <div class="slide-marker">30 / 48</div>
 </section>
 
 <!-- SLIDE 24 -->
 <section class="slide" data-title="Semantic Layer">
-  <div class="slide-eyebrow">3.5 · The semantic layer</div>
+  <div class="slide-eyebrow">4.5 · The semantic layer</div>
   <div class="slide-content row middle" style="gap: clamp(1.2rem, 3vw, 3rem);">
     <div class="stack" style="flex: 1.1; max-width: 56ch;">
       <h1 class="reveal d1 title-1">Author <em class="serif">onc</em>.<br>Reuse <span class="text-yellow">everywhere</span>.</h1>
@@ -1185,12 +1474,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
 <span class="ck">owner:</span> <span class="cv">finance.metrics@enterprise.com</span></div>
     </div>
   </div>
-  <div class="slide-marker">25 / 47</div>
+  <div class="slide-marker">31 / 48</div>
 </section>
 
 <!-- SLIDE 25 -->
 <section class="slide" data-title="One metric every consumer">
-  <div class="slide-eyebrow">3.6 · One definition · every consumer</div>
+  <div class="slide-eyebrow">4.6 · One definition · every consumer</div>
   <div class="slide-content stack center" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Three different consumers. <span class="text-yellow">Identical answer.</span></h1>
     <p class="reveal d2 lede">
@@ -1223,12 +1512,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       <span class="text-yellow">Identical output</span> · Identical governance · Single lineage source.
     </p>
   </div>
-  <div class="slide-marker">26 / 47</div>
+  <div class="slide-marker">32 / 48</div>
 </section>
 
 <!-- SLIDE 26 -->
 <section class="slide" data-title="Core vs Edge">
-  <div class="slide-eyebrow">3.7 · Core vs Edge governance</div>
+  <div class="slide-eyebrow">4.7 · Core vs Edge governance</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Enterprise stability <em class="serif">and</em> team innovation. <span class="text-yellow">Both.</span></h1>
     <p class="reveal d2 lede">
@@ -1260,12 +1549,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       <strong>Core cannot be overridden by Edge.</strong> An Edge metric named "ARR" will be rejected at deploy — the platform enforces the boundary.
     </p>
   </div>
-  <div class="slide-marker">27 / 47</div>
+  <div class="slide-marker">33 / 48</div>
 </section>
 
 <!-- SLIDE 27 -->
 <section class="slide" data-title="Data stack">
-  <div class="slide-eyebrow">3.8 · The native Microsoft + Databricks stack</div>
+  <div class="slide-eyebrow">4.8 · The native Microsoft + Databricks stack</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Built on services your enterprise <span class="text-yellow">already owns</span>.</h1>
     <p class="reveal d2 lede">
@@ -1281,16 +1570,16 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       <div class="detail" style="--accent: var(--orange);"><div class="glyph">D</div><div><div class="nm" style="color:#FFAA66;">Databricks SQL · AI/BI</div><div class="dx">The execution surface that resolves metric requests — from agents, BI tools, and notebooks alike — under Unity governance. Serverless, cold-start 30-90s.</div></div></div>
     </div>
   </div>
-  <div class="slide-marker">28 / 47</div>
+  <div class="slide-marker">34 / 48</div>
 </section>
 
 <!-- SLIDE 28 -->
-<section class="slide chapter-divider" data-title="Chapter 04" style="--accent: var(--teal);">
+<section class="slide chapter-divider" id="chapter-05" data-title="Chapter 05" style="--accent: var(--teal);">
   <div class="chapter-grid"></div>
   <div class="slide-content row middle" style="justify-content: space-between; gap: clamp(1rem, 3vw, 3rem);">
-    <div class="reveal-scale d1 chapter-num text-teal">04</div>
+    <div class="reveal-scale d1 chapter-num text-teal">05</div>
     <div class="stack" style="flex: 1; max-width: 56ch;">
-      <div class="reveal d2 chapter-label text-teal">Chapter Four · Intelligence</div>
+      <div class="reveal d2 chapter-label text-teal">Chapter Five · Intelligence</div>
       <h2 class="reveal d3 chapter-title">The Agentic<br>Layer.</h2>
       <p class="reveal d5 chapter-blurb">
         An agent is not a model with a prompt — that is a chatbot. An agent is
@@ -1306,12 +1595,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </div>
     </div>
   </div>
-  <div class="slide-marker">29 / 47</div>
+  <div class="slide-marker">35 / 48</div>
 </section>
 
 <!-- SLIDE 29 -->
 <section class="slide" data-title="Three Layers">
-  <div class="slide-eyebrow">4.1 · Three layers of an agent</div>
+  <div class="slide-eyebrow">5.1 · Three layers of an agent</div>
   <div class="slide-content stack" style="justify-content: center; gap: clamp(0.4rem, 1vh, 0.8rem);">
     <h1 class="reveal d1 title-1" style="font-size: clamp(1.4rem, 3.5vw, 2.8rem);">Reasoning · <span class="text-yellow">Context</span> · Execution.</h1>
     <p class="reveal d2 lede" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">
@@ -1348,12 +1637,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </p>
     </div>
   </div>
-  <div class="slide-marker">30 / 47</div>
+  <div class="slide-marker">36 / 48</div>
 </section>
 
 <!-- SLIDE 30 -->
 <section class="slide" data-title="Three Intelligences">
-  <div class="slide-eyebrow">4.2 · What an agent is allowed to know</div>
+  <div class="slide-eyebrow">5.2 · What an agent is allowed to know</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Three <span class="text-yellow">intelligences</span> feed every agent.</h1>
     <p class="reveal d2 lede">
@@ -1403,12 +1692,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       Each intelligence is mounted at the Context Layer through a typed adapter — never read raw, always governed, always logged.
     </p>
   </div>
-  <div class="slide-marker">31 / 47</div>
+  <div class="slide-marker">37 / 48</div>
 </section>
 
 <!-- SLIDE 31 -->
 <section class="slide" data-title="Agent FACTORY">
-  <div class="slide-eyebrow">4.3 · Agent FACTORY on Citadel</div>
+  <div class="slide-eyebrow">5.3 · Agent FACTORY on Citadel</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Build with <em class="serif">any</em> tool.<br>Govern with <span class="text-yellow">one</span> platform.</h1>
     <p class="reveal d2 lede">
@@ -1462,12 +1751,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       Pick the tool that fits the team. The platform contract is the same for all of them.
     </p>
   </div>
-  <div class="slide-marker">32 / 47</div>
+  <div class="slide-marker">38 / 48</div>
 </section>
 
 <!-- SLIDE 32 -->
 <section class="slide" data-title="Agentic Web Stack">
-  <div class="slide-eyebrow">4.4 · The agentic web stack</div>
+  <div class="slide-eyebrow">5.4 · The agentic web stack</div>
   <div class="slide-content stack center" style="justify-content: center; gap: clamp(0.3rem, 0.8vh, 0.6rem);">
     <h1 class="reveal d1 title-1" style="font-size: clamp(1.4rem, 3.5vw, 2.8rem);">Eight capabilities. <span class="text-yellow">One agent.</span></h1>
     <p class="reveal d2 lede" style="margin: 0 auto; font-size: clamp(0.85rem, 1.3vw, 1.1rem);">
@@ -1492,12 +1781,12 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       <em class="serif">Every capability governed, every interaction traceable.</em>
     </p>
   </div>
-  <div class="slide-marker">33 / 47</div>
+  <div class="slide-marker">39 / 48</div>
 </section>
 
 <!-- SLIDE 33 -->
 <section class="slide" data-title="Agent Lifecycle">
-  <div class="slide-eyebrow">4.5 · The agent lifecycle</div>
+  <div class="slide-eyebrow">5.5 · The agent lifecycle</div>
   <div class="slide-content stack" style="justify-content: center;">
     <h1 class="reveal d1 title-1">Born governed. <span class="text-yellow">Retired</span> governed.</h1>
     <p class="reveal d2 lede">
@@ -1550,318 +1839,7 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </div>
     </div>
   </div>
-  <div class="slide-marker">34 / 47</div>
-</section>
-
-<!-- SLIDE 34 -->
-<section class="slide chapter-divider" data-title="Chapter 05" style="--accent: var(--orange);">
-  <div class="chapter-grid"></div>
-  <div class="slide-content row middle" style="justify-content: space-between; gap: clamp(1rem, 3vw, 3rem);">
-    <div class="reveal-scale d1 chapter-num" style="color: #FFAA66;">05</div>
-    <div class="stack" style="flex: 1; max-width: 56ch;">
-      <div class="reveal d2 chapter-label" style="color: #FFAA66;">Chapter Five · Scale</div>
-      <h2 class="reveal d3 chapter-title">Hub-Spoke<br>Topology.</h2>
-      <p class="reveal d5 chapter-blurb">
-        A platform that hosts one agent is a project. A platform that hosts a
-        hundred agents, across a dozen business units, in five regions, under
-        one governance contract — that is a factory. Hub-spoke is how we
-        get from the first to the second without rewriting anything.
-      </p>
-      <div class="reveal d7 row" style="gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem;">
-        <span class="chip"><span class="chip-dot" style="color:#FFAA66;"></span>Govern central · innovate local</span>
-        <span class="chip"><span class="chip-dot" style="color:#FFAA66;"></span>One contract, many spokes</span>
-        <span class="chip"><span class="chip-dot" style="color:#FFAA66;"></span>Modular by design</span>
-      </div>
-    </div>
-  </div>
-  <div class="slide-marker">35 / 47</div>
-</section>
-
-<!-- SLIDE 35 -->
-<section class="slide" data-title="Hub Spoke">
-  <div class="slide-eyebrow">5.1 · One hub · many spokes</div>
-  <div class="slide-content grid-2 middle" style="gap: clamp(1.2rem, 3vw, 3rem); align-items: center;">
-    <div class="stack" style="max-width: 48ch;">
-      <h1 class="reveal d1 title-1" style="font-size: clamp(1.3rem, 3vw, 2.4rem);">Govern <em class="serif">central</em>.<br>Innovate <span class="text-yellow">local</span>.</h1>
-      <p class="reveal d2 lede" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">
-        The hub is the Citadel. The spokes are business-unit AI workloads —
-        Finance, HR, Legal, Ops, IT, R&amp;D. Each spoke is a self-contained
-        Azure subscription with its own compute, its own data, and its own
-        DevOps cycle.
-      </p>
-      <p class="reveal d4 body" style="font-size: clamp(0.75rem, 1.1vw, 0.9rem);">
-        VNet peering carries every AI request from spoke to hub. There is no other allowed egress — spokes
-        cannot reach Azure OpenAI or any model directly. The contract is
-        enforced by the network, not by trust.
-      </p>
-      <p class="reveal d6 caption" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">
-        New spokes can be onboarded in days, not quarters — they inherit
-        the hub's governance the moment peering is established.
-      </p>
-    </div>
-    <div class="reveal-scale d3 radial-stage" style="max-width: clamp(320px, 42vw, 580px); max-height: 50vh;">
-      <svg viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet">
-        <line x1="500" y1="310" x2="220" y2="135" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
-        <line x1="500" y1="310" x2="780" y2="135" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
-        <line x1="500" y1="310" x2="100" y2="310" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
-        <line x1="500" y1="310" x2="900" y2="310" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
-        <line x1="500" y1="310" x2="280" y2="495" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
-        <line x1="500" y1="310" x2="720" y2="495" stroke="var(--orange)" stroke-width="1.5" opacity="0.3"/>
-      </svg>
-      <div class="hub-circle" style="box-shadow: 0 0 40px rgba(255,230,0,0.25), inset 0 0 0 4px rgba(255,230,0,0.6);">
-        <span class="hub-icon">&#9960;</span><span class="hub-icon">&#9878;</span>
-        <span class="hub-icon">&#9673;</span><span class="hub-icon">&#128203;</span>
-        <div class="hub-title">Citadel<br>Governance Hub</div>
-      </div>
-      <div class="spoke" style="background: var(--teal); --accent: rgba(39,172,170,0.4); top: 22%; left: 22%;">&#8962;<span style="font-family: var(--mono-font); font-weight: 400; font-size: 0.7em; opacity: 0.85;">Finance</span></div>
-      <div class="spoke" style="background: var(--green); --accent: rgba(45,183,87,0.4); top: 22%; left: 78%;">&#9787;<span style="font-family: var(--mono-font); font-weight: 400; font-size: 0.7em; opacity: 0.85;">HR</span></div>
-      <div class="spoke" style="background: var(--purple); --accent: rgba(117,14,92,0.4); top: 50%; left: 10%;">&#9878;<span style="font-family: var(--mono-font); font-weight: 400; font-size: 0.7em; opacity: 0.85;">Legal</span></div>
-      <div class="spoke" style="background: var(--teal); --accent: rgba(39,172,170,0.4); top: 50%; left: 90%;">&#9879;<span style="font-family: var(--mono-font); font-weight: 400; font-size: 0.7em; opacity: 0.85;">R&amp;D</span></div>
-      <div class="spoke" style="background: var(--orange); --accent: rgba(255,109,0,0.4); top: 80%; left: 28%;">&#9881;<span style="font-family: var(--mono-font); font-weight: 400; font-size: 0.7em; opacity: 0.85;">Ops</span></div>
-      <div class="spoke" style="background: var(--blue); --accent: rgba(24,140,229,0.4); top: 80%; left: 72%;">&#9000;<span style="font-family: var(--mono-font); font-weight: 400; font-size: 0.7em; opacity: 0.85;">IT</span></div>
-    </div>
-  </div>
-  <div class="slide-marker">36 / 47</div>
-</section>
-
-<!-- SLIDE 36 -->
-<section class="slide" data-title="Autonomy + Control">
-  <div class="slide-eyebrow">5.2 · Spoke autonomy · Hub control</div>
-  <div class="slide-content stack" style="justify-content: center;">
-    <h1 class="reveal d1 title-1">Spoke independence with <span class="text-yellow">central oversight</span>.</h1>
-    <p class="reveal d2 lede">
-      Each spoke owns compute, data, and operations. The hub owns governance.
-      The two meet at a single contract — the handshake that makes the
-      whole topology auditable.
-    </p>
-    <div class="reveal d4 grid-2" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: stretch;">
-      <div class="compare-col" style="--accent: var(--teal);">
-        <div class="head"><span>Spoke · local autonomy</span><span class="caption mono">owns: compute · data · ops</span></div>
-        <div class="body">
-          <div class="row"><div class="ico">&#9000;</div><div><strong>Dedicated compute</strong><span class="desc">AKS, Container Apps, VMs — the spoke chooses.</span></div></div>
-          <div class="row"><div class="ico">&#9645;</div><div><strong>App-specific data</strong><span class="desc">Dedicated databases, storage, caches.</span></div></div>
-          <div class="row"><div class="ico">&#8635;</div><div><strong>Independent scaling</strong><span class="desc">Autonomous DevOps cycle. Deploy when ready.</span></div></div>
-          <div class="row"><div class="ico">&#8984;</div><div><strong>Own integrations</strong><span class="desc">Spoke-specific data sources and external APIs.</span></div></div>
-        </div>
-      </div>
-      <div class="compare-col" style="--accent: var(--primary);">
-        <div class="head" style="color: var(--bg);"><span>Hub · central governance</span><span class="caption mono" style="color: var(--bg); opacity: 0.7;">owns: gateway · policy · cost · audit</span></div>
-        <div class="body">
-          <div class="row"><div class="ico">&#9960;</div><div><strong>Single entry point</strong><span class="desc">All AI API calls through one gateway.</span></div></div>
-          <div class="row"><div class="ico">&#9878;</div><div><strong>Policy enforcement</strong><span class="desc">Consistent rules across all spokes.</span></div></div>
-          <div class="row"><div class="ico">$</div><div><strong>Cost attribution</strong><span class="desc">Unified billing, chargeback, budget alerts.</span></div></div>
-          <div class="row"><div class="ico">&#128203;</div><div><strong>Complete audit trail</strong><span class="desc">Full traceability for compliance — 7 years.</span></div></div>
-        </div>
-      </div>
-    </div>
-    <p class="reveal d8 caption center" style="margin: 0.6rem auto 0; max-width: 80ch;">
-      Connecting them: a single <span class="text-yellow">contract</span> — VNet peering carrying Entra-authenticated, policy-checked traffic. Anything else is denied at the network layer.
-    </p>
-  </div>
-  <div class="slide-marker">37 / 47</div>
-</section>
-
-<!-- SLIDE 37 -->
-<section class="slide" data-title="The Contract">
-  <div class="slide-eyebrow">5.3 · The contract between hub and spoke</div>
-  <div class="slide-content stack" style="justify-content: center;">
-    <h1 class="reveal d1 title-1">A handshake <em class="serif">in code</em>.</h1>
-    <p class="reveal d2 lede">
-      'Contract' is not a metaphor. It is a versioned manifest, signed
-      at deploy time, that declares what a spoke is allowed to do and what
-      the hub guarantees in return. If either side breaks it, the route fails closed.
-    </p>
-    <div class="reveal d4 grid-2" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: stretch; gap: clamp(0.8rem, 1.6vw, 1.6rem);">
-      <div class="card-panel-glass">
-        <div class="kicker text-yellow">Spoke declares</div>
-        <ul class="bullet-list" style="--accent: var(--teal); margin-top: 0.6em;">
-          <li><strong>Identity.</strong> The Entra principal(s) that will originate AI calls.</li>
-          <li><strong>Use cases.</strong> Named applications — e.g. <em class="mono">finance-arr-agent</em>.</li>
-          <li><strong>Models requested.</strong> From the central allow-list, with rate limits.</li>
-          <li><strong>Data scopes.</strong> Which Unity Catalog assets the spoke needs to read.</li>
-          <li><strong>Cost ceiling.</strong> Monthly token budget, with kill-switch behaviour.</li>
-        </ul>
-      </div>
-      <div class="card-panel-glass">
-        <div class="kicker text-yellow">Hub guarantees</div>
-        <ul class="bullet-list" style="--accent: var(--primary); margin-top: 0.6em;">
-          <li><strong>Gateway availability.</strong> APIM SLO + multi-region failover.</li>
-          <li><strong>Policy stability.</strong> Versioned policies; breaking changes announced.</li>
-          <li><strong>Audit retention.</strong> 7 years immutable, with legal hold support.</li>
-          <li><strong>Cost transparency.</strong> Daily chargeback feed with line-item detail.</li>
-          <li><strong>Incident SLA.</strong> Defined response times for security &amp; availability events.</li>
-        </ul>
-      </div>
-    </div>
-    <div class="reveal d8 code-block" style="margin-top: 1rem; font-size: clamp(0.6rem, 0.85vw, 0.75rem);">
-<span class="cc"># Spoke contract manifest (YAML)</span>
-<span class="ck">spoke:</span>
-  <span class="ck">id:</span> <span class="cv">finance-emea</span>
-  <span class="ck">owner:</span> <span class="cv">finance-ai-team@enterprise.com</span>
-  <span class="ck">identities:</span>
-    - <span class="ct">"spn-finance-arr-agent"</span>
-    - <span class="ct">"spn-finance-nps-agent"</span>
-  <span class="ck">models:</span>
-    - <span class="ct">gpt-4o:</span> { <span class="ck">qpm:</span> <span class="ct">1000</span>, <span class="ck">tpm:</span> <span class="ct">1M</span> }
-  <span class="ck">data_scopes:</span>
-    - <span class="ct">unity://finance.metrics/*</span>
-    - <span class="ct">unity://finance.arr_by_region</span>
-  <span class="ck">cost_ceiling_usd:</span> <span class="ct">5000</span>  <span class="cc"># monthly, kill-switch at 110%</span></div>
-  </div>
-  <div class="slide-marker">38 / 47</div>
-</section>
-
-<!-- SLIDE 38 -->
-<section class="slide" data-title="Complete Architecture">
-  <div class="slide-eyebrow">5.4 · The complete architecture</div>
-  <div class="slide-content stack center" style="justify-content: center;">
-    <h1 class="reveal d1 title-1">The AI+ FACTORY Hub — <span class="text-yellow">end to end</span>.</h1>
-    <p class="reveal d2 lede" style="margin: 0 auto;">
-      Landing Zone · Citadel · Data · Agents · Hub-spoke. Read bottom-to-top.
-    </p>
-    <div class="reveal d4 arch-stack" style="margin-top: clamp(0.6rem, 1.6vh, 1rem);">
-      <div class="arch-row" style="--accent: var(--primary); border-left-color: var(--primary);">
-        <span class="ico">&#10687;</span>
-        <div><div class="ttl">Agentic Layer · Hub-Spoke Topology</div><div class="sub">Citadel hub · Finance · HR · Legal · Ops · IT spokes</div></div>
-        <span class="tag">5</span>
-      </div>
-      <div class="arch-row" style="--accent: var(--green); border-left-color: var(--green);">
-        <span class="ico">&#9641;</span>
-        <div><div class="ttl">Data Foundation</div><div class="sub">MetricFlow · Unity Catalog · OneLake · Databricks SQL</div></div>
-        <span class="tag">3</span>
-      </div>
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; border: 1px solid var(--border); border-radius: 6px; padding: 4px; background: rgba(255,255,255,0.02);">
-        <div style="padding: 0.55em 0.7em; border-radius: 4px; color: #fff; font-weight: 700; font-size: clamp(0.65rem, 0.9vw, 0.85rem); display: flex; align-items: center; gap: 0.4em; background: var(--purple);"><span style="width: 16px; height: 16px; background: rgba(255,255,255,0.25); border-radius: 3px;"></span>L4 · Security</div>
-        <div style="padding: 0.55em 0.7em; border-radius: 4px; color: #fff; font-weight: 700; font-size: clamp(0.65rem, 0.9vw, 0.85rem); display: flex; align-items: center; gap: 0.4em; background: var(--teal);"><span style="width: 16px; height: 16px; background: rgba(255,255,255,0.25); border-radius: 3px;"></span>L3 · Identity</div>
-        <div style="padding: 0.55em 0.7em; border-radius: 4px; color: #fff; font-weight: 700; font-size: clamp(0.65rem, 0.9vw, 0.85rem); display: flex; align-items: center; gap: 0.4em; background: var(--orange);"><span style="width: 16px; height: 16px; background: rgba(255,255,255,0.25); border-radius: 3px;"></span>L2 · Control Plane</div>
-        <div style="padding: 0.55em 0.7em; border-radius: 4px; color: #fff; font-weight: 700; font-size: clamp(0.65rem, 0.9vw, 0.85rem); display: flex; align-items: center; gap: 0.4em; background: var(--blue);"><span style="width: 16px; height: 16px; background: rgba(255,255,255,0.25); border-radius: 3px;"></span>L1 · Gateway</div>
-      </div>
-      <div class="arch-row" style="--accent: var(--blue); border-left-color: var(--blue);">
-        <span class="ico">&#9729;</span>
-        <div><div class="ttl">Azure Landing Zone</div><div class="sub">Network &amp; security · identity &amp; access · operations &amp; monitoring</div></div>
-        <span class="tag">1</span>
-      </div>
-    </div>
-    <p class="reveal d8 serif" style="font-size: clamp(1rem, 1.6vw, 1.4rem); color: var(--text-2); margin-top: 1rem; max-width: 70ch;">
-      A single platform vision: secure infrastructure, governed AI, trusted data, autonomous agents, scalable topology.
-    </p>
-  </div>
-  <div class="slide-marker">39 / 47</div>
-</section>
-
-<!-- SLIDE 39 -->
-<section class="slide" data-title="Key Metrics">
-  <div class="slide-eyebrow">5.5 · Platform specifications</div>
-  <div class="slide-content stack center" style="justify-content: center;">
-    <h1 class="reveal d1 title-1">Platform <span class="text-yellow">specifications</span>.</h1>
-    <p class="reveal d2 lede" style="margin: 0 auto;">
-      Key technical specifications and performance characteristics of the AI+ FACTORY Hub platform.
-    </p>
-    <div class="reveal d4 grid-4" style="margin-top: clamp(0.8rem, 2vh, 1.4rem); gap: clamp(0.6rem, 1.2vw, 1rem);">
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 6px; padding: clamp(0.9rem, 1.4vw, 1.3rem);">
-        <div style="font-size: clamp(1.5rem, 2.6vw, 2.3rem); font-weight: 900; color: var(--primary); line-height: 1; letter-spacing: -0.02em;">2–4<span style="font-size: 0.5em; color: var(--text-2);">&nbsp;wks</span></div>
-        <div style="font-size: var(--caption); color: var(--text-2); margin-top: 0.5em; line-height: 1.4;"><strong style="color:#fff;">Landing Zone deployment.</strong> From greenfield to governed infrastructure via Bicep/Terraform IaC.</div>
-      </div>
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 6px; padding: clamp(0.9rem, 1.4vw, 1.3rem);">
-        <div style="font-size: clamp(1.5rem, 2.6vw, 2.3rem); font-weight: 900; color: var(--primary); line-height: 1; letter-spacing: -0.02em;">&lt;100<span style="font-size: 0.6em; color: var(--text-2);">ms</span></div>
-        <div style="font-size: var(--caption); color: var(--text-2); margin-top: 0.5em; line-height: 1.4;"><strong style="color:#fff;">APIM gateway latency.</strong> P99 response time for authenticated, rate-limited, content-safe requests.</div>
-      </div>
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 6px; padding: clamp(0.9rem, 1.4vw, 1.3rem);">
-        <div style="font-size: clamp(1.5rem, 2.6vw, 2.3rem); font-weight: 900; color: var(--primary); line-height: 1; letter-spacing: -0.02em;">7<span style="font-size: 0.5em; color: var(--text-2);">&nbsp;yrs</span></div>
-        <div style="font-size: var(--caption); color: var(--text-2); margin-top: 0.5em; line-height: 1.4;"><strong style="color:#fff;">Audit retention.</strong> Hash-chained, immutable WORM storage with legal hold support.</div>
-      </div>
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 6px; padding: clamp(0.9rem, 1.4vw, 1.3rem);">
-        <div style="font-size: clamp(1.5rem, 2.6vw, 2.3rem); font-weight: 900; color: var(--primary); line-height: 1; letter-spacing: -0.02em;">0<span style="font-size: 0.6em; color: var(--text-2);"> secrets</span></div>
-        <div style="font-size: var(--caption); color: var(--text-2); margin-top: 0.5em; line-height: 1.4;"><strong style="color:#fff;">In the data path.</strong> Entirely managed identity chain: no PATs, no connection strings, no API keys.</div>
-      </div>
-    </div>
-    <p class="reveal d8 caption" style="margin-top: 1rem; max-width: 76ch;">
-      Each specification ties back to a specific architectural decision — Landing Zone deployment time, APIM performance, immutable audit, zero-trust identity.
-    </p>
-  </div>
-  <div class="slide-marker">40 / 47</div>
-</section>
-
-<!-- SLIDE 40 -->
-<section class="slide" data-title="Who Builds What">
-  <div class="slide-eyebrow">5.6 · Operating model</div>
-  <div class="slide-content stack" style="justify-content: center;">
-    <h1 class="reveal d1 title-1">Three teams. <span class="text-yellow">Clear boundaries.</span></h1>
-    <p class="reveal d2 lede">
-      The factory does not collapse responsibilities. It separates them — on
-      purpose — so that the platform team, the spoke teams, and the central
-      AI governance function each know exactly what they own and what they consume.
-    </p>
-    <div class="reveal d4 grid-3" style="margin-top: clamp(0.6rem, 1.6vh, 1rem); align-items: stretch;">
-      <div class="card-panel" style="--accent: var(--blue);">
-        <div class="kicker text-blue">Platform team</div>
-        <h3 class="title-2" style="margin-top: 0.4em;">Owns the hub.</h3>
-        <ul class="bullet-list" style="--accent: var(--blue); margin-top: 0.5em;">
-          <li>Landing Zone &amp; networking</li>
-          <li>Citadel layers 1–4 in code</li>
-          <li>Gateway policy library</li>
-          <li>Identity model · Entra apps</li>
-          <li>Audit pipeline · log retention</li>
-        </ul>
-      </div>
-      <div class="card-panel" style="--accent: var(--teal);">
-        <div class="kicker text-teal">Spoke teams</div>
-        <h3 class="title-2" style="margin-top: 0.4em;">Build the agents.</h3>
-        <ul class="bullet-list" style="--accent: var(--teal); margin-top: 0.5em;">
-          <li>Pick the framework that fits</li>
-          <li>Author registry entries</li>
-          <li>Define use-case evals</li>
-          <li>Own application data &amp; compute</li>
-          <li>Sign and renew the contract</li>
-        </ul>
-      </div>
-      <div class="card-panel" style="--accent: var(--purple);">
-        <div class="kicker" style="color:#C57BBC;">AI governance</div>
-        <h3 class="title-2" style="margin-top: 0.4em;">Sets the rules.</h3>
-        <ul class="bullet-list" style="--accent: var(--purple); margin-top: 0.5em;">
-          <li>Acceptable-use &amp; safety policy</li>
-          <li>Model allow-list</li>
-          <li>Eval &amp; certification gates</li>
-          <li>Incident response playbook</li>
-          <li>Regulator interface</li>
-        </ul>
-      </div>
-    </div>
-    <p class="reveal d8 caption center" style="margin: 0.6rem auto 0; max-width: 84ch;">
-      The platform team enables. The spokes innovate. Governance certifies. None of the three can do the others' jobs — and that is the point.
-    </p>
-  </div>
-  <div class="slide-marker">41 / 47</div>
-</section>
-
-<!-- SLIDE 41 -->
-<section class="slide" data-title="Day in the Life">
-  <div class="slide-eyebrow">A day in the life · one prompt traced end-to-end</div>
-  <div class="slide-content stack" style="justify-content: center;">
-    <h1 class="reveal d1 title-1" style="font-size: clamp(1.4rem, 3.5vw, 2.8rem);">One prompt. <span class="text-yellow">Eight hops.</span> Every one logged.</h1>
-    <p class="reveal d2 lede" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">
-      The actual life of one request — from keystroke to certified answer.
-    </p>
-    <div class="reveal d4" style="margin-top: clamp(0.4rem, 1vh, 0.6rem);">
-      <table class="data-table" style="font-size: clamp(0.7rem, 1vw, 0.88rem);">
-        <thead><tr><th style="width:2.5em; padding: 0.5em 0.6em;">#</th><th style="padding: 0.5em 0.6em;">Where</th><th style="padding: 0.5em 0.6em;">What happens</th><th style="width: 10em; padding: 0.5em 0.6em;">Audit</th></tr></thead>
-        <tbody>
-          <tr><td style="padding: 0.4em 0.6em;"><strong>1</strong></td><td style="padding: 0.4em 0.6em;">Spoke client</td><td style="padding: 0.4em 0.6em;">User types prompt; client mints OBO token.</td><td style="padding: 0.4em 0.6em;">Client · user · device</td></tr>
-          <tr><td style="padding: 0.4em 0.6em;"><strong>2</strong></td><td style="padding: 0.4em 0.6em;">APIM Gateway</td><td style="padding: 0.4em 0.6em;">Token verified; rate quota; content-safety + PII scan.</td><td style="padding: 0.4em 0.6em;">Policy · tokens-in</td></tr>
-          <tr><td style="padding: 0.4em 0.6em;"><strong>3</strong></td><td style="padding: 0.4em 0.6em;">Control plane</td><td style="padding: 0.4em 0.6em;">Use-case resolved; allowed model pool selected.</td><td style="padding: 0.4em 0.6em;">Use case · model · route</td></tr>
-          <tr><td style="padding: 0.4em 0.6em;"><strong>4</strong></td><td style="padding: 0.4em 0.6em;">Reasoning layer</td><td style="padding: 0.4em 0.6em;">Model plans steps, decides to call <code class="mono">resolve_metric</code> tool.</td><td style="padding: 0.4em 0.6em;">Plan hash · tool intent</td></tr>
-          <tr><td style="padding: 0.4em 0.6em;"><strong>5</strong></td><td style="padding: 0.4em 0.6em;">Databricks SQL</td><td style="padding: 0.4em 0.6em;">MetricFlow resolves ARR under director's OBO identity.</td><td style="padding: 0.4em 0.6em;">SQL hash · rows scanned</td></tr>
-          <tr><td style="padding: 0.4em 0.6em;"><strong>6</strong></td><td style="padding: 0.4em 0.6em;">Unity Catalog</td><td style="padding: 0.4em 0.6em;">Row filter applies scope; column mask evaluates.</td><td style="padding: 0.4em 0.6em;">Filter · mask · lineage</td></tr>
-          <tr><td style="padding: 0.4em 0.6em;"><strong>7</strong></td><td style="padding: 0.4em 0.6em;">Reasoning layer</td><td style="padding: 0.4em 0.6em;">Model composes natural-language answer with citations.</td><td style="padding: 0.4em 0.6em;">Output hash · tokens-out</td></tr>
-          <tr><td style="padding: 0.4em 0.6em;"><strong>8</strong></td><td style="padding: 0.4em 0.6em;">APIM Gateway</td><td style="padding: 0.4em 0.6em;">Response PII rescan; immutable audit event written.</td><td style="padding: 0.4em 0.6em;">Final event · chain hash</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="reveal d8 caption center" style="margin-top: 0.6rem; max-width: 78ch;">
-      Replace the user with a junior analyst, and the answer changes — row filter narrows, mask engages — without the agent, the model, or the spoke knowing why.
-    </p>
-  </div>
-  <div class="slide-marker">42 / 47</div>
+  <div class="slide-marker">40 / 48</div>
 </section>
 
 <!-- SLIDE 42 -->
@@ -1873,34 +1851,34 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       The architecture is opinionated, which makes the rollout sequential and predictable. Each phase produces something usable.
     </p>
     <div class="reveal d4 stack-tight" style="margin-top: clamp(0.3rem, 0.8vh, 0.5rem); gap: clamp(0.3rem, 0.7vh, 0.5rem);">
+      <div class="agenda-card" style="--accent: var(--orange); padding: clamp(0.4rem, 1vw, 0.7rem) clamp(0.7rem, 1.4vw, 1.2rem);">
+        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D1–7</span>
+        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 1 · Design topology</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Define hub-spoke architecture. VNet address spaces, peering strategy, subscription layout, and spoke onboarding contract. Topology blueprint signed off.</div></div>
+        <span class="duration">1 wk</span>
+      </div>
       <div class="agenda-card" style="--accent: var(--blue); padding: clamp(0.4rem, 1vw, 0.7rem) clamp(0.7rem, 1.4vw, 1.2rem);">
-        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D1–15</span>
-        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 1 · Land</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Adopt or extend the Azure Landing Zone. Subscriptions, networking, identity, baseline policy. Bicep/Terraform modules deployed.</div></div>
+        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D8–22</span>
+        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 2 · Land</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Adopt or extend the Azure Landing Zone. Subscriptions, networking, identity, baseline policy. Bicep/Terraform modules deployed.</div></div>
         <span class="duration">2 wks</span>
       </div>
       <div class="agenda-card" style="--accent: var(--purple); padding: clamp(0.4rem, 1vw, 0.7rem) clamp(0.7rem, 1.4vw, 1.2rem);">
-        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D16–45</span>
-        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 2 · Govern</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Citadel layers 1–4 deployed as code. Gateway policies, control plane, agent identity, security fabric. APIM policies versioned in Git.</div></div>
+        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D23–52</span>
+        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 3 · Govern</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Citadel layers 1–4 deployed as code. Gateway policies, control plane, agent identity, security fabric. APIM policies versioned in Git.</div></div>
         <span class="duration">4 wks</span>
       </div>
       <div class="agenda-card" style="--accent: var(--green); padding: clamp(0.4rem, 1vw, 0.7rem) clamp(0.7rem, 1.4vw, 1.2rem);">
-        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D40–70</span>
-        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 3 · Curate data</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Unity Catalog &amp; MetricFlow stand up. Three to five Core metrics certified. Row filters, column masks, lineage tracking active.</div></div>
+        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D47–77</span>
+        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 4 · Curate data</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Unity Catalog &amp; MetricFlow stand up. Three to five Core metrics certified. Row filters, column masks, lineage tracking active.</div></div>
         <span class="duration">4 wks</span>
       </div>
       <div class="agenda-card" style="--accent: var(--teal); padding: clamp(0.4rem, 1vw, 0.7rem) clamp(0.7rem, 1.4vw, 1.2rem);">
-        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D60–90</span>
-        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 4 · First spoke</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Pilot business-unit spoke onboarded against the contract. First production agent under audit. End-to-end identity chain validated.</div></div>
+        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D67–97</span>
+        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 5 · First spoke</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Pilot business-unit spoke onboarded against the contract. First production agent under audit. End-to-end identity chain validated.</div></div>
         <span class="duration">4 wks</span>
-      </div>
-      <div class="agenda-card" style="--accent: var(--orange); padding: clamp(0.4rem, 1vw, 0.7rem) clamp(0.7rem, 1.4vw, 1.2rem);">
-        <span class="num" style="font-size: clamp(1.2rem, 2.4vw, 1.8rem);">D90+</span>
-        <div><div class="title" style="font-size: clamp(0.85rem, 1.3vw, 1.1rem);">Phase 5 · Scale</div><div class="desc" style="font-size: clamp(0.7rem, 1vw, 0.85rem);">Onboard additional spokes against the same contract. Each new spoke is days, not quarters. Governance inherited automatically.</div></div>
-        <span class="duration">ongoing</span>
       </div>
     </div>
   </div>
-  <div class="slide-marker">43 / 47</div>
+  <div class="slide-marker">41 / 48</div>
 </section>
 
 <!-- SLIDE 43 -->
@@ -1938,7 +1916,7 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </div>
     </div>
   </div>
-  <div class="slide-marker">44 / 47</div>
+  <div class="slide-marker">42 / 48</div>
 </section>
 
 <!-- SLIDE 44 -->
@@ -1950,7 +1928,7 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       <div class="reveal d1 quote-block">
         Governance is not a policy document.<br>It is an <span class="text-yellow">architecture</span>.
       </div>
-      <div class="reveal d4 quote-attr" style="margin-top: 1.2em;">— The AI+ FACTORY Hub thesis</div>
+      <div class="reveal d4 quote-attr" style="margin-top: 1.2em;">— The <span class="text-yellow">AI+</span> <span class="text-blue">FACTORY</span> <span class="text-red">Hub</span> thesis</div>
     </div>
     <div class="stack" style="flex: 1; max-width: 44ch;">
       <p class="reveal d6 body">
@@ -1960,11 +1938,11 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
       </p>
       <p class="reveal d8 body">
         That is the difference between an AI strategy and an AI <em>platform</em> —
-        and it is what the AI+ FACTORY Hub delivers.
+        and it is what the <span class="text-yellow">AI+</span> <span class="text-blue">FACTORY</span> <span class="text-red">Hub</span> delivers.
       </p>
     </div>
   </div>
-  <div class="slide-marker">45 / 47</div>
+  <div class="slide-marker">43 / 48</div>
 </section>
 
 <!-- SLIDE 45 -->
@@ -1974,28 +1952,28 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
     <h1 class="reveal d1 title-display">In <span class="text-yellow">summary</span>.</h1>
     <div class="stack-tight" style="margin-top: clamp(0.6rem, 1.6vh, 1.2rem);">
       <div class="reveal-x d2 row middle" style="gap: 1.2rem; padding: 0.8em 0; border-bottom: 1px solid var(--border);">
-        <span class="serif text-blue" style="font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">01</span>
-        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);">The <span class="text-blue">Landing Zone</span> gives us secure infrastructure in two weeks — hub-spoke VNets, private endpoints, NSGs, Azure Firewall, all via Bicep/Terraform.</p>
+        <span class="serif" style="color:#FFAA66; font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">01</span>
+        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);"><span style="color:#FFAA66;">Hub-spoke topology</span> is the overarching structure — one central governance hub, many business-unit spokes, connected by VNet peering and governed by contract.</p>
       </div>
       <div class="reveal-x d3 row middle" style="gap: 1.2rem; padding: 0.8em 0; border-bottom: 1px solid var(--border);">
-        <span class="serif" style="color:#C57BBC; font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">02</span>
-        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);"><span style="color:#C57BBC;">Citadel</span>'s four layers turn AI into a governed platform capability — APIM policies, Entra identity, managed identities, content safety, audit logging.</p>
+        <span class="serif text-blue" style="font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">02</span>
+        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);">The <span class="text-blue">Landing Zone</span> gives us secure infrastructure in two weeks — hub-spoke VNets, private endpoints, NSGs, Azure Firewall, all via Bicep/Terraform.</p>
       </div>
       <div class="reveal-x d4 row middle" style="gap: 1.2rem; padding: 0.8em 0; border-bottom: 1px solid var(--border);">
-        <span class="serif text-green" style="font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">03</span>
-        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);">The <span class="text-green">data foundation</span> ensures one metric definition, identity-aware row filters, column masks, and full lineage for every query — Unity Catalog + MetricFlow + OneLake.</p>
+        <span class="serif" style="color:#C57BBC; font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">03</span>
+        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);"><span style="color:#C57BBC;">Citadel</span>'s four layers turn AI into a governed platform capability — APIM policies, Entra identity, managed identities, content safety, audit logging.</p>
       </div>
       <div class="reveal-x d5 row middle" style="gap: 1.2rem; padding: 0.8em 0; border-bottom: 1px solid var(--border);">
-        <span class="serif text-teal" style="font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">04</span>
-        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);">The <span class="text-teal">agentic layer</span> separates reasoning, context, and execution — framework-agnostic, tool-gated, fully audited, with governed lifecycle management.</p>
+        <span class="serif text-green" style="font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">04</span>
+        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);">The <span class="text-green">data foundation</span> ensures one metric definition, identity-aware row filters, column masks, and full lineage for every query — Unity Catalog + MetricFlow + OneLake.</p>
       </div>
       <div class="reveal-x d6 row middle" style="gap: 1.2rem; padding: 0.8em 0;">
-        <span class="serif" style="color:#FFAA66; font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">05</span>
-        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);"><span style="color:#FFAA66;">Hub-spoke topology</span> scales the platform by addition, not rewrite — one contract, many spokes, VNet peering, policy inheritance.</p>
+        <span class="serif text-teal" style="font-size: clamp(1.4rem,2.6vw,2.2rem); font-style: italic; min-width: 2em;">05</span>
+        <p class="body-strong" style="font-size: clamp(0.95rem, 1.4vw, 1.2rem);">The <span class="text-teal">agentic layer</span> separates reasoning, context, and execution — framework-agnostic, tool-gated, fully audited, with governed lifecycle management.</p>
       </div>
     </div>
   </div>
-  <div class="slide-marker">46 / 47</div>
+  <div class="slide-marker">44 / 48</div>
 </section>
 
 <!-- SLIDE 46 -->
@@ -2006,7 +1984,7 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
     <h1 class="reveal d2 wordmark" style="font-size: clamp(3rem, 10vw, 8rem); line-height: 0.85;">Thank<br>you<span class="text-yellow">.</span></h1>
     <div class="yellow-line" style="margin: 0.4em 0;"></div>
     <div class="reveal d6 lede" style="max-width: 64ch;">
-      The AI+ FACTORY Hub is ready to host your first governed agent. Bring a use case — we'll bring the platform.
+      The <span class="text-yellow">AI+</span> <span class="text-blue">FACTORY</span> <span class="text-red">Hub</span> is ready to host your first governed agent. Bring a use case — we'll bring the platform.
     </div>
     <div class="reveal d8 row" style="gap: 1rem; flex-wrap: wrap; margin-top: 0.6rem;">
       <span class="chip chip-yellow"><span class="chip-dot"></span>Architecture review · 60 min</span>
@@ -2018,7 +1996,7 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
     <span class="caption mono">EY · Confidential</span>
     <span class="caption mono">Press &larr; to revisit · Esc to overview</span>
   </div>
-  <div class="slide-marker">47 / 47</div>
+  <div class="slide-marker">45 / 48</div>
 </section>
 
 <script>
@@ -2027,6 +2005,17 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
   const slides = Array.from(document.querySelectorAll('.slide'));
   const navDots = document.getElementById('navDots');
   const progressFill = document.getElementById('progressFill');
+  const total = slides.length;
+
+  slides.forEach((s, i) => {
+    let marker = s.querySelector(':scope > .slide-marker');
+    if (!marker) {
+      marker = document.createElement('div');
+      marker.className = 'slide-marker';
+      s.appendChild(marker);
+    }
+    marker.textContent = (i + 1) + ' / ' + total;
+  });
 
   slides.forEach((s, i) => {
     const b = document.createElement('button');
@@ -2074,6 +2063,19 @@ html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
   const kbdNext = document.getElementById('kbdNext');
   if (kbdPrev) kbdPrev.addEventListener('click', () => go(-1));
   if (kbdNext) kbdNext.addEventListener('click', () => go(1));
+
+  document.querySelectorAll('.agenda-card[data-target]').forEach(card => {
+    card.setAttribute('role', 'link');
+    card.setAttribute('tabindex', '0');
+    const jump = () => {
+      const target = document.getElementById(card.dataset.target);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    card.addEventListener('click', jump);
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(); }
+    });
+  });
 
   slides[0].classList.add('visible');
   if (dots[0]) dots[0].classList.add('active');

@@ -682,3 +682,17 @@
 | 00:22 | Edited presentation/ai-plus-hub-factory-business.html | 2→2 lines | ~28 |
 | 00:22 | Session end: 32 writes across 5 files (deploy-s3.sh, docs.json, DEPLOY.md, presentations.mdx, ai-plus-hub-factory-business.html) | 5 reads | ~16797 tok |
 | 00:24 | Session end: 32 writes across 5 files (deploy-s3.sh, docs.json, DEPLOY.md, presentations.mdx, ai-plus-hub-factory-business.html) | 5 reads | ~16797 tok |
+
+## Session: 2026-05-04 21:57
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 22:00 | Edited presentation/ai-plus-hub-factory-technical.html | added 1 condition(s) | ~142 |
+| 22:00 | dynamic slide-marker numbering (N / total) | presentation/ai-plus-hub-factory-technical.html | done | ~1k |
+| 22:00 | Session end: 1 writes across 1 files (ai-plus-hub-factory-technical.html) | 1 reads | ~152 tok |
+| 22:02 | dedupe duplicate <head>/<body> blocks (broke nav buttons) | presentation/ai-plus-hub-factory-technical.html | done | ~1k |
+| 22:02 | Session end: 1 writes across 1 files (ai-plus-hub-factory-technical.html) | 1 reads | ~49306 tok |
+| 22:03 | Edited presentation/ai-plus-hub-factory-technical.html | 1→3 lines | ~175 |
+| 22:03 | Edited presentation/ai-plus-hub-factory-technical.html | added 2 condition(s) | ~162 |
+| 22:03 | agenda cards now link to chapter dividers (click + keyboard) | presentation/ai-plus-hub-factory-technical.html | done | ~1k |
+| 22:03 | Session end: 3 writes across 1 files (ai-plus-hub-factory-technical.html) | 1 reads | ~49668 tok |

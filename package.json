@@ -10,7 +10,7 @@
     "deploy": "./deploy-s3.sh"
   },
   "devDependencies": {
-    "mintlify": "^4.0.0"
+    "mintlify": "^4.2.546"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -23,5 +23,8 @@
     "documentation"
   ],
   "author": "AI Landing Zone Team",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "sharp": "^0.34.5"
+  }
 }
